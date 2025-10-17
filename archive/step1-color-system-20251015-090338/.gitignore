@@ -1,0 +1,24 @@
+# Deployment credentials - NEVER commit these!
+deploy.conf
+.env
+
+# Generated icons (regenerate as needed)
+icon-192.png
+icon-512.png
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp

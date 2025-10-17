@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Architecture Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        button {
+            margin: 10px 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        #output {
+            background: #f0f0f0;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+            font-family: monospace;
+            min-height: 200px;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>EarTrainer - New Architecture Demo</h1>
+    <p>This demonstrates the platform-agnostic architecture. The same core logic works on web, iOS, Android, etc.</p>
+
+    <div>
+        <h2>Controls</h2>
+        <button id="initBtn">1. Initialize Audio</button>
+        <button id="detectBtn" disabled>2. Detect Pitch (sing into mic)</button>
+        <button id="playBtn" disabled>3. Play 440Hz Tone</button>
+        <button id="stopBtn" disabled>4. Stop</button>
+    </div>
+
+    <div id="output">
+        <div class="info">Click "Initialize Audio" to start...</div>
+    </div>
+
+    <!-- Load the new architecture -->
+    <script src="adapters/web/WebStorageService.js"></script>
+    <script src="adapters/web/WebAudioService.js"></script>
+    <script src="core/audio/PitchDetectionEngine.js"></script>
+
+    <script>
+        // ============================================
+        // This is the APPLICATION CODE
+        // Notice: No Web Audio API calls!
+        // This code could run on iOS, Android, etc.
+        // with different service implementations
+        // ============================================
+
+        let storage, audioService, pitchEngine;
+        let detectionInterval = null;
+
+        const output = document.getElementById('output');
+        const initBtn = document.getElementById('initBtn');
+        const detectBtn = document.getElementById('detectBtn');
+        const playBtn = document.getElementById('playBtn');
+        const stopBtn = document.getElementById('stopBtn');
+
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            output.appendChild(div);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        // Initialize services
+        initBtn.addEventListener('click', async () => {
+            try {
+                log('Initializing services...', 'info');
+
+                // Create platform-specific service implementations
+                storage = new WebStorageService('demo_');
+                audioService = new WebAudioService(storage);
+
+                // Initialize audio (platform-agnostic)
+                await audioService.initialize();
+
+                log(`✓ Audio initialized (${audioService.getSampleRate()}Hz)`, 'success');
+
+                // Create core business logic (platform-agnostic!)
+                pitchEngine = new PitchDetectionEngine(audioService);
+                pitchEngine.enableDiagnostics((data) => {
+                    console.log('Diagnostics:', data);
+                });
+                pitchEngine.start();
+
+                log('✓ Pitch detection engine started', 'success');
+                log('✓ Ready! Sing into your microphone.', 'success');
+
+                // Enable buttons
+                initBtn.disabled = true;
+                detectBtn.disabled = false;
+                playBtn.disabled = false;
+                stopBtn.disabled = false;
+
+            } catch (error) {
+                log(`✗ Error: ${error.message}`, 'error');
+            }
+        });
+
+        // Start pitch detection
+        detectBtn.addEventListener('click', () => {
+            if (detectionInterval) {
+                // Stop detection
+                clearInterval(detectionInterval);
+                detectionInterval = null;
+                detectBtn.textContent = '2. Detect Pitch (sing into mic)';
+                log('Pitch detection stopped', 'info');
+            } else {
+                // Start detection
+                log('Starting pitch detection...', 'info');
+                detectBtn.textContent = '2. Stop Detection';
+
+                detectionInterval = setInterval(() => {
+                    // This is pure business logic - works on any platform!
+                    const result = pitchEngine.detectPitch();
+
+                    if (result && result.frequency > 0) {
+                        log(`♪ ${result.note} - ${result.frequency.toFixed(2)}Hz (${result.cents > 0 ? '+' : ''}${result.cents} cents) [${result.method}]`, 'success');
+                    } else if (pitchEngine.lastRejectionReason) {
+                        log(`⚠ ${pitchEngine.lastRejectionReason}`, 'error');
+                    }
+                }, 100);
+            }
+        });
+
+        // Play tone
+        playBtn.addEventListener('click', () => {
+            log('Playing 440Hz (A4) tone...', 'info');
+            // Platform-agnostic tone generation
+            audioService.playTone(440, 2.0, 0.3); // 440Hz, 2 seconds, 30% volume
+
+            setTimeout(() => {
+                log('Tone finished', 'info');
+            }, 2000);
+        });
+
+        // Stop everything
+        stopBtn.addEventListener('click', () => {
+            log('Stopping...', 'info');
+
+            if (detectionInterval) {
+                clearInterval(detectionInterval);
+                detectionInterval = null;
+            }
+
+            if (pitchEngine) {
+                pitchEngine.stop();
+            }
+
+            if (audioService) {
+                audioService.stop();
+            }
+
+            log('✓ All stopped', 'success');
+
+            // Reset buttons
+            initBtn.disabled = false;
+            detectBtn.disabled = true;
+            playBtn.disabled = true;
+            stopBtn.disabled = true;
+            detectBtn.textContent = '2. Detect Pitch (sing into mic)';
+        });
+
+        // ============================================
+        // NOTICE: The code above has ZERO references to:
+        // - Web Audio API
+        // - localStorage
+        // - Any browser-specific APIs
+        //
+        // It only uses the service interfaces!
+        //
+        // To port to iOS:
+        // 1. Implement IOSAudioService
+        // 2. Implement IOSStorageService
+        // 3. Reuse PitchDetectionEngine as-is!
+        // ============================================
+    </script>
+</body>
+</html>

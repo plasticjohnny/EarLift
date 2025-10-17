@@ -1,0 +1,50 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Neon gradient -->
+    <linearGradient id="neonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00ffff;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ff00ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00ffff;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Glow filter -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Dark background -->
+  <rect width="512" height="512" fill="#0a0a1f"/>
+
+  <!-- Neon border -->
+  <rect x="10" y="10" width="492" height="492" fill="none" stroke="url(#neonGrad)" stroke-width="6" rx="80" filter="url(#glow)"/>
+
+  <!-- Musical note made from geometric shapes -->
+  <g filter="url(#glow)">
+    <!-- Note head (circle) -->
+    <circle cx="200" cy="380" r="60" fill="none" stroke="#ff00ff" stroke-width="12"/>
+    <circle cx="200" cy="380" r="60" fill="#ff00ff" opacity="0.3"/>
+
+    <!-- Note stem -->
+    <rect x="254" y="150" width="12" height="240" fill="#00ffff"/>
+
+    <!-- Note flag (curved) -->
+    <path d="M 266 150 Q 320 140, 350 180 Q 320 200, 266 190 Z" fill="#ff00ff"/>
+
+    <!-- Sound waves -->
+    <path d="M 380 280 Q 410 260, 440 280" fill="none" stroke="#00ffff" stroke-width="8" opacity="0.7"/>
+    <path d="M 380 300 Q 420 280, 460 300" fill="none" stroke="#ff00ff" stroke-width="8" opacity="0.6"/>
+    <path d="M 380 320 Q 430 300, 480 320" fill="none" stroke="#00ffff" stroke-width="8" opacity="0.5"/>
+  </g>
+
+  <!-- Small accent dots -->
+  <circle cx="100" cy="100" r="8" fill="#00ffff" filter="url(#glow)"/>
+  <circle cx="412" cy="100" r="8" fill="#ff00ff" filter="url(#glow)"/>
+  <circle cx="100" cy="412" r="8" fill="#ff00ff" filter="url(#glow)"/>
+  <circle cx="412" cy="412" r="8" fill="#00ffff" filter="url(#glow)"/>
+</svg>

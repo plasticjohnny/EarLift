@@ -1,0 +1,33 @@
+{
+  "name": "ToneDeath",
+  "destination": "/",
+  "theme": "sparkly",
+  "server": "ftp.tonedeath.app",
+  "files": {
+    "patterns": [
+      "*.html",
+      "*.css",
+      "*.js",
+      "*.json",
+      "*.png",
+      "*.svg",
+      "*.jpg",
+      "*.jpeg",
+      "*.ico",
+      "*.wav"
+    ],
+    "exclude": [
+      "deploy.sh",
+      "create-icons.html",
+      "example-new-architecture.html"
+    ],
+    "directories": [
+      "core",
+      "adapters",
+      "ui",
+      "lib",
+      "sounds",
+      "images"
+    ]
+  }
+}

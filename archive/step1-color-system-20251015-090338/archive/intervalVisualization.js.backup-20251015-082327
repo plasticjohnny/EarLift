@@ -1,0 +1,3089 @@
+/**
+ * Interval Visualization - WebGL Implementation
+ * Simplified harmonic interference pattern renderer
+ */
+
+class IntervalVisualization {
+    constructor(canvasId = 'intervalVizCanvasWebGL') {
+        this.canvas = document.getElementById(canvasId);
+        if (!this.canvas) {
+            throw new Error(`Canvas with id "${canvasId}" not found`);
+        }
+
+        // Initialize WebGL context
+        this.gl = this.canvas.getContext('webgl', {
+            alpha: true,
+            premultipliedAlpha: false,
+            antialias: false // We'll handle this in shader for performance
+        }) || this.canvas.getContext('experimental-webgl');
+
+        if (!this.gl) {
+            throw new Error('WebGL not supported in this browser');
+        }
+
+        // Simplified settings - only enabled features
+        this.settings = {
+            // Core visualization
+            amplitude: 1.0,
+            harmonicOrder: 5,
+            colorMode: 'piano',
+
+            // Tone settings
+            tone1Color: '#ff0000',
+            tone2Color: '#0000ff',
+            tone1Freq: 440,
+            tone2Freq: 550,
+
+            // Boundary settings
+            useBoundary: true,
+            boundaryRadius: 300,
+            speakerRadius: 30,
+
+            // Intensity settings
+            rootIntensity: 1.0,
+            intervalIntensity: 0.8,
+            intersectionIntensity: 1.2,
+
+            // Gravity wells (enabled - Pulsing Black Holes variant)
+            gravityWell: true,
+            gravityStrength: 170.0,
+            gravityWellCount: 5,
+            gravityVariant5: true, // Pulsing Black Holes
+            eventHorizon: 10.0,
+            pulseDepth: 0.5,
+
+            // Gravity well personality features
+            wellJitter: true,
+            jitterIntensity: 1.0,
+            wellBreathing: true,
+            consonantBreathSpeed: 0.1,
+            dissonantPulseSpeed: 2.0,
+
+            // Root frequency for piano mode
+            rootFreq: 440,
+            rootNote: 'A4',
+
+            // Disabled features - set to false/0 for render method
+            showOverallBeat: false,
+            overallBeatIntensity: 0,
+            showNodePulse: false,
+            nodePulseIntensity: 0,
+            nodePulseColor: '#ffffff',
+            ringBreathing: false,
+            ringBreathingIntensity: 0,
+            heatMap: false,
+            heatMapIntensity: 0,
+            nodeMigration: false,
+            nodeMigrationSpeed: 0,
+            nodeMigrationAnimate: false,
+            nodeDensityFlow: false,
+            nodeDensityIntensity: 0,
+            phaseTrails: false,
+            phaseTrailLength: 0,
+            nodeCoalescence: false,
+            coalescenceStrength: 0,
+            flowField: false,
+            flowTurbulence: 0,
+            depthLayers: false,
+            depthLayerCount: 1,
+            depthParallax: 0,
+            zoneToggle: false,
+            zoneToggleContrast: 0,
+            particleResonance: false,
+            particleCount: 0,
+            particleSize: 0,
+            energyArcs: false,
+            arcThickness: 0,
+            arcBranching: 0,
+            arcWaveAmplitude: 0,
+            pressureWave: false,
+            pressureIntensity: 0,
+            canvasStretch: false,
+            stretchAmount: 0,
+            drumPush: false,
+            drumDepth: 0,
+            gravityVariant1: false,
+            gravityAmpRange: 0,
+            gravityWellSize: 0,
+            gravityVariant2: false,
+            repulsionForce: 0,
+            gravityVariant3: false,
+            vortexSpeed: 0,
+            spiralTightness: 0,
+            gravityVariant4: false,
+            tidalStrength: 0,
+            gravityVariant6: false,
+            attractionRepulsionForce: 0,
+            lensRefraction: false,
+            refractionAmount: 0,
+            lensSize: 0,
+            temporalShift: false,
+            timeOffset: 0,
+            pixelationEffect: false,
+            pixelationSize: 0,
+            vignetteEffect: false,
+            vignetteIntensity: 0,
+            colorGrading: false,
+            gradingIntensity: 0,
+            bloomEffect: false,
+            bloomIntensity: 0,
+            chromaAbber: false,
+            chromaIntensity: 0
+        };
+
+        // Playback state
+        this.isPlayingTone1 = false;
+        this.isPlayingTone2 = false;
+        // Initialize with hardcoded defaults - will be updated from DOM when controls initialize
+        this.tone1Freq = 440;
+        this.tone2Freq = 440;
+        this.rootTone = 1; // Which tone is root (1 or 2)
+
+        // Timing for expand/contract animations
+        this.tone1StartTime = null;
+        this.tone1StopTime = null;
+        this.tone2StartTime = null;
+        this.tone2StopTime = null;
+
+        // Beat amplitude for gravity wells
+        this.beatAmplitude = 0;
+        this.currentBeatAmplitude = 0;
+
+        // Speaker positions (percentage of canvas size)
+        this.tone1X = 0.3;
+        this.tone1Y = 0.5;
+        this.tone2X = 0.7;
+        this.tone2Y = 0.5;
+
+        // Piano chromatic colors - C (Do) = Cyan (home/pleasurable)
+        // Color wheel rotated so Do is cyan
+        this.chromaticColors = [
+            [0.0, 1.0, 1.0],   // C (Do) - Cyan (home)
+            [0.0, 0.5, 1.0],   // C# (Di) - Blue-Cyan
+            [0.0, 0.0, 1.0],   // D (Re) - Blue
+            [0.5, 0.0, 1.0],   // D# (Ri) - Purple
+            [1.0, 0.0, 1.0],   // E (Mi) - Magenta
+            [1.0, 0.0, 0.5],   // F (Fa) - Red-Magenta
+            [1.0, 0.0, 0.0],   // F# (Fi) - Red
+            [1.0, 0.5, 0.0],   // G (Sol) - Orange
+            [1.0, 1.0, 0.0],   // G# (Si) - Yellow
+            [0.5, 1.0, 0.0],   // A (La) - Yellow-Green
+            [0.0, 1.0, 0.0],   // A# (Li) - Green
+            [0.0, 1.0, 0.5]    // B (Ti) - Cyan-Green
+        ];
+
+        // Set canvas size - wait for layout to complete
+        setTimeout(() => {
+            const rect = this.canvas.getBoundingClientRect();
+            const containerWidth = rect.width || 800;
+            const targetHeight = 600;
+
+            // Maintain aspect ratio - use square canvas
+            const size = Math.min(containerWidth, targetHeight);
+
+            this.canvas.width = size;
+            this.canvas.height = size;
+            this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+
+            // Update overlay canvas size too
+            if (this.overlayCanvas) {
+                this.overlayCanvas.width = size;
+                this.overlayCanvas.height = size;
+            }
+
+            console.log('WebGL canvas sized:', this.canvas.width, 'x', this.canvas.height);
+        }, 100);
+
+        // Initialize WebGL
+        this.initShaders();
+        this.initBuffers();
+        this.initUniforms();
+
+        // Animation
+        this.animationFrameId = null;
+        this.startTime = performance.now();
+
+        // Load speaker images - one with white background, one transparent
+        this.speakerImage = new Image();
+        this.speakerImage.src = './images/roundspeaker.png';
+        this.speakerImageTransparent = new Image();
+        this.speakerImageTransparent.src = './images/roundspeaker-transparent.png';
+        this.speakerImageLoaded = false;
+        this.speakerImageTransparentLoaded = false;
+
+        this.speakerImage.onload = () => {
+            this.speakerImageLoaded = true;
+            console.log('Speaker image loaded');
+        };
+        this.speakerImageTransparent.onload = () => {
+            this.speakerImageTransparentLoaded = true;
+            console.log('Speaker transparent image loaded');
+        };
+        this.speakerImage.onerror = () => {
+            console.error('Failed to load speaker image');
+        };
+        this.speakerImageTransparent.onerror = () => {
+            console.error('Failed to load transparent speaker image');
+        };
+
+        // Create overlay canvas for 2D elements (speakers, UI)
+        this.createOverlayCanvas();
+
+        // Initialize audio for tone playback
+        this.initializeAudio();
+
+        // Initialize settings UI
+        this.initializeSettingsUI();
+
+        // Initialize control buttons
+        this.initializeControls();
+
+        console.log('Interval Visualization initialized');
+    }
+
+    initializeAudio() {
+        // Create tone generators for playback
+        this.toneGen1 = new ToneGenerator();
+        this.toneGen2 = new ToneGenerator();
+
+        console.log('Audio initialized - ToneGenerators created:', {
+            toneGen1: !!this.toneGen1,
+            toneGen2: !!this.toneGen2
+        });
+
+        // Audio context for beat detection
+        this.audioContext = null;
+        this.analyser = null;
+        this.analyserDataArray = null;
+    }
+
+    initializeControls() {
+        // Get button elements
+        const playBothBtn = document.getElementById('intervalVizPlayBothBtn');
+        const playTone1Btn = document.getElementById('intervalVizPlayTone1Btn');
+        const playTone2Btn = document.getElementById('intervalVizPlayTone2Btn');
+        const randomizeBtn = document.getElementById('intervalVizRandomizeBtn');
+        const exitBtn = document.getElementById('intervalVizExitBtn');
+
+        // Get frequency controls
+        const tone1FreqSlider = document.getElementById('intervalVizTone1Freq');
+        const tone1FreqNum = document.getElementById('intervalVizTone1FreqNum');
+        const tone2FreqSlider = document.getElementById('intervalVizTone2Freq');
+        const tone2FreqNum = document.getElementById('intervalVizTone2FreqNum');
+
+        console.log('initializeControls - Elements found:', {
+            tone1FreqSlider: !!tone1FreqSlider,
+            tone2FreqSlider: !!tone2FreqSlider,
+            slider1Value: tone1FreqSlider?.value,
+            slider2Value: tone2FreqSlider?.value
+        });
+
+        // Try to read frequencies from DOM, but keep hardcoded defaults if they fail
+        if (tone1FreqSlider && tone1FreqSlider.value) {
+            const freq1 = parseFloat(tone1FreqSlider.value);
+            if (!isNaN(freq1) && freq1 > 0) {
+                this.tone1Freq = freq1;
+            }
+        }
+        if (tone2FreqSlider && tone2FreqSlider.value) {
+            const freq2 = parseFloat(tone2FreqSlider.value);
+            if (!isNaN(freq2) && freq2 > 0) {
+                this.tone2Freq = freq2;
+            }
+        }
+
+        console.log('Initialized frequencies:', this.tone1Freq, this.tone2Freq);
+
+        // Play Both button
+        if (playBothBtn) {
+            console.log('Setting up Play Both button event listener');
+            playBothBtn.addEventListener('click', () => {
+                console.log('Play Both button clicked! isPlayingTone1:', this.isPlayingTone1, 'isPlayingTone2:', this.isPlayingTone2);
+                if (this.isPlayingTone1 || this.isPlayingTone2) {
+                    // Stop both
+                    console.log('Stopping both tones');
+                    this.stopTone1();
+                    this.stopTone2();
+                    playBothBtn.textContent = '▶️ Play Both';
+                } else {
+                    // Play both
+                    console.log('Playing both tones');
+                    this.playTone1();
+                    this.playTone2();
+                    playBothBtn.textContent = '⏸️ Stop';
+                }
+            });
+        } else {
+            console.error('Play Both button not found!');
+        }
+
+        // Play Tone 1 button
+        if (playTone1Btn) {
+            playTone1Btn.addEventListener('click', () => {
+                if (this.isPlayingTone1) {
+                    this.stopTone1();
+                    playTone1Btn.textContent = 'Play';
+                } else {
+                    this.playTone1();
+                    playTone1Btn.textContent = 'Stop';
+                }
+            });
+        }
+
+        // Play Tone 2 button
+        if (playTone2Btn) {
+            playTone2Btn.addEventListener('click', () => {
+                if (this.isPlayingTone2) {
+                    this.stopTone2();
+                    playTone2Btn.textContent = 'Play';
+                } else {
+                    this.playTone2();
+                    playTone2Btn.textContent = 'Stop';
+                }
+            });
+        }
+
+        // Frequency controls - Tone 1
+        if (tone1FreqSlider && tone1FreqNum) {
+            tone1FreqSlider.addEventListener('input', (e) => {
+                this.tone1Freq = parseFloat(e.target.value);
+                tone1FreqNum.value = this.tone1Freq.toFixed(2);
+                if (this.isPlayingTone1) {
+                    this.toneGen1.playTone(this.tone1Freq);
+                }
+            });
+
+            tone1FreqNum.addEventListener('input', (e) => {
+                this.tone1Freq = parseFloat(e.target.value);
+                tone1FreqSlider.value = this.tone1Freq;
+                if (this.isPlayingTone1) {
+                    this.toneGen1.playTone(this.tone1Freq);
+                }
+            });
+        }
+
+        // Frequency controls - Tone 2
+        if (tone2FreqSlider && tone2FreqNum) {
+            tone2FreqSlider.addEventListener('input', (e) => {
+                this.tone2Freq = parseFloat(e.target.value);
+                tone2FreqNum.value = this.tone2Freq.toFixed(2);
+                if (this.isPlayingTone2) {
+                    this.toneGen2.playTone(this.tone2Freq);
+                }
+            });
+
+            tone2FreqNum.addEventListener('input', (e) => {
+                this.tone2Freq = parseFloat(e.target.value);
+                tone2FreqSlider.value = this.tone2Freq;
+                if (this.isPlayingTone2) {
+                    this.toneGen2.playTone(this.tone2Freq);
+                }
+            });
+        }
+
+        // Solfege buttons
+        document.querySelectorAll('.solfege-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const semitones = parseInt(btn.dataset.interval);
+                this.tone2Freq = this.tone1Freq * Math.pow(2, semitones / 12);
+                if (tone2FreqSlider) tone2FreqSlider.value = this.tone2Freq;
+                if (tone2FreqNum) tone2FreqNum.value = this.tone2Freq.toFixed(2);
+
+                // If neither tone is playing, start both
+                if (!this.isPlayingTone1 && !this.isPlayingTone2) {
+                    this.playTone1();
+                    this.playTone2();
+                    if (playBothBtn) playBothBtn.textContent = '⏸️ Stop';
+                } else if (this.isPlayingTone2) {
+                    // Tone 2 is already playing - update frequency without resetting timing
+                    // Call ToneGenerator directly to avoid resetting startTime (no expand animation)
+                    this.toneGen2.playTone(this.tone2Freq);
+                } else {
+                    // Only tone 1 is playing - start tone 2
+                    this.playTone2();
+                }
+            });
+        });
+
+        // Randomize button
+        if (randomizeBtn) {
+            randomizeBtn.addEventListener('click', () => {
+                const minFreq = 100;
+                const maxFreq = 1000;
+                this.tone1Freq = Math.random() * (maxFreq - minFreq) + minFreq;
+                const semitones = Math.floor(Math.random() * 25);
+                this.tone2Freq = this.tone1Freq * Math.pow(2, semitones / 12);
+
+                if (tone1FreqSlider) tone1FreqSlider.value = this.tone1Freq;
+                if (tone1FreqNum) tone1FreqNum.value = this.tone1Freq.toFixed(2);
+                if (tone2FreqSlider) tone2FreqSlider.value = this.tone2Freq;
+                if (tone2FreqNum) tone2FreqNum.value = this.tone2Freq.toFixed(2);
+
+                this.playTone1();
+                this.playTone2();
+                if (playBothBtn) playBothBtn.textContent = '⏸️ Stop';
+            });
+        }
+
+        // Exit button
+        if (exitBtn) {
+            exitBtn.addEventListener('click', () => {
+                this.stop();
+                this.stopTone1();
+                this.stopTone2();
+                document.getElementById('intervalVizExercise').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+            });
+        }
+
+        // Keyboard controls
+        this.handleKeyDown = (e) => {
+            // Only handle arrow keys if the exercise is visible
+            const exerciseVisible = document.getElementById('intervalVizExercise').style.display === 'block';
+            if (!exerciseVisible) return;
+
+            switch(e.key) {
+                case 'ArrowLeft':
+                    // Move tone 2 down by half step (semitone)
+                    e.preventDefault();
+                    this.tone2Freq = this.tone2Freq / Math.pow(2, 1/12);
+                    if (tone2FreqSlider) tone2FreqSlider.value = this.tone2Freq;
+                    if (tone2FreqNum) tone2FreqNum.value = this.tone2Freq.toFixed(2);
+                    if (this.isPlayingTone2) {
+                        this.toneGen2.playTone(this.tone2Freq);
+                    }
+                    break;
+
+                case 'ArrowRight':
+                    // Move tone 2 up by half step (semitone)
+                    e.preventDefault();
+                    this.tone2Freq = this.tone2Freq * Math.pow(2, 1/12);
+                    if (tone2FreqSlider) tone2FreqSlider.value = this.tone2Freq;
+                    if (tone2FreqNum) tone2FreqNum.value = this.tone2Freq.toFixed(2);
+                    if (this.isPlayingTone2) {
+                        this.toneGen2.playTone(this.tone2Freq);
+                    }
+                    break;
+
+                case 'ArrowUp':
+                    // Move tone 2 up by 1 Hz
+                    e.preventDefault();
+                    this.tone2Freq = this.tone2Freq + 1;
+                    if (tone2FreqSlider) tone2FreqSlider.value = this.tone2Freq;
+                    if (tone2FreqNum) tone2FreqNum.value = this.tone2Freq.toFixed(2);
+                    if (this.isPlayingTone2) {
+                        this.toneGen2.playTone(this.tone2Freq);
+                    }
+                    break;
+
+                case 'ArrowDown':
+                    // Move tone 2 down by 1 Hz
+                    e.preventDefault();
+                    this.tone2Freq = Math.max(27, this.tone2Freq - 1); // Don't go below min
+                    if (tone2FreqSlider) tone2FreqSlider.value = this.tone2Freq;
+                    if (tone2FreqNum) tone2FreqNum.value = this.tone2Freq.toFixed(2);
+                    if (this.isPlayingTone2) {
+                        this.toneGen2.playTone(this.tone2Freq);
+                    }
+                    break;
+            }
+        };
+
+        // Add keyboard listener
+        document.addEventListener('keydown', this.handleKeyDown);
+    }
+
+    playTone1() {
+        console.log('playTone1 called, frequency:', this.tone1Freq, 'toneGen1:', !!this.toneGen1);
+        if (isNaN(this.tone1Freq) || this.tone1Freq <= 0) {
+            console.error('Invalid tone1 frequency:', this.tone1Freq);
+            this.tone1Freq = 440; // Emergency fallback
+        }
+        if (!this.toneGen1) {
+            console.error('ToneGenerator 1 not initialized!');
+            return;
+        }
+        this.toneGen1.playTone(this.tone1Freq);
+        this.isPlayingTone1 = true;
+        this.tone1StartTime = performance.now();
+        this.tone1StopTime = null;
+    }
+
+    stopTone1() {
+        this.toneGen1.stopTone();
+        this.isPlayingTone1 = false;
+        this.tone1StopTime = performance.now();
+    }
+
+    playTone2() {
+        console.log('playTone2 called, frequency:', this.tone2Freq, 'toneGen2:', !!this.toneGen2);
+        if (isNaN(this.tone2Freq) || this.tone2Freq <= 0) {
+            console.error('Invalid tone2 frequency:', this.tone2Freq);
+            this.tone2Freq = 554; // Emergency fallback
+        }
+        if (!this.toneGen2) {
+            console.error('ToneGenerator 2 not initialized!');
+            return;
+        }
+        this.toneGen2.playTone(this.tone2Freq);
+        this.isPlayingTone2 = true;
+        this.tone2StartTime = performance.now();
+        this.tone2StopTime = null;
+    }
+
+    stopTone2() {
+        this.toneGen2.stopTone();
+        this.isPlayingTone2 = false;
+        this.tone2StopTime = performance.now();
+    }
+
+    initializeSettingsUI() {
+        // Overall beat pulsing
+        const showOverallBeatEl = document.getElementById('settingShowOverallBeat2');
+        const overallBeatIntensityEl = document.getElementById('settingOverallBeatIntensity2');
+        const overallBeatIntensityValueEl = document.getElementById('valueOverallBeatIntensity2');
+
+        if (showOverallBeatEl) {
+            showOverallBeatEl.checked = this.settings.showOverallBeat;
+            showOverallBeatEl.addEventListener('change', (e) => {
+                this.settings.showOverallBeat = e.target.checked;
+            });
+        }
+
+        if (overallBeatIntensityEl) {
+            overallBeatIntensityEl.value = this.settings.overallBeatIntensity;
+            overallBeatIntensityEl.addEventListener('input', (e) => {
+                this.settings.overallBeatIntensity = parseFloat(e.target.value);
+                if (overallBeatIntensityValueEl) {
+                    overallBeatIntensityValueEl.textContent = e.target.value + 'x';
+                }
+            });
+        }
+
+        // Dark node pulsing
+        const showNodePulseEl = document.getElementById('settingShowNodePulse2');
+        const nodePulseIntensityEl = document.getElementById('settingNodePulseIntensity2');
+        const nodePulseIntensityValueEl = document.getElementById('valueNodePulseIntensity2');
+        const nodePulseColorEl = document.getElementById('settingNodePulseColor2');
+
+        if (showNodePulseEl) {
+            showNodePulseEl.checked = this.settings.showNodePulse;
+            showNodePulseEl.addEventListener('change', (e) => {
+                this.settings.showNodePulse = e.target.checked;
+                console.log('Dark Node Pulsing:', e.target.checked, 'Intensity:', this.settings.nodePulseIntensity, 'Color:', this.settings.nodePulseColor);
+            });
+        }
+
+        if (nodePulseIntensityEl) {
+            nodePulseIntensityEl.value = this.settings.nodePulseIntensity;
+            nodePulseIntensityEl.addEventListener('input', (e) => {
+                this.settings.nodePulseIntensity = parseFloat(e.target.value);
+                if (nodePulseIntensityValueEl) {
+                    nodePulseIntensityValueEl.textContent = e.target.value + 'x';
+                }
+            });
+        }
+
+        if (nodePulseColorEl) {
+            nodePulseColorEl.value = this.settings.nodePulseColor;
+            nodePulseColorEl.addEventListener('input', (e) => {
+                this.settings.nodePulseColor = e.target.value;
+            });
+        }
+
+        // Advanced beat visualizations
+        this.initAdvancedBeatSettings();
+    }
+
+    initAdvancedBeatSettings() {
+        // Ring Breathing
+        const ringBreathingEl = document.getElementById('settingRingBreathing2');
+        const ringBreathingIntensityEl = document.getElementById('settingRingBreathingIntensity2');
+        const ringBreathingIntensityValueEl = document.getElementById('valueRingBreathingIntensity2');
+
+        if (ringBreathingEl) {
+            ringBreathingEl.checked = this.settings.ringBreathing;
+            ringBreathingEl.addEventListener('change', (e) => {
+                this.settings.ringBreathing = e.target.checked;
+            });
+        }
+        if (ringBreathingIntensityEl) {
+            ringBreathingIntensityEl.value = this.settings.ringBreathingIntensity;
+            ringBreathingIntensityEl.addEventListener('input', (e) => {
+                this.settings.ringBreathingIntensity = parseFloat(e.target.value);
+                if (ringBreathingIntensityValueEl) ringBreathingIntensityValueEl.textContent = e.target.value + 'x';
+            });
+        }
+
+        // Heat Map
+        const heatMapEl = document.getElementById('settingHeatMap2');
+        const heatMapIntensityEl = document.getElementById('settingHeatMapIntensity2');
+        const heatMapIntensityValueEl = document.getElementById('valueHeatMapIntensity2');
+
+        if (heatMapEl) {
+            heatMapEl.checked = this.settings.heatMap;
+            heatMapEl.addEventListener('change', (e) => {
+                this.settings.heatMap = e.target.checked;
+            });
+        }
+        if (heatMapIntensityEl) {
+            heatMapIntensityEl.value = this.settings.heatMapIntensity;
+            heatMapIntensityEl.addEventListener('input', (e) => {
+                this.settings.heatMapIntensity = parseFloat(e.target.value);
+                if (heatMapIntensityValueEl) heatMapIntensityValueEl.textContent = e.target.value + 'x';
+            });
+        }
+
+        // Node Migration
+        const nodeMigrationEl = document.getElementById('settingNodeMigration2');
+        const nodeMigrationSpeedEl = document.getElementById('settingNodeMigrationSpeed2');
+        const nodeMigrationSpeedValueEl = document.getElementById('valueNodeMigrationSpeed2');
+
+        if (nodeMigrationEl) {
+            nodeMigrationEl.checked = this.settings.nodeMigration;
+            nodeMigrationEl.addEventListener('change', (e) => {
+                this.settings.nodeMigration = e.target.checked;
+            });
+        }
+        if (nodeMigrationSpeedEl) {
+            nodeMigrationSpeedEl.value = this.settings.nodeMigrationSpeed;
+            nodeMigrationSpeedEl.addEventListener('input', (e) => {
+                this.settings.nodeMigrationSpeed = parseFloat(e.target.value);
+                if (nodeMigrationSpeedValueEl) nodeMigrationSpeedValueEl.textContent = e.target.value + 'x';
+            });
+        }
+
+        const nodeMigrationAnimateEl = document.getElementById('settingNodeMigrationAnimate2');
+        if (nodeMigrationAnimateEl) {
+            nodeMigrationAnimateEl.checked = this.settings.nodeMigrationAnimate;
+            nodeMigrationAnimateEl.addEventListener('change', (e) => {
+                this.settings.nodeMigrationAnimate = e.target.checked;
+            });
+        }
+
+        // Advanced Node Migration Modes
+        // Node Density Flow
+        const nodeDensityFlowEl = document.getElementById('settingNodeDensityFlow2');
+        const nodeDensityIntensityEl = document.getElementById('settingNodeDensityIntensity2');
+        const nodeDensityIntensityValueEl = document.getElementById('valueNodeDensityIntensity2');
+        if (nodeDensityFlowEl) {
+            nodeDensityFlowEl.checked = this.settings.nodeDensityFlow;
+            nodeDensityFlowEl.addEventListener('change', (e) => {
+                this.settings.nodeDensityFlow = e.target.checked;
+            });
+        }
+        if (nodeDensityIntensityEl) {
+            nodeDensityIntensityEl.value = this.settings.nodeDensityIntensity;
+            nodeDensityIntensityEl.addEventListener('input', (e) => {
+                this.settings.nodeDensityIntensity = parseFloat(e.target.value);
+                if (nodeDensityIntensityValueEl) nodeDensityIntensityValueEl.textContent = e.target.value + 'x';
+            });
+        }
+
+        // Phase Coherence Trails
+        const phaseTrailsEl = document.getElementById('settingPhaseTrails2');
+        const phaseTrailLengthEl = document.getElementById('settingPhaseTrailLength2');
+        const phaseTrailLengthValueEl = document.getElementById('valuePhaseTrailLength2');
+        if (phaseTrailsEl) {
+            phaseTrailsEl.checked = this.settings.phaseTrails;
+            phaseTrailsEl.addEventListener('change', (e) => {
+                this.settings.phaseTrails = e.target.checked;
+            });
+        }
+        if (phaseTrailLengthEl) {
+            phaseTrailLengthEl.value = this.settings.phaseTrailLength;
+            phaseTrailLengthEl.addEventListener('input', (e) => {
+                this.settings.phaseTrailLength = parseFloat(e.target.value);
+                if (phaseTrailLengthValueEl) phaseTrailLengthValueEl.textContent = e.target.value + 'x';
+            });
+        }
+
+        // Node Coalescence
+        const nodeCoalescenceEl = document.getElementById('settingNodeCoalescence2');
+        const coalescenceStrengthEl = document.getElementById('settingCoalescenceStrength2');
+        const coalescenceStrengthValueEl = document.getElementById('valueCoalescenceStrength2');
+        if (nodeCoalescenceEl) {
+            nodeCoalescenceEl.checked = this.settings.nodeCoalescence;
+            nodeCoalescenceEl.addEventListener('change', (e) => {
+                this.settings.nodeCoalescence = e.target.checked;
+            });
+        }
+        if (coalescenceStrengthEl) {
+            coalescenceStrengthEl.value = this.settings.coalescenceStrength;
+            coalescenceStrengthEl.addEventListener('input', (e) => {
+                this.settings.coalescenceStrength = parseFloat(e.target.value);
+                if (coalescenceStrengthValueEl) coalescenceStrengthValueEl.textContent = e.target.value + 'x';
+            });
+        }
+
+        // Harmonic Flow Field
+        const flowFieldEl = document.getElementById('settingFlowField2');
+        const flowTurbulenceEl = document.getElementById('settingFlowTurbulence2');
+        const flowTurbulenceValueEl = document.getElementById('valueFlowTurbulence2');
+        if (flowFieldEl) {
+            flowFieldEl.checked = this.settings.flowField;
+            flowFieldEl.addEventListener('change', (e) => {
+                this.settings.flowField = e.target.checked;
+            });
+        }
+        if (flowTurbulenceEl) {
+            flowTurbulenceEl.value = this.settings.flowTurbulence;
+            flowTurbulenceEl.addEventListener('input', (e) => {
+                this.settings.flowTurbulence = parseFloat(e.target.value);
+                if (flowTurbulenceValueEl) flowTurbulenceValueEl.textContent = e.target.value + 'x';
+            });
+        }
+
+        // Interference Depth Layers
+        const depthLayersEl = document.getElementById('settingDepthLayers2');
+        const depthLayerCountEl = document.getElementById('settingDepthLayerCount2');
+        const depthLayerCountValueEl = document.getElementById('valueDepthLayerCount2');
+        const depthParallaxEl = document.getElementById('settingDepthParallax2');
+        const depthParallaxValueEl = document.getElementById('valueDepthParallax2');
+        if (depthLayersEl) {
+            depthLayersEl.checked = this.settings.depthLayers;
+            depthLayersEl.addEventListener('change', (e) => {
+                this.settings.depthLayers = e.target.checked;
+            });
+        }
+        if (depthLayerCountEl) {
+            depthLayerCountEl.value = this.settings.depthLayerCount;
+            depthLayerCountEl.addEventListener('input', (e) => {
+                this.settings.depthLayerCount = parseInt(e.target.value);
+                if (depthLayerCountValueEl) depthLayerCountValueEl.textContent = e.target.value;
+            });
+        }
+        if (depthParallaxEl) {
+            depthParallaxEl.value = this.settings.depthParallax;
+            depthParallaxEl.addEventListener('input', (e) => {
+                this.settings.depthParallax = parseFloat(e.target.value);
+                if (depthParallaxValueEl) depthParallaxValueEl.textContent = e.target.value + 'x';
+            });
+        }
+
+        // Zone Toggle
+        const zoneToggleEl = document.getElementById('settingZoneToggle2');
+        const zoneToggleContrastEl = document.getElementById('settingZoneToggleContrast2');
+        const zoneToggleContrastValueEl = document.getElementById('valueZoneToggleContrast2');
+
+        if (zoneToggleEl) {
+            zoneToggleEl.checked = this.settings.zoneToggle;
+            zoneToggleEl.addEventListener('change', (e) => {
+                this.settings.zoneToggle = e.target.checked;
+            });
+        }
+        if (zoneToggleContrastEl) {
+            zoneToggleContrastEl.value = this.settings.zoneToggleContrast;
+            zoneToggleContrastEl.addEventListener('input', (e) => {
+                this.settings.zoneToggleContrast = parseFloat(e.target.value);
+                if (zoneToggleContrastValueEl) zoneToggleContrastValueEl.textContent = e.target.value + 'x';
+            });
+        }
+
+        // Emergent Beat Visualizations
+        // Particle Resonance
+        const particleResonanceEl = document.getElementById('settingParticleResonance2');
+        const particleCountEl = document.getElementById('settingParticleCount2');
+        const particleCountValueEl = document.getElementById('valueParticleCount2');
+        const particleSizeEl = document.getElementById('settingParticleSize2');
+        const particleSizeValueEl = document.getElementById('valueParticleSize2');
+        if (particleResonanceEl) {
+            particleResonanceEl.checked = this.settings.particleResonance;
+            particleResonanceEl.addEventListener('change', (e) => {
+                this.settings.particleResonance = e.target.checked;
+            });
+        }
+        if (particleCountEl) {
+            particleCountEl.value = this.settings.particleCount;
+            particleCountEl.addEventListener('input', (e) => {
+                this.settings.particleCount = parseInt(e.target.value);
+                if (particleCountValueEl) particleCountValueEl.textContent = e.target.value;
+            });
+        }
+        if (particleSizeEl) {
+            particleSizeEl.value = this.settings.particleSize;
+            particleSizeEl.addEventListener('input', (e) => {
+                this.settings.particleSize = parseFloat(e.target.value);
+                if (particleSizeValueEl) particleSizeValueEl.textContent = e.target.value;
+            });
+        }
+
+        // Energy Transfer Arcs
+        const energyArcsEl = document.getElementById('settingEnergyArcs2');
+        const arcThicknessEl = document.getElementById('settingArcThickness2');
+        const arcThicknessValueEl = document.getElementById('valueArcThickness2');
+        const arcBranchingEl = document.getElementById('settingArcBranching2');
+        const arcBranchingValueEl = document.getElementById('valueArcBranching2');
+        if (energyArcsEl) {
+            energyArcsEl.checked = this.settings.energyArcs;
+            energyArcsEl.addEventListener('change', (e) => {
+                this.settings.energyArcs = e.target.checked;
+            });
+        }
+        if (arcThicknessEl) {
+            arcThicknessEl.value = this.settings.arcThickness;
+            arcThicknessEl.addEventListener('input', (e) => {
+                this.settings.arcThickness = parseFloat(e.target.value);
+                if (arcThicknessValueEl) arcThicknessValueEl.textContent = e.target.value;
+            });
+        }
+        if (arcBranchingEl) {
+            arcBranchingEl.value = this.settings.arcBranching;
+            arcBranchingEl.addEventListener('input', (e) => {
+                this.settings.arcBranching = parseInt(e.target.value);
+                if (arcBranchingValueEl) arcBranchingValueEl.textContent = e.target.value;
+            });
+        }
+
+        const arcWaveAmplitudeEl = document.getElementById('settingArcWaveAmplitude2');
+        const arcWaveAmplitudeValueEl = document.getElementById('valueArcWaveAmplitude2');
+        if (arcWaveAmplitudeEl) {
+            arcWaveAmplitudeEl.value = this.settings.arcWaveAmplitude;
+            arcWaveAmplitudeEl.addEventListener('input', (e) => {
+                this.settings.arcWaveAmplitude = parseFloat(e.target.value);
+                if (arcWaveAmplitudeValueEl) arcWaveAmplitudeValueEl.textContent = e.target.value;
+            });
+        }
+
+        // Pressure Wave Atmosphere
+        const pressureWaveEl = document.getElementById('settingPressureWave2');
+        const pressureIntensityEl = document.getElementById('settingPressureIntensity2');
+        const pressureIntensityValueEl = document.getElementById('valuePressureIntensity2');
+        if (pressureWaveEl) {
+            pressureWaveEl.checked = this.settings.pressureWave;
+            pressureWaveEl.addEventListener('change', (e) => {
+                this.settings.pressureWave = e.target.checked;
+            });
+        }
+        if (pressureIntensityEl) {
+            pressureIntensityEl.value = this.settings.pressureIntensity;
+            pressureIntensityEl.addEventListener('input', (e) => {
+                this.settings.pressureIntensity = parseFloat(e.target.value);
+                if (pressureIntensityValueEl) pressureIntensityValueEl.textContent = e.target.value + 'x';
+            });
+        }
+
+        // Pressure Wave Variants
+        // Canvas Stretch
+        const canvasStretchEl = document.getElementById('settingCanvasStretch2');
+        const stretchAmountEl = document.getElementById('settingStretchAmount2');
+        const stretchAmountValueEl = document.getElementById('valueStretchAmount2');
+        if (canvasStretchEl) {
+            canvasStretchEl.checked = this.settings.canvasStretch;
+            canvasStretchEl.addEventListener('change', (e) => {
+                this.settings.canvasStretch = e.target.checked;
+            });
+        }
+        if (stretchAmountEl) {
+            stretchAmountEl.value = this.settings.stretchAmount;
+            stretchAmountEl.addEventListener('input', (e) => {
+                this.settings.stretchAmount = parseFloat(e.target.value);
+                if (stretchAmountValueEl) stretchAmountValueEl.textContent = e.target.value;
+            });
+        }
+
+        // Drum Push
+        const drumPushEl = document.getElementById('settingDrumPush2');
+        const drumDepthEl = document.getElementById('settingDrumDepth2');
+        const drumDepthValueEl = document.getElementById('valueDrumDepth2');
+        if (drumPushEl) {
+            drumPushEl.checked = this.settings.drumPush;
+            drumPushEl.addEventListener('change', (e) => {
+                this.settings.drumPush = e.target.checked;
+            });
+        }
+        if (drumDepthEl) {
+            drumDepthEl.value = this.settings.drumDepth;
+            drumDepthEl.addEventListener('input', (e) => {
+                this.settings.drumDepth = parseFloat(e.target.value);
+                if (drumDepthValueEl) drumDepthValueEl.textContent = e.target.value + 'x';
+            });
+        }
+
+        // Gravity Well
+        const gravityWellEl = document.getElementById('settingGravityWell2');
+        const gravityStrengthEl = document.getElementById('settingGravityStrength2');
+        const gravityStrengthValueEl = document.getElementById('valueGravityStrength2');
+        const gravityWellCountEl = document.getElementById('settingGravityWellCount2');
+        const gravityWellCountValueEl = document.getElementById('valueGravityWellCount2');
+        if (gravityWellEl) {
+            gravityWellEl.checked = this.settings.gravityWell;
+            gravityWellEl.addEventListener('change', (e) => {
+                this.settings.gravityWell = e.target.checked;
+            });
+        }
+        if (gravityStrengthEl) {
+            gravityStrengthEl.value = this.settings.gravityStrength;
+            gravityStrengthEl.addEventListener('input', (e) => {
+                this.settings.gravityStrength = parseFloat(e.target.value);
+                if (gravityStrengthValueEl) gravityStrengthValueEl.textContent = e.target.value;
+            });
+        }
+        if (gravityWellCountEl) {
+            gravityWellCountEl.value = this.settings.gravityWellCount;
+            gravityWellCountEl.addEventListener('input', (e) => {
+                this.settings.gravityWellCount = parseInt(e.target.value);
+                if (gravityWellCountValueEl) gravityWellCountValueEl.textContent = e.target.value;
+            });
+        }
+
+        // Gravity Well Variants
+        const gravityVariant1El = document.getElementById('settingGravityVariant1_2');
+        const gravityAmpRangeEl = document.getElementById('settingGravityAmpRange2');
+        const gravityAmpRangeValueEl = document.getElementById('valueGravityAmpRange2');
+        const gravityWellSizeEl = document.getElementById('settingGravityWellSize2');
+        const gravityWellSizeValueEl = document.getElementById('valueGravityWellSize2');
+        if (gravityVariant1El) {
+            gravityVariant1El.checked = this.settings.gravityVariant1;
+            gravityVariant1El.addEventListener('change', (e) => {
+                this.settings.gravityVariant1 = e.target.checked;
+            });
+        }
+        if (gravityAmpRangeEl) {
+            gravityAmpRangeEl.value = this.settings.gravityAmpRange;
+            gravityAmpRangeEl.addEventListener('input', (e) => {
+                this.settings.gravityAmpRange = parseFloat(e.target.value);
+                if (gravityAmpRangeValueEl) gravityAmpRangeValueEl.textContent = e.target.value + 'x';
+            });
+        }
+        if (gravityWellSizeEl) {
+            gravityWellSizeEl.value = this.settings.gravityWellSize;
+            gravityWellSizeEl.addEventListener('input', (e) => {
+                this.settings.gravityWellSize = parseFloat(e.target.value);
+                if (gravityWellSizeValueEl) gravityWellSizeValueEl.textContent = e.target.value;
+            });
+        }
+
+        const gravityVariant2El = document.getElementById('settingGravityVariant2_2');
+        const repulsionForceEl = document.getElementById('settingRepulsionForce2');
+        const repulsionForceValueEl = document.getElementById('valueRepulsionForce2');
+        if (gravityVariant2El) {
+            gravityVariant2El.checked = this.settings.gravityVariant2;
+            gravityVariant2El.addEventListener('change', (e) => {
+                this.settings.gravityVariant2 = e.target.checked;
+            });
+        }
+        if (repulsionForceEl) {
+            repulsionForceEl.value = this.settings.repulsionForce;
+            repulsionForceEl.addEventListener('input', (e) => {
+                this.settings.repulsionForce = parseFloat(e.target.value);
+                if (repulsionForceValueEl) repulsionForceValueEl.textContent = e.target.value + 'x';
+            });
+        }
+
+        const gravityVariant3El = document.getElementById('settingGravityVariant3_2');
+        const vortexSpeedEl = document.getElementById('settingVortexSpeed2');
+        const vortexSpeedValueEl = document.getElementById('valueVortexSpeed2');
+        const spiralTightnessEl = document.getElementById('settingSpiralTightness2');
+        const spiralTightnessValueEl = document.getElementById('valueSpiralTightness2');
+        if (gravityVariant3El) {
+            gravityVariant3El.checked = this.settings.gravityVariant3;
+            gravityVariant3El.addEventListener('change', (e) => {
+                this.settings.gravityVariant3 = e.target.checked;
+            });
+        }
+        if (vortexSpeedEl) {
+            vortexSpeedEl.value = this.settings.vortexSpeed;
+            vortexSpeedEl.addEventListener('input', (e) => {
+                this.settings.vortexSpeed = parseFloat(e.target.value);
+                if (vortexSpeedValueEl) vortexSpeedValueEl.textContent = e.target.value + 'x';
+            });
+        }
+        if (spiralTightnessEl) {
+            spiralTightnessEl.value = this.settings.spiralTightness;
+            spiralTightnessEl.addEventListener('input', (e) => {
+                this.settings.spiralTightness = parseFloat(e.target.value);
+                if (spiralTightnessValueEl) spiralTightnessValueEl.textContent = e.target.value + 'x';
+            });
+        }
+
+        const gravityVariant4El = document.getElementById('settingGravityVariant4_2');
+        const tidalStrengthEl = document.getElementById('settingTidalStrength2');
+        const tidalStrengthValueEl = document.getElementById('valueTidalStrength2');
+        if (gravityVariant4El) {
+            gravityVariant4El.checked = this.settings.gravityVariant4;
+            gravityVariant4El.addEventListener('change', (e) => {
+                this.settings.gravityVariant4 = e.target.checked;
+            });
+        }
+        if (tidalStrengthEl) {
+            tidalStrengthEl.value = this.settings.tidalStrength;
+            tidalStrengthEl.addEventListener('input', (e) => {
+                this.settings.tidalStrength = parseFloat(e.target.value);
+                if (tidalStrengthValueEl) tidalStrengthValueEl.textContent = e.target.value + 'x';
+            });
+        }
+
+        const gravityVariant5El = document.getElementById('settingGravityVariant5_2');
+        const pulseDepthEl = document.getElementById('settingPulseDepth2');
+        const pulseDepthValueEl = document.getElementById('valuePulseDepth2');
+        const eventHorizonEl = document.getElementById('settingEventHorizon2');
+        const eventHorizonValueEl = document.getElementById('valueEventHorizon2');
+        if (gravityVariant5El) {
+            gravityVariant5El.checked = this.settings.gravityVariant5;
+            gravityVariant5El.addEventListener('change', (e) => {
+                this.settings.gravityVariant5 = e.target.checked;
+            });
+        }
+        if (pulseDepthEl) {
+            pulseDepthEl.value = this.settings.pulseDepth;
+            pulseDepthEl.addEventListener('input', (e) => {
+                this.settings.pulseDepth = parseFloat(e.target.value);
+                if (pulseDepthValueEl) pulseDepthValueEl.textContent = e.target.value;
+            });
+        }
+        if (eventHorizonEl) {
+            eventHorizonEl.value = this.settings.eventHorizon;
+            eventHorizonEl.addEventListener('input', (e) => {
+                this.settings.eventHorizon = parseFloat(e.target.value);
+                if (eventHorizonValueEl) eventHorizonValueEl.textContent = e.target.value;
+            });
+        }
+
+        const gravityVariant6El = document.getElementById('settingGravityVariant6_2');
+        const attractionRepulsionForceEl = document.getElementById('settingAttractionRepulsionForce2');
+        const attractionRepulsionForceValueEl = document.getElementById('valueAttractionRepulsionForce2');
+        if (gravityVariant6El) {
+            gravityVariant6El.checked = this.settings.gravityVariant6;
+            gravityVariant6El.addEventListener('change', (e) => {
+                this.settings.gravityVariant6 = e.target.checked;
+            });
+        }
+        if (attractionRepulsionForceEl) {
+            attractionRepulsionForceEl.value = this.settings.attractionRepulsionForce;
+            attractionRepulsionForceEl.addEventListener('input', (e) => {
+                this.settings.attractionRepulsionForce = parseFloat(e.target.value);
+                if (attractionRepulsionForceValueEl) attractionRepulsionForceValueEl.textContent = e.target.value + 'x';
+            });
+        }
+
+        // Gravity well personality features
+        const wellJitterEl = document.getElementById('settingWellJitter2');
+        const jitterIntensityEl = document.getElementById('settingJitterIntensity2');
+        const jitterIntensityValueEl = document.getElementById('valueJitterIntensity2');
+        if (wellJitterEl) {
+            wellJitterEl.checked = this.settings.wellJitter;
+            wellJitterEl.addEventListener('change', (e) => {
+                this.settings.wellJitter = e.target.checked;
+            });
+        }
+        if (jitterIntensityEl) {
+            jitterIntensityEl.value = this.settings.jitterIntensity;
+            jitterIntensityEl.addEventListener('input', (e) => {
+                this.settings.jitterIntensity = parseFloat(e.target.value);
+                if (jitterIntensityValueEl) jitterIntensityValueEl.textContent = e.target.value;
+            });
+        }
+
+        const wellBreathingEl = document.getElementById('settingWellBreathing2');
+        const consonantBreathSpeedEl = document.getElementById('settingConsonantBreathSpeed2');
+        const consonantBreathSpeedValueEl = document.getElementById('valueConsonantBreathSpeed2');
+        const dissonantPulseSpeedEl = document.getElementById('settingDissonantPulseSpeed2');
+        const dissonantPulseSpeedValueEl = document.getElementById('valueDissonantPulseSpeed2');
+        if (wellBreathingEl) {
+            wellBreathingEl.checked = this.settings.wellBreathing;
+            wellBreathingEl.addEventListener('change', (e) => {
+                this.settings.wellBreathing = e.target.checked;
+            });
+        }
+        if (consonantBreathSpeedEl) {
+            consonantBreathSpeedEl.value = this.settings.consonantBreathSpeed;
+            consonantBreathSpeedEl.addEventListener('input', (e) => {
+                this.settings.consonantBreathSpeed = parseFloat(e.target.value);
+                if (consonantBreathSpeedValueEl) consonantBreathSpeedValueEl.textContent = e.target.value + 'x';
+            });
+        }
+        if (dissonantPulseSpeedEl) {
+            dissonantPulseSpeedEl.value = this.settings.dissonantPulseSpeed;
+            dissonantPulseSpeedEl.addEventListener('input', (e) => {
+                this.settings.dissonantPulseSpeed = parseFloat(e.target.value);
+                if (dissonantPulseSpeedValueEl) dissonantPulseSpeedValueEl.textContent = e.target.value + 'x';
+            });
+        }
+
+        // Lens Refraction
+        const lensRefractionEl = document.getElementById('settingLensRefraction2');
+        const refractionAmountEl = document.getElementById('settingRefractionAmount2');
+        const refractionAmountValueEl = document.getElementById('valueRefractionAmount2');
+        const lensSizeEl = document.getElementById('settingLensSize2');
+        const lensSizeValueEl = document.getElementById('valueLensSize2');
+        if (lensRefractionEl) {
+            lensRefractionEl.checked = this.settings.lensRefraction;
+            lensRefractionEl.addEventListener('change', (e) => {
+                this.settings.lensRefraction = e.target.checked;
+            });
+        }
+        if (refractionAmountEl) {
+            refractionAmountEl.value = this.settings.refractionAmount;
+            refractionAmountEl.addEventListener('input', (e) => {
+                this.settings.refractionAmount = parseFloat(e.target.value);
+                if (refractionAmountValueEl) refractionAmountValueEl.textContent = e.target.value;
+            });
+        }
+        if (lensSizeEl) {
+            lensSizeEl.value = this.settings.lensSize;
+            lensSizeEl.addEventListener('input', (e) => {
+                this.settings.lensSize = parseFloat(e.target.value);
+                if (lensSizeValueEl) lensSizeValueEl.textContent = e.target.value;
+            });
+        }
+
+        // Temporal Shift
+        const temporalShiftEl = document.getElementById('settingTemporalShift2');
+        const timeOffsetEl = document.getElementById('settingTimeOffset2');
+        const timeOffsetValueEl = document.getElementById('valueTimeOffset2');
+        const temporalLayersEl = document.getElementById('settingTemporalLayers2');
+        const temporalLayersValueEl = document.getElementById('valueTemporalLayers2');
+        if (temporalShiftEl) {
+            temporalShiftEl.checked = this.settings.temporalShift;
+            temporalShiftEl.addEventListener('change', (e) => {
+                this.settings.temporalShift = e.target.checked;
+            });
+        }
+        if (timeOffsetEl) {
+            timeOffsetEl.value = this.settings.timeOffset;
+            timeOffsetEl.addEventListener('input', (e) => {
+                this.settings.timeOffset = parseFloat(e.target.value);
+                if (timeOffsetValueEl) timeOffsetValueEl.textContent = e.target.value;
+            });
+        }
+        if (temporalLayersEl) {
+            temporalLayersEl.value = this.settings.temporalLayers;
+            temporalLayersEl.addEventListener('input', (e) => {
+                this.settings.temporalLayers = parseInt(e.target.value);
+                if (temporalLayersValueEl) temporalLayersValueEl.textContent = e.target.value;
+            });
+        }
+
+        // Membrane Tension Ripples
+        const membraneRipplesEl = document.getElementById('settingMembraneRipples2');
+        const rippleAmplitudeEl = document.getElementById('settingRippleAmplitude2');
+        const rippleAmplitudeValueEl = document.getElementById('valueRippleAmplitude2');
+        if (membraneRipplesEl) {
+            membraneRipplesEl.checked = this.settings.membraneRipples;
+            membraneRipplesEl.addEventListener('change', (e) => {
+                this.settings.membraneRipples = e.target.checked;
+            });
+        }
+        if (rippleAmplitudeEl) {
+            rippleAmplitudeEl.value = this.settings.rippleAmplitude;
+            rippleAmplitudeEl.addEventListener('input', (e) => {
+                this.settings.rippleAmplitude = parseFloat(e.target.value);
+                if (rippleAmplitudeValueEl) rippleAmplitudeValueEl.textContent = e.target.value + 'x';
+            });
+        }
+
+        // Harmonic Crystal Growth
+        const crystalGrowthEl = document.getElementById('settingCrystalGrowth2');
+        const crystalComplexityEl = document.getElementById('settingCrystalComplexity2');
+        const crystalComplexityValueEl = document.getElementById('valueCrystalComplexity2');
+        const crystalGrowthSpeedEl = document.getElementById('settingCrystalGrowthSpeed2');
+        const crystalGrowthSpeedValueEl = document.getElementById('valueCrystalGrowthSpeed2');
+        if (crystalGrowthEl) {
+            crystalGrowthEl.checked = this.settings.crystalGrowth;
+            crystalGrowthEl.addEventListener('change', (e) => {
+                this.settings.crystalGrowth = e.target.checked;
+            });
+        }
+        if (crystalComplexityEl) {
+            crystalComplexityEl.value = this.settings.crystalComplexity;
+            crystalComplexityEl.addEventListener('input', (e) => {
+                this.settings.crystalComplexity = parseInt(e.target.value);
+                if (crystalComplexityValueEl) crystalComplexityValueEl.textContent = e.target.value;
+            });
+        }
+        if (crystalGrowthSpeedEl) {
+            crystalGrowthSpeedEl.value = this.settings.crystalGrowthSpeed;
+            crystalGrowthSpeedEl.addEventListener('input', (e) => {
+                this.settings.crystalGrowthSpeed = parseFloat(e.target.value);
+                if (crystalGrowthSpeedValueEl) crystalGrowthSpeedValueEl.textContent = e.target.value + 'x';
+            });
+        }
+    }
+
+    createOverlayCanvas() {
+        // Create a 2D overlay canvas for speakers and other 2D elements
+        this.overlayCanvas = document.createElement('canvas');
+        this.overlayCanvas.style.position = 'absolute';
+        this.overlayCanvas.style.left = '0';
+        this.overlayCanvas.style.top = '0';
+        this.overlayCanvas.style.width = '100%';
+        this.overlayCanvas.style.height = '100%';
+        this.overlayCanvas.style.pointerEvents = 'none';
+        this.overlayCanvas.style.zIndex = '10'; // Ensure overlay is on top
+        this.overlayCanvas.width = this.canvas.width;
+        this.overlayCanvas.height = this.canvas.height;
+
+        // Check if parent exists
+        if (!this.canvas.parentElement) {
+            console.error('Canvas parent element not found for overlay');
+            return;
+        }
+
+        this.canvas.parentElement.appendChild(this.overlayCanvas);
+        this.overlayCtx = this.overlayCanvas.getContext('2d');
+        console.log('Overlay canvas created:', this.overlayCanvas.width, 'x', this.overlayCanvas.height);
+    }
+
+    getVertexShaderSource() {
+        return `
+            attribute vec2 aPosition;
+            varying vec2 vUV;
+
+            void main() {
+                vUV = aPosition * 0.5 + 0.5; // Convert -1..1 to 0..1
+                gl_Position = vec4(aPosition, 0.0, 1.0);
+            }
+        `;
+    }
+
+    getFragmentShaderSource() {
+        return `
+            precision highp float;
+
+            varying vec2 vUV;
+
+            // Uniforms
+            uniform vec2 uResolution;
+            uniform vec2 uTone1Pos;
+            uniform vec2 uTone2Pos;
+            uniform float uTone1Freq;
+            uniform float uTone2Freq;
+            uniform vec3 uTone1Color;
+            uniform vec3 uTone2Color;
+            uniform float uTime;
+            uniform float uAmplitude;
+            uniform int uHarmonicOrder;
+            uniform bool uIsPlayingTone1;
+            uniform bool uIsPlayingTone2;
+            uniform float uTone1RevealRadiusMin;
+            uniform float uTone1RevealRadiusMax;
+            uniform float uTone2RevealRadiusMin;
+            uniform float uTone2RevealRadiusMax;
+            uniform float uBeatAmplitude;
+            uniform float uShowOverallBeat;
+            uniform float uOverallBeatIntensity;
+            uniform float uShowNodePulse;
+            uniform float uNodePulseIntensity;
+            uniform vec3 uNodePulseColor;
+            uniform float uRingBreathing;
+            uniform float uRingBreathingIntensity;
+            uniform float uHeatMap;
+            uniform float uHeatMapIntensity;
+            uniform float uNodeMigration;
+            uniform float uNodeMigrationSpeed;
+            uniform float uNodeMigrationAnimate;
+            uniform float uNodeDensityFlow;
+            uniform float uNodeDensityIntensity;
+            uniform float uPhaseTrails;
+            uniform float uPhaseTrailLength;
+            uniform float uNodeCoalescence;
+            uniform float uCoalescenceStrength;
+            uniform float uFlowField;
+            uniform float uFlowTurbulence;
+            uniform float uDepthLayers;
+            uniform int uDepthLayerCount;
+            uniform float uDepthParallax;
+            uniform float uZoneToggle;
+            uniform float uZoneToggleContrast;
+
+            // Emergent beat visualizations
+            uniform float uParticleResonance;
+            uniform int uParticleCount;
+            uniform float uParticleSize;
+            uniform float uEnergyArcs;
+            uniform float uArcThickness;
+            uniform int uArcBranching;
+            uniform float uArcWaveAmplitude;
+            uniform float uPressureWave;
+            uniform float uPressureIntensity;
+            uniform float uCanvasStretch;
+            uniform float uStretchAmount;
+            uniform float uDrumPush;
+            uniform float uDrumDepth;
+            uniform float uGravityWell;
+            uniform float uGravityStrength;
+            uniform int uGravityWellCount;
+            uniform float uGravityVariant1;
+            uniform float uGravityAmpRange;
+            uniform float uGravityWellSize;
+            uniform float uGravityVariant2;
+            uniform float uRepulsionForce;
+            uniform float uGravityVariant3;
+            uniform float uVortexSpeed;
+            uniform float uSpiralTightness;
+            uniform float uGravityVariant4;
+            uniform float uTidalStrength;
+            uniform float uGravityVariant5;
+            uniform float uPulseDepth;
+            uniform float uEventHorizon;
+            uniform float uGravityVariant6;
+            uniform float uAttractionRepulsionForce;
+            uniform float uWellJitter;
+            uniform float uJitterIntensity;
+            uniform float uWellBreathing;
+            uniform float uConsonantBreathSpeed;
+            uniform float uDissonantPulseSpeed;
+            uniform float uLensRefraction;
+            uniform float uRefractionAmount;
+            uniform float uLensSize;
+            uniform float uTemporalShift;
+            uniform float uTimeOffset;
+            uniform int uTemporalLayers;
+            uniform float uMembraneRipples;
+            uniform float uRippleAmplitude;
+            uniform float uCrystalGrowth;
+            uniform int uCrystalComplexity;
+            uniform float uCrystalGrowthSpeed;
+            uniform bool uUseBoundary;
+            uniform float uBoundaryRadius;
+            uniform float uSpeakerRadius;
+            uniform bool uUseFoggyEdge;
+            uniform float uFoggyEdgeStart;
+            uniform float uRootIntensity;
+            uniform float uIntervalIntensity;
+            uniform float uIntersectionIntensity;
+            uniform bool uUsePianoMode;
+            uniform vec3 uChromaticColors[12];
+            uniform float uRootFreq;
+            uniform int uRootTone;
+
+            float computeWaveAmplitude(vec2 pixelPos, vec2 sourcePos, float freq, int harmonicOrder, float time) {
+                float dist = distance(pixelPos, sourcePos);
+                float amplitude = 0.0;
+
+                // Sum harmonics
+                for (int h = 1; h <= 10; h++) {
+                    if (h > harmonicOrder) break;
+                    float harmonic = float(h);
+                    amplitude += sin(dist * 0.05 * harmonic - freq * harmonic * time * 0.01) / harmonic;
+                }
+
+                return amplitude;
+            }
+
+            float computeBoundaryFalloff(vec2 pixelPos, vec2 sourcePos, float effectiveRadius) {
+                float dist = distance(pixelPos, sourcePos);
+
+                if (!uUseBoundary) {
+                    return 1.0;
+                }
+
+                if (uUseFoggyEdge) {
+                    // Foggy edge vignette
+                    float fadeStart = effectiveRadius * uFoggyEdgeStart;
+                    if (dist < fadeStart) {
+                        return 1.0;
+                    } else if (dist < effectiveRadius) {
+                        float fadeAmount = 1.0 - ((dist - fadeStart) / (effectiveRadius - fadeStart));
+                        return fadeAmount * fadeAmount * fadeAmount; // Cubic ease
+                    } else {
+                        return 0.0;
+                    }
+                } else {
+                    // Smooth fade at edge instead of hard cutoff
+                    float fadeWidth = 40.0;
+                    float fadeStart = effectiveRadius - fadeWidth;
+                    if (dist < fadeStart) {
+                        return 1.0;
+                    } else if (dist < effectiveRadius) {
+                        // Smooth fade to transparency
+                        return 1.0 - ((dist - fadeStart) / fadeWidth);
+                    } else {
+                        return 0.0;
+                    }
+                }
+            }
+
+            vec3 getPianoColor(float freq) {
+                // Calculate cents offset from root
+                float ratio = freq / uRootFreq;
+                float cents = log2(ratio) * 1200.0;
+                float normalizedCents = mod(mod(cents, 1200.0) + 1200.0, 1200.0);
+
+                // Map to chromatic scale (0-11)
+                float semitone = normalizedCents / 100.0;
+                float semitoneFloored = floor(semitone);
+                float frac = fract(semitone);
+
+                // Clamp to valid range
+                float clampedIndex = clamp(semitoneFloored, 0.0, 11.0);
+
+                // Manual array indexing (WebGL 1.0 doesn't support dynamic indexing)
+                vec3 color1 = vec3(0.0);
+                vec3 color2 = vec3(0.0);
+
+                for (int i = 0; i < 12; i++) {
+                    if (abs(clampedIndex - float(i)) < 0.5) {
+                        color1 = uChromaticColors[i];
+                    }
+                    float nextIdx = mod(clampedIndex + 1.0, 12.0);
+                    if (abs(nextIdx - float(i)) < 0.5) {
+                        color2 = uChromaticColors[i];
+                    }
+                }
+
+                return mix(color1, color2, frac);
+            }
+
+            void main() {
+                vec2 pixelPos = vUV * uResolution;
+                float effectiveRadius = uBoundaryRadius + uSpeakerRadius;
+
+                // === PRESSURE WAVE VARIANTS: Spatial/Temporal Distortions ===
+                // These modify coordinates BEFORE wave calculation
+
+                vec2 samplePos = pixelPos; // Position to sample from (may be warped)
+                float sampleTime = uTime; // Time to sample (may be offset)
+
+                // Calculate frequency ratio for consonance (used by variants)
+                float variantFreqRatio = max(uTone1Freq, uTone2Freq) / min(uTone1Freq, uTone2Freq);
+                float variantConsonance = 1.0 / (1.0 + abs(variantFreqRatio - floor(variantFreqRatio + 0.5)));
+
+                // 1. Canvas Stretch - Radial stretching/compression (localized to overlap area)
+                if (uCanvasStretch > 0.5) {
+                    vec2 center = (uTone1Pos + uTone2Pos) * 0.5;
+                    vec2 toPixel = samplePos - center;
+                    float radialDist = length(toPixel);
+
+                    // Only affect overlap region (falloff from center)
+                    float overlapInfluence = smoothstep(400.0, 100.0, radialDist);
+
+                    // Stretch oscillates with beat
+                    float stretchPhase = sin(uTime * mix(1.0, 4.0, 1.0 - variantConsonance)) * uBeatAmplitude;
+                    float stretchFactor = 1.0 + stretchPhase * uStretchAmount * overlapInfluence;
+
+                    // Apply radial stretch
+                    samplePos = center + toPixel * stretchFactor;
+                }
+
+                // 2. Drum Membrane Push - Z-depth illusion via brightness/scale
+                float drumPushFactor = 1.0;
+                if (uDrumPush > 0.5) {
+                    // Push is stronger in overlap region
+                    float dist1Push = length(pixelPos - uTone1Pos);
+                    float dist2Push = length(pixelPos - uTone2Pos);
+                    float inCenter = 1.0 - smoothstep(100.0, 300.0, min(dist1Push, dist2Push));
+
+                    // Push oscillates with beat
+                    float pushPhase = sin(uTime * mix(1.0, 4.0, 1.0 - variantConsonance)) * uBeatAmplitude;
+
+                    // Consonant: uniform push, Dissonant: localized bulges
+                    float localizedPush = variantConsonance + (1.0 - variantConsonance) * inCenter;
+                    drumPushFactor = 1.0 + pushPhase * uDrumDepth * 0.3 * localizedPush;
+                }
+
+                // 3. Gravity Well Warp - Bend space around moving wells (6 variants)
+                if (uGravityWell > 0.5) {
+                    // Variant 1: Dissonance Amplitude / Consonance Size
+                    if (uGravityVariant1 > 0.5) {
+                        for (int w = 0; w < 5; w++) {
+                            if (w >= uGravityWellCount) break;
+
+                            vec2 center = (uTone1Pos + uTone2Pos) * 0.5;
+                            float wellAngle = float(w) * 6.28318 / float(uGravityWellCount) + uTime * uBeatAmplitude;
+                            float wellRadius = 100.0 * (1.0 - variantConsonance);
+                            vec2 wellPos = center + vec2(cos(wellAngle), sin(wellAngle)) * wellRadius;
+
+                            vec2 toWell = wellPos - samplePos;
+                            float wellDist = length(toWell);
+
+                            // Dissonance: strong rapid pulls, Consonance: large gentle wells
+                            float dissonance = 1.0 - variantConsonance;
+                            float pullStrength = mix(uGravityStrength, uGravityStrength * uGravityAmpRange, dissonance);
+                            float wellSize = mix(uGravityWellSize, 50.0, dissonance);
+                            float gravityPull = pullStrength / (wellDist + wellSize);
+                            gravityPull *= uBeatAmplitude;
+
+                            samplePos += normalize(toWell) * gravityPull;
+                        }
+                    }
+                    // Variant 2: Repulsion Mode
+                    else if (uGravityVariant2 > 0.5) {
+                        for (int w = 0; w < 5; w++) {
+                            if (w >= uGravityWellCount) break;
+
+                            vec2 center = (uTone1Pos + uTone2Pos) * 0.5;
+                            float wellAngle = float(w) * 6.28318 / float(uGravityWellCount) + uTime * uBeatAmplitude;
+                            float wellRadius = 100.0 * (1.0 - variantConsonance);
+                            vec2 wellPos = center + vec2(cos(wellAngle), sin(wellAngle)) * wellRadius;
+
+                            vec2 toWell = wellPos - samplePos;
+                            float wellDist = length(toWell);
+
+                            // Push away instead of pull
+                            float gravityPush = uGravityStrength * uRepulsionForce / (wellDist + 10.0);
+                            gravityPush *= uBeatAmplitude;
+
+                            // Dissonance: stronger fragmentation
+                            float dissonance = 1.0 - variantConsonance;
+                            gravityPush *= (1.0 + dissonance);
+
+                            samplePos -= normalize(toWell) * gravityPush; // Negative for repulsion
+                        }
+                    }
+                    // Variant 3: Orbital Vortex
+                    else if (uGravityVariant3 > 0.5) {
+                        for (int w = 0; w < 5; w++) {
+                            if (w >= uGravityWellCount) break;
+
+                            vec2 center = (uTone1Pos + uTone2Pos) * 0.5;
+                            float wellAngle = float(w) * 6.28318 / float(uGravityWellCount) + uTime * uBeatAmplitude * uVortexSpeed;
+                            float wellRadius = 100.0 * (1.0 - variantConsonance);
+                            vec2 wellPos = center + vec2(cos(wellAngle), sin(wellAngle)) * wellRadius;
+
+                            vec2 toWell = wellPos - samplePos;
+                            float wellDist = length(toWell);
+
+                            // Tangential force (perpendicular to radial)
+                            vec2 radialDir = normalize(toWell);
+                            vec2 tangentDir = vec2(-radialDir.y, radialDir.x);
+
+                            // Vortex strength falls off with distance
+                            float vortexStrength = uGravityStrength / (wellDist + 10.0);
+                            vortexStrength *= uBeatAmplitude * uSpiralTightness;
+
+                            // Dissonance: tight fast vortices, Consonance: wide slow spirals
+                            float dissonance = 1.0 - variantConsonance;
+                            vortexStrength *= mix(0.5, 2.0, dissonance);
+
+                            // Apply tangential force for spiral motion
+                            samplePos += tangentDir * vortexStrength;
+                        }
+                    }
+                    // Variant 4: Tidal Locking
+                    else if (uGravityVariant4 > 0.5) {
+                        // Wells at tone sources - competing tidal forces
+                        vec2 toTone1 = uTone1Pos - samplePos;
+                        vec2 toTone2 = uTone2Pos - samplePos;
+                        float dist1 = length(toTone1);
+                        float dist2 = length(toTone2);
+
+                        // Gravitational pull from each tone
+                        float pull1 = uGravityStrength * uTidalStrength / (dist1 + 10.0);
+                        float pull2 = uGravityStrength * uTidalStrength / (dist2 + 10.0);
+                        pull1 *= uBeatAmplitude;
+                        pull2 *= uBeatAmplitude;
+
+                        // Dissonance: unstable stretching/tearing, Consonance: stable oscillation
+                        float dissonance = 1.0 - variantConsonance;
+                        float chaosPhase = sin(uTime * 10.0 * dissonance) * dissonance;
+                        pull1 *= (1.0 + chaosPhase);
+                        pull2 *= (1.0 - chaosPhase);
+
+                        // Apply competing forces
+                        samplePos += normalize(toTone1) * pull1;
+                        samplePos += normalize(toTone2) * pull2;
+                    }
+                    // Variant 5: Pulsing Black Holes
+                    else if (uGravityVariant5 > 0.5) {
+                        for (int w = 0; w < 5; w++) {
+                            if (w >= uGravityWellCount) break;
+
+                            vec2 center = (uTone1Pos + uTone2Pos) * 0.5;
+                            float wellAngle = float(w) * 6.28318 / float(uGravityWellCount) + uTime * uBeatAmplitude;
+                            float wellRadius = 100.0 * (1.0 - variantConsonance);
+                            vec2 wellPos = center + vec2(cos(wellAngle), sin(wellAngle)) * wellRadius;
+
+                            // Add jitter for dissonance (well position wobbles erratically)
+                            if (uWellJitter > 0.5) {
+                                float dissonance = 1.0 - variantConsonance;
+                                // Multiple frequency jitters for chaotic movement
+                                float jitterX = sin(uTime * 8.0 + float(w) * 3.0) * dissonance;
+                                jitterX += sin(uTime * 13.0 + float(w) * 5.0) * dissonance * 0.5;
+                                float jitterY = cos(uTime * 9.0 + float(w) * 4.0) * dissonance;
+                                jitterY += cos(uTime * 11.0 + float(w) * 6.0) * dissonance * 0.5;
+                                wellPos += vec2(jitterX, jitterY) * uJitterIntensity;
+                            }
+
+                            vec2 toWell = wellPos - samplePos;
+                            float wellDist = length(toWell);
+
+                            // Pulsing strength at beat frequency
+                            float beatFreq = abs(uTone1Freq - uTone2Freq);
+                            float dissonance = 1.0 - variantConsonance;
+
+                            // Breathing speed varies with consonance/dissonance
+                            float breathingSpeed;
+                            float pulsePhase;
+                            if (uWellBreathing > 0.5) {
+                                // Consonant: slow deep breathing, Dissonant: rapid shallow pulsing
+                                breathingSpeed = mix(uConsonantBreathSpeed, uDissonantPulseSpeed, dissonance);
+                                if (dissonance > 0.5) {
+                                    // Each well pulses independently for dissonance
+                                    pulsePhase = sin(uTime * beatFreq * 0.1 * breathingSpeed + float(w) * 2.0);
+                                } else {
+                                    // All wells pulse together for consonance
+                                    pulsePhase = sin(uTime * beatFreq * 0.1 * breathingSpeed);
+                                }
+                            } else {
+                                // Default behavior when breathing is off
+                                if (dissonance > 0.5) {
+                                    pulsePhase = sin(uTime * beatFreq * 0.1 + float(w) * 2.0);
+                                } else {
+                                    pulsePhase = sin(uTime * beatFreq * 0.1);
+                                }
+                            }
+
+                            float pulseStrength = mix(1.0 - uPulseDepth, 1.0, (pulsePhase + 1.0) * 0.5);
+
+                            // Event horizon - extreme warping close to well
+                            float horizonFactor = smoothstep(uEventHorizon * 2.0, uEventHorizon, wellDist);
+                            float gravityPull = uGravityStrength * pulseStrength / (wellDist + 10.0);
+                            gravityPull *= (1.0 + horizonFactor * 3.0); // Extreme pull near horizon
+                            gravityPull *= uBeatAmplitude;
+
+                            samplePos += normalize(toWell) * gravityPull;
+                        }
+                    }
+                    // Variant 6: Consonance Attraction / Dissonance Repulsion
+                    else if (uGravityVariant6 > 0.5) {
+                        for (int w = 0; w < 5; w++) {
+                            if (w >= uGravityWellCount) break;
+
+                            vec2 center = (uTone1Pos + uTone2Pos) * 0.5;
+                            float wellAngle = float(w) * 6.28318 / float(uGravityWellCount) + uTime * uBeatAmplitude;
+                            float wellRadius = 100.0 * (1.0 - variantConsonance);
+                            vec2 wellPos = center + vec2(cos(wellAngle), sin(wellAngle)) * wellRadius;
+
+                            vec2 toWell = wellPos - samplePos;
+                            float wellDist = length(toWell);
+
+                            // Force magnitude
+                            float forceMagnitude = uGravityStrength * uAttractionRepulsionForce / (wellDist + 10.0);
+                            forceMagnitude *= uBeatAmplitude;
+
+                            // Consonance: attract (positive), Dissonance: repel (negative)
+                            float forceDirection = variantConsonance * 2.0 - 1.0; // -1 to +1
+
+                            samplePos += normalize(toWell) * forceMagnitude * forceDirection;
+                        }
+                    }
+                    // Default: Original behavior
+                    else {
+                        for (int w = 0; w < 5; w++) {
+                            if (w >= uGravityWellCount) break;
+
+                            vec2 center = (uTone1Pos + uTone2Pos) * 0.5;
+                            float wellAngle = float(w) * 6.28318 / float(uGravityWellCount) + uTime * uBeatAmplitude;
+                            float wellRadius = 100.0 * (1.0 - variantConsonance);
+                            vec2 wellPos = center + vec2(cos(wellAngle), sin(wellAngle)) * wellRadius;
+
+                            // Add jitter for dissonance (well position wobbles erratically)
+                            if (uWellJitter > 0.5) {
+                                float dissonance = 1.0 - variantConsonance;
+                                // Multiple frequency jitters for chaotic movement
+                                float jitterX = sin(uTime * 8.0 + float(w) * 3.0) * dissonance;
+                                jitterX += sin(uTime * 13.0 + float(w) * 5.0) * dissonance * 0.5;
+                                float jitterY = cos(uTime * 9.0 + float(w) * 4.0) * dissonance;
+                                jitterY += cos(uTime * 11.0 + float(w) * 6.0) * dissonance * 0.5;
+                                wellPos += vec2(jitterX, jitterY) * uJitterIntensity;
+                            }
+
+                            vec2 toWell = wellPos - samplePos;
+                            float wellDist = length(toWell);
+                            float gravityPull = uGravityStrength / (wellDist + 10.0);
+
+                            // Apply breathing modulation to pull strength
+                            if (uWellBreathing > 0.5) {
+                                float beatFreq = abs(uTone1Freq - uTone2Freq);
+                                float dissonance = 1.0 - variantConsonance;
+                                float breathingSpeed = mix(uConsonantBreathSpeed, uDissonantPulseSpeed, dissonance);
+                                float breathPhase = sin(uTime * beatFreq * 0.1 * breathingSpeed);
+                                // Modulate pull strength with breathing
+                                gravityPull *= (1.0 + breathPhase * 0.3);
+                            }
+
+                            gravityPull *= uBeatAmplitude;
+
+                            samplePos += normalize(toWell) * gravityPull;
+                        }
+                    }
+                }
+
+                // 4. Lens Refraction - Local displacement like looking through water
+                if (uLensRefraction > 0.5) {
+                    // Multiple moving lens regions
+                    int lensCount = int(mix(1.0, 4.0, 1.0 - variantConsonance));
+                    for (int l = 0; l < 4; l++) {
+                        if (l >= lensCount) break;
+
+                        // Lens centers move around
+                        vec2 center = (uTone1Pos + uTone2Pos) * 0.5;
+                        float lensPhase = float(l) * 2.0 + uTime * mix(0.5, 2.0, 1.0 - variantConsonance);
+                        vec2 lensCenter = center + vec2(
+                            cos(lensPhase) * 150.0,
+                            sin(lensPhase * 1.3) * 150.0
+                        );
+
+                        // Distance to lens center
+                        vec2 toLens = samplePos - lensCenter;
+                        float lensDist = length(toLens);
+
+                        // Refraction strength falls off with distance
+                        float lensInfluence = smoothstep(uLensSize, 0.0, lensDist);
+
+                        // Refract: push away from center (convex lens)
+                        float refractionStrength = lensInfluence * uRefractionAmount * uBeatAmplitude;
+                        samplePos += normalize(toLens) * refractionStrength;
+                    }
+                }
+
+                // 5. Temporal Phase Shift - Sample from different time slices
+                if (uTemporalShift > 0.5) {
+                    // Calculate temporal offset based on position
+                    vec2 center = (uTone1Pos + uTone2Pos) * 0.5;
+                    vec2 toPixel = pixelPos - center;
+                    float angle = atan(toPixel.y, toPixel.x);
+                    float radialDist = length(toPixel);
+
+                    // Only affect overlap region
+                    float temporalInfluence = smoothstep(400.0, 100.0, radialDist);
+
+                    // Normalized angle (0 to 1)
+                    float normalizedAngle = (angle + 3.14159) / 6.28318;
+
+                    // Consonant: smooth gradient, Dissonant: stepped zones
+                    float timePattern;
+                    if (variantConsonance > 0.7) {
+                        // Consonant: smooth circular gradient
+                        timePattern = normalizedAngle;
+                    } else {
+                        // Dissonant: quantized zones with smoothed edges
+                        float temporalZones = float(uTemporalLayers);
+                        float zonePos = normalizedAngle * temporalZones;
+                        float zone = floor(zonePos);
+                        float zoneBlend = fract(zonePos);
+
+                        // Smooth between zones to avoid hard lines
+                        float smoothWidth = 0.2; // 20% of zone for blending
+                        zoneBlend = smoothstep(0.5 - smoothWidth, 0.5 + smoothWidth, zoneBlend);
+
+                        timePattern = (zone + zoneBlend) / temporalZones;
+                    }
+
+                    // Time offset based on pattern and beat
+                    sampleTime = uTime - timePattern * uTimeOffset * uBeatAmplitude * temporalInfluence;
+                }
+
+                // Compute boundary falloffs (use original pixelPos for boundaries)
+                float falloff1 = uIsPlayingTone1 ? computeBoundaryFalloff(pixelPos, uTone1Pos, effectiveRadius) : 0.0;
+                float falloff2 = uIsPlayingTone2 ? computeBoundaryFalloff(pixelPos, uTone2Pos, effectiveRadius) : 0.0;
+
+                // Skip if outside both boundaries
+                if (falloff1 == 0.0 && falloff2 == 0.0) {
+                    gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+                    return;
+                }
+
+                // Check reveal radius (expanding wave effect or shrinking ring)
+                float dist1 = distance(pixelPos, uTone1Pos);
+                float dist2 = distance(pixelPos, uTone2Pos);
+
+                // Hide pixels outside reveal radius range (min = dead zone, max = outer edge)
+                if (dist1 < uTone1RevealRadiusMin || dist1 > uTone1RevealRadiusMax) falloff1 = 0.0;
+                if (dist2 < uTone2RevealRadiusMin || dist2 > uTone2RevealRadiusMax) falloff2 = 0.0;
+
+                // Skip if outside both reveal radii
+                if (falloff1 == 0.0 && falloff2 == 0.0) {
+                    gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
+                    return;
+                }
+
+                // Compute wave amplitudes (use samplePos and sampleTime for warped sampling)
+                float wave1 = uIsPlayingTone1 ? computeWaveAmplitude(samplePos, uTone1Pos, uTone1Freq, uHarmonicOrder, sampleTime) * uAmplitude * falloff1 : 0.0;
+                float wave2 = uIsPlayingTone2 ? computeWaveAmplitude(samplePos, uTone2Pos, uTone2Freq, uHarmonicOrder, sampleTime) * uAmplitude * falloff2 : 0.0;
+
+                float brightness1 = abs(wave1) * 0.5;
+                float brightness2 = abs(wave2) * 0.5;
+
+                // Determine if overlapping
+                bool tone1Active = uIsPlayingTone1 && falloff1 > 0.0;
+                bool tone2Active = uIsPlayingTone2 && falloff2 > 0.0;
+                bool overlapping = tone1Active && tone2Active;
+
+                vec3 finalColor;
+                float finalAlpha;
+
+                // Use tone colors (calculated in JavaScript based on consonance/dissonance)
+                vec3 color1 = uTone1Color;
+                vec3 color2 = uTone2Color;
+
+                // Compute individual tone colors with their brightness
+                // Apply falloff directly to get contribution from each tone
+                // Keep brightness lower so overlap doesn't get too bright when adding
+                vec3 tone1Contribution = color1 * (0.25 + brightness1 * 0.35) * falloff1;
+                vec3 tone2Contribution = color2 * (0.25 + brightness2 * 0.35) * falloff2;
+
+                // Natural overlap: just add the contributions together
+                // Where both are present, they combine and get brighter
+                // Where only one is present, you see just that tone
+                finalColor = tone1Contribution + tone2Contribution;
+                finalAlpha = max(falloff1, falloff2);
+
+                // Only apply special overlap effects when BOTH tones are significantly present
+                if (overlapping) {
+                    // Calculate interference and brightness for overlap effects
+                    float totalBrightness = brightness1 + brightness2;
+
+                    // Detect destructive interference (dark spots where waves cancel)
+                    // When wave1 and wave2 have opposite signs and similar magnitudes, we get cancellation
+                    float interference = wave1 + wave2; // Combined wave
+                    float interferenceStrength = abs(interference) / (abs(wave1) + abs(wave2) + 0.001); // 0 = perfect cancellation, 1 = constructive
+
+                    // Identify dark nodes (destructive interference points)
+                    float isDarkNode = 1.0 - interferenceStrength; // 1.0 at dark spots, 0.0 at bright spots
+
+                    // Pulsate the dark nodes with beat frequency (if enabled)
+                    float nodePulse = 0.0;
+                    if (uShowNodePulse > 0.5) {
+                        nodePulse = isDarkNode * uBeatAmplitude * uNodePulseIntensity;
+                    }
+
+                    // Add beat frequency brightness modulation (if enabled)
+                    float beatBrightness = 0.0;
+                    if (uShowOverallBeat > 0.5) {
+                        beatBrightness = uBeatAmplitude * uOverallBeatIntensity;
+                    }
+
+                    // Compute base overlap color
+                    vec3 baseColor = (color1 + color2) * 0.3;
+
+                    // Calculate brightness modulation from waves and beat
+                    float brightnessMod = 0.8 + totalBrightness * 0.25;
+
+                    // Add beat modulation if enabled
+                    if (uShowOverallBeat > 0.5) {
+                        brightnessMod += uBeatAmplitude * uOverallBeatIntensity;
+                    }
+
+                    // Apply brightness to base color
+                    vec3 overlapColor = baseColor * brightnessMod;
+
+                    // Add pulsing effect synchronized with beat frequency
+                    if (uShowNodePulse > 0.5 && uNodePulseIntensity > 0.0) {
+                        // Use actual audio beat amplitude (already synced to audio phase)
+                        float beatPulse = uBeatAmplitude;
+
+                        // Make the dark nodes themselves pulse in and out of existence
+                        // At dark nodes (destructive interference), modulate their brightness with the beat
+
+                        // Sharpen the node identification to make them more distinct
+                        float nodeSharpness = pow(isDarkNode, 4.0); // Sharp peaks at nodes
+
+                        // The nodes pulse brighter when beat is high, darker when beat is low
+                        // This makes them appear to breathe/pulse in sync with the audio
+                        float nodeBrightness = nodeSharpness * beatPulse * uNodePulseIntensity;
+
+                        // Add bright glow at node points that pulses with the beat
+                        vec3 nodeGlow = uNodePulseColor * nodeBrightness;
+
+                        // Add the overlap effects on top of the natural combination
+                        finalColor += nodeGlow * 0.5;
+                    }
+
+                    // Overlap glow removed - natural additive combination is sufficient
+
+                    // Advanced beat visualization effects
+                    // 1. Ring Breathing: Modulate wave brightness with beat to make rings expand/contract
+                    if (uRingBreathing > 0.5) {
+                        float breathe = uBeatAmplitude * uRingBreathingIntensity;
+                        finalColor *= (1.0 + breathe * totalBrightness);
+                    }
+
+                    // 2. Heat Map: Color-code by interference strength (warm=constructive, cool=destructive)
+                    if (uHeatMap > 0.5) {
+                        // interferenceStrength: 1.0 = constructive (warm), 0.0 = destructive (cool)
+                        vec3 warmColor = vec3(1.0, 0.3, 0.0); // Orange/red for constructive
+                        vec3 coolColor = vec3(0.0, 0.3, 1.0); // Blue for destructive
+                        vec3 heatColor = mix(coolColor, warmColor, interferenceStrength);
+                        finalColor = mix(finalColor, finalColor * heatColor, uHeatMapIntensity);
+                    }
+
+                    // 3. Node Migration: Dynamic drifting effect like refracted water shadows
+                    if (uNodeMigration > 0.5) {
+                        // Create continuous time-based phase drift
+                        float timeDrift = uTime * uNodeMigrationSpeed * 0.5;
+
+                        // Add beat amplitude for additional movement synchronized with audio
+                        float beatDrift = uBeatAmplitude * uNodeMigrationSpeed * 2.0;
+
+                        // Combine time and beat for flowing movement
+                        float totalPhaseShift = (timeDrift + beatDrift) * 3.14159;
+
+                        // Sample multiple phase-shifted versions to create flowing shadows
+                        float shadowAccum = 0.0;
+                        for (int i = 0; i < 3; i++) {
+                            float offset = float(i) * 0.4;
+                            float phaseShift = totalPhaseShift + offset;
+
+                            // Recompute interference with this phase shift
+                            float migratedWave1 = sin((length(pixelPos - uTone1Pos) * uTone1Freq * 0.01 + phaseShift) * 6.28318);
+                            float migratedWave2 = sin((length(pixelPos - uTone2Pos) * uTone2Freq * 0.01 + phaseShift) * 6.28318);
+                            float migratedInterference = migratedWave1 + migratedWave2;
+                            float migratedStrength = abs(migratedInterference) / (abs(migratedWave1) + abs(migratedWave2) + 0.001);
+                            float migratedDarkNode = 1.0 - migratedStrength;
+
+                            // Accumulate with decay for layered shadows
+                            shadowAccum += pow(migratedDarkNode, 4.0) * (1.0 - float(i) * 0.3);
+                        }
+
+                        // Animation multiplier: fade in/out if animate is enabled
+                        float animationMod = 1.0;
+                        if (uNodeMigrationAnimate > 0.5) {
+                            animationMod = (sin(uTime * 2.0) + 1.0) * 0.5;
+                        }
+
+                        // Create flowing shadow effect
+                        vec3 migrationGlow = uNodePulseColor * shadowAccum * 0.15 * animationMod;
+                        finalColor += migrationGlow;
+                    }
+
+                    // 4. Zone Toggle: Alternate highlighting constructive vs destructive zones
+                    if (uZoneToggle > 0.5) {
+                        // Use beat amplitude to toggle between highlighting constructive vs destructive
+                        float togglePhase = uBeatAmplitude;
+
+                        // When beat is high, highlight constructive; when low, highlight destructive
+                        float constructiveBoost = togglePhase * interferenceStrength * uZoneToggleContrast;
+                        float destructiveBoost = (1.0 - togglePhase) * isDarkNode * uZoneToggleContrast;
+
+                        finalColor *= (1.0 + constructiveBoost + destructiveBoost);
+                    }
+
+                    // Advanced Node Migration Modes
+
+                    // 5. Node Density Flow: Node spacing changes with frequency ratio and oscillates with beat
+                    if (uNodeDensityFlow > 0.5) {
+                        // Calculate frequency ratio for consonance detection
+                        float freqRatio = max(uTone1Freq, uTone2Freq) / min(uTone1Freq, uTone2Freq);
+                        float consonance = 1.0 / (1.0 + abs(freqRatio - floor(freqRatio + 0.5)));
+
+                        // Density oscillation: compress/expand node spacing with beat
+                        float densityMod = 1.0 + uBeatAmplitude * uNodeDensityIntensity * 0.5;
+
+                        // Modify wave frequency perception based on density
+                        float modifiedNode = isDarkNode * densityMod;
+
+                        // Consonant intervals: calm, stable oscillation
+                        // Dissonant intervals: rapid, chaotic flutter
+                        float flutterSpeed = mix(2.0, 8.0, 1.0 - consonance);
+                        float flutter = sin(uTime * flutterSpeed + modifiedNode * 10.0) * (1.0 - consonance);
+
+                        finalColor *= 1.0 + modifiedNode * 0.2 + flutter * 0.15 * uNodeDensityIntensity;
+                    }
+
+                    // 6. Phase Coherence Trails: Dark nodes leave trailing echoes
+                    if (uPhaseTrails > 0.5) {
+                        // Calculate frequency ratio for consonance
+                        float freqRatio = max(uTone1Freq, uTone2Freq) / min(uTone1Freq, uTone2Freq);
+                        float consonance = 1.0 / (1.0 + abs(freqRatio - floor(freqRatio + 0.5)));
+
+                        // Trail length based on consonance and settings
+                        float trailLength = consonance * uPhaseTrailLength;
+
+                        // Sample trailing positions in time
+                        vec3 trailAccum = vec3(0.0);
+                        for (int i = 1; i <= 4; i++) {
+                            float timeOffset = float(i) * 0.15 * trailLength;
+                            float pastPhase = (uTime - timeOffset) * uNodeMigrationSpeed;
+                            float pastBeat = sin(pastPhase * 3.14159) * 0.5 + 0.5;
+
+                            // Compute past node positions
+                            float pastShift = pastBeat * 3.14159;
+                            float pastWave1 = sin((length(pixelPos - uTone1Pos) * uTone1Freq * 0.01 + pastShift) * 6.28318);
+                            float pastWave2 = sin((length(pixelPos - uTone2Pos) * uTone2Freq * 0.01 + pastShift) * 6.28318);
+                            float pastInterference = pastWave1 + pastWave2;
+                            float pastStrength = abs(pastInterference) / (abs(pastWave1) + abs(pastWave2) + 0.001);
+                            float pastNode = 1.0 - pastStrength;
+
+                            // Decay trail over distance and time
+                            float decay = 1.0 - float(i) * 0.2;
+                            trailAccum += uNodePulseColor * pow(pastNode, 4.0) * decay;
+                        }
+
+                        // Consonant: long smooth trails, Dissonant: short choppy trails
+                        finalColor += trailAccum * 0.1 * consonance * uBeatAmplitude;
+                    }
+
+                    // 7. Node Coalescence: Nodes attract/repel based on consonance
+                    if (uNodeCoalescence > 0.5) {
+                        // Calculate frequency ratio for consonance
+                        float freqRatio = max(uTone1Freq, uTone2Freq) / min(uTone1Freq, uTone2Freq);
+                        float consonance = 1.0 / (1.0 + abs(freqRatio - floor(freqRatio + 0.5)));
+
+                        // Beat-driven node merging
+                        float mergeFactor = uBeatAmplitude * uCoalescenceStrength;
+
+                        // Consonant: nodes merge cleanly (sharp focus)
+                        // Dissonant: nodes orbit chaotically (blur/spread)
+                        float sharpness = mix(2.0, 8.0, consonance);
+                        float coalescedNode = pow(isDarkNode, sharpness);
+
+                        // Add orbital motion for dissonance
+                        float orbitSpeed = (1.0 - consonance) * 5.0;
+                        float orbitPhase = uTime * orbitSpeed;
+                        vec2 orbitOffset = vec2(cos(orbitPhase), sin(orbitPhase)) * isDarkNode * (1.0 - consonance) * 20.0;
+
+                        // Recompute node at orbited position
+                        vec2 orbitedPos = pixelPos + orbitOffset;
+                        float orbitWave1 = sin(length(orbitedPos - uTone1Pos) * uTone1Freq * 0.01 * 6.28318);
+                        float orbitWave2 = sin(length(orbitedPos - uTone2Pos) * uTone2Freq * 0.01 * 6.28318);
+                        float orbitNode = 1.0 - abs(orbitWave1 + orbitWave2) / 2.0;
+
+                        finalColor += uNodePulseColor * mix(coalescedNode, orbitNode, 1.0 - consonance) * mergeFactor * 0.3;
+                    }
+
+                    // 8. Harmonic Flow Field: Nodes follow flow patterns
+                    if (uFlowField > 0.5) {
+                        // Calculate frequency ratio for consonance
+                        float freqRatio = max(uTone1Freq, uTone2Freq) / min(uTone1Freq, uTone2Freq);
+                        float consonance = 1.0 / (1.0 + abs(freqRatio - floor(freqRatio + 0.5)));
+
+                        // Create flow vector field based on wave gradients
+                        vec2 gradient1 = normalize(pixelPos - uTone1Pos);
+                        vec2 gradient2 = normalize(pixelPos - uTone2Pos);
+                        vec2 flowDir = gradient1 + gradient2;
+
+                        // Consonant: smooth laminar flow
+                        // Dissonant: turbulent chaotic flow with vortices
+                        float turbulence = (1.0 - consonance) * uFlowTurbulence;
+                        float vortex = sin(flowDir.x * 5.0 + uTime) * cos(flowDir.y * 5.0 + uTime) * turbulence;
+
+                        // Sample along flow direction
+                        vec2 flowOffset = flowDir * uBeatAmplitude * 30.0 + vec2(vortex * 20.0);
+                        vec2 flowedPos = pixelPos + flowOffset;
+
+                        float flowWave1 = sin(length(flowedPos - uTone1Pos) * uTone1Freq * 0.01 * 6.28318);
+                        float flowWave2 = sin(length(flowedPos - uTone2Pos) * uTone2Freq * 0.01 * 6.28318);
+                        float flowNode = 1.0 - abs(flowWave1 + flowWave2) / 2.0;
+
+                        // Visualize flow with node intensity
+                        finalColor += uNodePulseColor * pow(flowNode, 3.0) * isDarkNode * 0.25;
+                    }
+
+                    // 9. Interference Depth Layers: Multiple stacked phase layers with parallax
+                    if (uDepthLayers > 0.5) {
+                        // Calculate frequency ratio for consonance
+                        float freqRatio = max(uTone1Freq, uTone2Freq) / min(uTone1Freq, uTone2Freq);
+                        float consonance = 1.0 / (1.0 + abs(freqRatio - floor(freqRatio + 0.5)));
+
+                        // Consonant: few aligned layers, Dissonant: many competing layers
+                        int layerCount = int(mix(float(uDepthLayerCount), 2.0, consonance));
+
+                        vec3 layerAccum = vec3(0.0);
+                        for (int i = 0; i < 8; i++) {
+                            if (i >= layerCount) break;
+
+                            // Each layer at different depth with parallax shift
+                            float depth = float(i) / float(layerCount);
+                            float parallaxShift = depth * uDepthParallax * uBeatAmplitude * 50.0;
+                            vec2 layerPos = pixelPos + vec2(parallaxShift, parallaxShift * 0.5);
+
+                            // Phase offset per layer
+                            float phaseOffset = float(i) * 0.5 + uTime * (1.0 - consonance) * 0.5;
+
+                            float layerWave1 = sin((length(layerPos - uTone1Pos) * uTone1Freq * 0.01 + phaseOffset) * 6.28318);
+                            float layerWave2 = sin((length(layerPos - uTone2Pos) * uTone2Freq * 0.01 + phaseOffset) * 6.28318);
+                            float layerNode = 1.0 - abs(layerWave1 + layerWave2) / 2.0;
+
+                            // Layer opacity decreases with depth
+                            float opacity = 1.0 - depth * 0.7;
+                            layerAccum += uNodePulseColor * pow(layerNode, 4.0) * opacity;
+                        }
+
+                        finalColor += layerAccum * 0.1;
+                    }
+
+                    // ========== EMERGENT BEAT VISUALIZATIONS ==========
+                    // These create new visual layers that respond to interference
+
+                    // Calculate frequency ratio for consonance (used by multiple effects)
+                    float freqRatio = max(uTone1Freq, uTone2Freq) / min(uTone1Freq, uTone2Freq);
+                    float consonance = 1.0 / (1.0 + abs(freqRatio - floor(freqRatio + 0.5)));
+
+                    // Pre-calculate overlap strength for emergent effects
+                    float overlapStrength = min(falloff1, falloff2);
+
+                    // 1. Particle Resonance System
+                    if (uParticleResonance > 0.5) {
+                        // Create pseudo-particles using hash function
+                        float particleLayer = 0.0;
+                        for (int i = 0; i < 100; i++) {
+                            if (i >= uParticleCount) break;
+
+                            // Pseudo-random particle orbit parameters
+                            float seed = float(i) * 12.9898;
+                            float orbitRadius = fract(sin(seed) * 43758.5453) * 100.0 + 50.0;
+                            float orbitSpeed = fract(cos(seed * 1.618) * 43758.5453) * 2.0 + 0.5;
+                            float orbitPhase = fract(sin(seed * 2.718) * 43758.5453) * 6.28318;
+
+                            // Particles orbit around the midpoint between speakers
+                            vec2 centerPos = (uTone1Pos + uTone2Pos) * 0.5;
+                            float angle = uTime * orbitSpeed + orbitPhase;
+
+                            vec2 particlePos = centerPos + vec2(
+                                cos(angle) * orbitRadius,
+                                sin(angle) * orbitRadius
+                            );
+
+                            // Get wave forces at particle position
+                            float dist1 = length(particlePos - uTone1Pos);
+                            float dist2 = length(particlePos - uTone2Pos);
+                            float particleWave1 = sin(dist1 * uTone1Freq * 0.01 * 6.28318);
+                            float particleWave2 = sin(dist2 * uTone2Freq * 0.01 * 6.28318);
+
+                            // Particles oscillate strongly at beat frequency
+                            float oscillation = sin(uTime * 10.0 + float(i)) * uBeatAmplitude * 30.0;
+                            particlePos += normalize(particlePos - centerPos) * oscillation;
+
+                            // Draw particle
+                            float dist = length(pixelPos - particlePos);
+                            float particleGlow = smoothstep(uParticleSize * 4.0, 0.0, dist);
+
+                            // Brightness based on interference at particle location
+                            float particleInterference = (particleWave1 + particleWave2) * 0.5;
+                            float particleBrightness = abs(particleInterference);
+
+                            // Consonance: synchronized orbits (uniform), Dissonance: chaotic (varied)
+                            float chaos = (1.0 - consonance) * fract(sin(seed * 3.14) * 43758.5453);
+                            particleLayer += particleGlow * (0.5 + particleBrightness * 0.5 + chaos * 0.5);
+                        }
+
+                        finalColor += uNodePulseColor * particleLayer * 0.2;
+                    }
+
+                    // 2. Energy Transfer Arcs - Side-view beat frequency wave (like vibrating rope)
+                    if (uEnergyArcs > 0.5) {
+                        // Create base line between speakers
+                        vec2 arcVec = uTone2Pos - uTone1Pos;
+                        float arcLength = length(arcVec);
+                        vec2 arcDir = normalize(arcVec);
+                        vec2 perpDir = vec2(-arcDir.y, arcDir.x); // Perpendicular for wave displacement
+
+                        // Project pixel onto base line
+                        vec2 toPixel = pixelPos - uTone1Pos;
+                        float projection = dot(toPixel, arcDir); // Position along arc 0 to arcLength
+                        float normalizedPos = projection / arcLength; // 0 to 1
+
+                        // Calculate beat frequency (difference between the two tones)
+                        float beatFreq = abs(uTone1Freq - uTone2Freq);
+
+                        // Dissonance creates shakiness and instability in the arc
+                        // Consonance: smooth, steady wave
+                        // Dissonance: erratic wobbling, multiple competing frequencies, jitter
+                        float dissonance = 1.0 - consonance;
+
+                        // Add high-frequency jitter for dissonance
+                        float jitterFreq = mix(0.0, 50.0, dissonance); // High freq shake
+                        float jitter = sin(uTime * jitterFreq + normalizedPos * 20.0) * dissonance * 3.0;
+
+                        // Add chaotic wobble (multiple competing frequencies)
+                        float wobble1 = sin(uTime * 3.7 + normalizedPos * 8.0) * dissonance * 5.0;
+                        float wobble2 = sin(uTime * 5.3 - normalizedPos * 12.0) * dissonance * 4.0;
+                        float wobble3 = cos(uTime * 7.1 + normalizedPos * 15.0) * dissonance * 3.0;
+
+                        // Amplitude instability - varies along the arc for dissonance
+                        float ampNoise = sin(normalizedPos * 10.0 + uTime * 2.0) * dissonance * 0.5;
+
+                        // Side-view wave displacement: sine wave at beat frequency
+                        // Amplitude is larger in middle (loose rope), tighter at ends
+                        float tensionProfile = sin(normalizedPos * 3.14159); // 0 at ends, 1 in middle
+                        float wavePhase = normalizedPos * 3.14159 * 4.0 - uTime * beatFreq * 0.1;
+                        float waveDisplacement = sin(wavePhase) * uArcWaveAmplitude * tensionProfile;
+
+                        // Beat amplitude modulates overall wave amplitude
+                        waveDisplacement *= (0.5 + uBeatAmplitude * 0.5);
+
+                        // Apply amplitude instability for dissonance
+                        waveDisplacement *= (1.0 + ampNoise);
+
+                        // Add all the dissonance effects (jitter + wobbles)
+                        waveDisplacement += jitter + wobble1 + wobble2 + wobble3;
+
+                        // Calculate actual wave position
+                        vec2 basePoint = uTone1Pos + arcDir * clamp(projection, 0.0, arcLength);
+                        vec2 wavePoint = basePoint + perpDir * waveDisplacement;
+
+                        // Distance from pixel to wave point
+                        float distToWave = length(pixelPos - wavePoint);
+
+                        // Thickness modulates with local wave amplitude (thicker at peaks)
+                        float localAmplitude = abs(sin(wavePhase));
+                        float dynamicThickness = uArcThickness * (0.5 + localAmplitude * 0.5);
+
+                        // Dissonance makes thickness unstable (flickering, irregular)
+                        float thicknessNoise = sin(uTime * 15.0 + normalizedPos * 30.0) * dissonance * 0.3;
+                        dynamicThickness *= (1.0 + thicknessNoise);
+
+                        // Consonance: sharp, defined edge; Dissonance: fuzzy, uncertain edge
+                        float edgeSharpness = mix(4.0, 1.0, dissonance);
+                        float waveMask = smoothstep(dynamicThickness * edgeSharpness, 0.0, distToWave);
+
+                        // Add harmonic overtones for dissonance (multiple waves)
+                        // Consonance: clean single wave, Dissonance: multiple interfering harmonics
+                        float branchFactor = dissonance * float(uArcBranching);
+                        for (int h = 1; h < 5; h++) {
+                            if (float(h) > branchFactor) break;
+
+                            // Harmonic at different frequency and phase
+                            float harmonicFreq = float(h + 1);
+                            float harmonicPhase = normalizedPos * 3.14159 * 4.0 * harmonicFreq - uTime * beatFreq * 0.1 * harmonicFreq;
+                            float harmonicDisplacement = sin(harmonicPhase) * uArcWaveAmplitude * tensionProfile * 0.5 / harmonicFreq;
+                            harmonicDisplacement *= (0.5 + uBeatAmplitude * 0.5);
+
+                            // Each harmonic gets its own jitter and wobble
+                            float hJitter = sin(uTime * 30.0 * float(h) + normalizedPos * 25.0) * dissonance * 2.0;
+                            harmonicDisplacement += hJitter;
+
+                            vec2 harmonicPoint = basePoint + perpDir * harmonicDisplacement;
+                            float distToHarmonic = length(pixelPos - harmonicPoint);
+                            float harmonicAmp = abs(sin(harmonicPhase));
+                            float harmonicThickness = uArcThickness * 0.5 * (0.5 + harmonicAmp * 0.5);
+
+                            // Harmonics also have fuzzy edges
+                            waveMask += smoothstep(harmonicThickness * edgeSharpness, 0.0, distToHarmonic) * 0.4 / float(h);
+                        }
+
+                        // Brightness based on wave amplitude and beat
+                        float intensity = waveMask * (0.7 + uBeatAmplitude * 0.3);
+
+                        // Dissonance creates flickering/strobing intensity
+                        float flicker = sin(uTime * 20.0) * sin(uTime * 13.0) * dissonance * 0.3;
+                        intensity *= (1.0 + flicker);
+
+                        // Color varies along wave: bright at antinodes, dim at nodes
+                        vec3 waveColor = mix(uNodePulseColor * 0.4, uNodePulseColor, localAmplitude);
+
+                        // Dissonance adds chaotic color shifting
+                        float colorShift = sin(uTime * 8.0 + normalizedPos * 10.0) * dissonance * 0.3;
+                        waveColor *= (1.0 + colorShift);
+
+                        finalColor += waveColor * intensity * 0.5;
+                    }
+
+                    // 3. Pressure Wave Atmosphere
+                    if (uPressureWave > 0.5) {
+                        // Calculate overall pressure from both waves
+                        float pressure = (wave1 + wave2) * 0.5;
+
+                        // Pressure modulates canvas brightness - breathing effect
+                        float breathe = uBeatAmplitude * uPressureIntensity;
+
+                        // Consonance: deep slow breathing, Dissonance: rapid shallow gasping
+                        float breathSpeed = mix(1.0, 4.0, 1.0 - consonance);
+                        float breathPhase = sin(uTime * breathSpeed) * breathe;
+
+                        // Apply pressure modulation to entire canvas
+                        float pressureMod = 1.0 + breathPhase * 0.3 + pressure * 0.1 * uPressureIntensity;
+                        finalColor *= pressureMod;
+                    }
+
+                    // 4. Membrane Tension Ripples
+                    if (uMembraneRipples > 0.5) {
+                        // Membrane wobbles from interference pressure
+                        float membraneHeight = isDarkNode;
+
+                        // Generate secondary ripples perpendicular to interference rings
+                        vec2 centerPos = (uTone1Pos + uTone2Pos) * 0.5;
+                        vec2 toCenter = pixelPos - centerPos;
+                        float radialDist = length(toCenter);
+
+                        // Consonance: large slow undulations, Dissonance: small fast ripples
+                        float rippleFreq = mix(0.02, 0.08, 1.0 - consonance);
+                        float rippleSpeed = mix(2.0, 8.0, 1.0 - consonance);
+                        float ripple = sin(radialDist * rippleFreq - uTime * rippleSpeed) * uRippleAmplitude;
+                        ripple *= uBeatAmplitude;
+
+                        // Ripple modulates the existing pattern
+                        float rippleEffect = membraneHeight * ripple * 0.3;
+                        finalColor *= 1.0 + rippleEffect;
+                    }
+
+                    // 5. Harmonic Crystal Growth
+                    if (uCrystalGrowth > 0.5) {
+                        // Crystals grow from speaker positions along constructive interference paths
+                        vec3 crystalLayer = vec3(0.0);
+
+                        for (int s = 0; s < 2; s++) {
+                            vec2 speakerPos = s == 0 ? uTone1Pos : uTone2Pos;
+                            vec2 fromSpeaker = pixelPos - speakerPos;
+                            float distFromSpeaker = length(fromSpeaker);
+                            vec2 growthDir = normalize(fromSpeaker);
+
+                            // Crystal grows along lines of high interference
+                            float growthPath = interferenceStrength;
+
+                            // Growth pulses with beat - extends and retracts
+                            float growthPhase = uBeatAmplitude * uCrystalGrowthSpeed;
+                            float maxGrowth = 200.0 * (1.0 + growthPhase);
+
+                            // Consonance: large symmetric structures, Dissonance: small irregular shards
+                            int branches = int(mix(2.0, float(uCrystalComplexity) * 2.0, consonance));
+                            for (int b = 0; b < 10; b++) {
+                                if (b >= branches) break;
+
+                                float branchAngle = float(b) * 6.28318 / float(branches);
+                                vec2 branchDir = vec2(cos(branchAngle), sin(branchAngle));
+
+                                // Check if pixel is along this branch direction
+                                float alignment = dot(growthDir, branchDir);
+                                if (alignment > 0.8) {
+                                    // Crystal structure: nodes at regular intervals
+                                    float nodeSpacing = mix(15.0, 30.0, consonance);
+                                    float nodePhase = mod(distFromSpeaker - uTime * uCrystalGrowthSpeed * 10.0, nodeSpacing);
+                                    float isNode = smoothstep(5.0, 0.0, abs(nodePhase - nodeSpacing * 0.5));
+
+                                    // Crystals only exist where growth is active
+                                    float inGrowthZone = smoothstep(maxGrowth + 20.0, maxGrowth - 20.0, distFromSpeaker);
+                                    float crystalIntensity = isNode * inGrowthZone * growthPath;
+
+                                    // Age-based transparency: older = more solid
+                                    float age = distFromSpeaker / maxGrowth;
+                                    float opacity = smoothstep(0.0, 0.5, age);
+
+                                    crystalLayer += uNodePulseColor * crystalIntensity * opacity * 0.5;
+                                }
+                            }
+                        }
+
+                        finalColor += crystalLayer * 0.3;
+                    }
+
+                    // finalColor already has the natural combination of both tones
+                    // Just add optional special overlap effects on top if enabled
+
+                    // The special overlap effects (node pulse, ring breathing, etc.)
+                    // are already added to finalColor above in their respective sections
+
+                    // Optionally reduce alpha at dark nodes for pulsing transparency effect
+                    if (uShowNodePulse > 0.5) {
+                        // At dark nodes, reduce alpha slightly to show the pulsing effect better
+                        finalAlpha *= mix(0.85, 1.0, interferenceStrength);
+                    }
+                }
+
+                // Apply drum push factor (brightness modulation from z-depth illusion)
+                finalColor *= drumPushFactor;
+
+                // Use finalColor with wave modulation
+                gl_FragColor = vec4(finalColor, finalAlpha);
+                // gl_FragColor = vec4(finalColor * 5.0, finalAlpha);
+                // gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); // Force red for testing
+            }
+        `;
+    }
+
+    compileShader(type, source) {
+        const shader = this.gl.createShader(type);
+        this.gl.shaderSource(shader, source);
+        this.gl.compileShader(shader);
+
+        if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
+            console.error('Shader compilation error:', this.gl.getShaderInfoLog(shader));
+            this.gl.deleteShader(shader);
+            return null;
+        }
+
+        return shader;
+    }
+
+    initShaders() {
+        const vertexShader = this.compileShader(this.gl.VERTEX_SHADER, this.getVertexShaderSource());
+        const fragmentShader = this.compileShader(this.gl.FRAGMENT_SHADER, this.getFragmentShaderSource());
+
+        if (!vertexShader || !fragmentShader) {
+            throw new Error('Failed to compile shaders');
+        }
+
+        this.program = this.gl.createProgram();
+        this.gl.attachShader(this.program, vertexShader);
+        this.gl.attachShader(this.program, fragmentShader);
+        this.gl.linkProgram(this.program);
+
+        if (!this.gl.getProgramParameter(this.program, this.gl.LINK_STATUS)) {
+            console.error('Program linking error:', this.gl.getProgramInfoLog(this.program));
+            throw new Error('Failed to link shader program');
+        }
+
+        this.gl.useProgram(this.program);
+    }
+
+    initBuffers() {
+        // Fullscreen quad vertices
+        const vertices = new Float32Array([
+            -1, -1,
+             1, -1,
+            -1,  1,
+             1,  1
+        ]);
+
+        this.vertexBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, vertices, this.gl.STATIC_DRAW);
+
+        const positionLoc = this.gl.getAttribLocation(this.program, 'aPosition');
+        this.gl.enableVertexAttribArray(positionLoc);
+        this.gl.vertexAttribPointer(positionLoc, 2, this.gl.FLOAT, false, 0, 0);
+    }
+
+    initUniforms() {
+        // Cache all uniform locations
+        this.uniforms = {
+            resolution: this.gl.getUniformLocation(this.program, 'uResolution'),
+            tone1Pos: this.gl.getUniformLocation(this.program, 'uTone1Pos'),
+            tone2Pos: this.gl.getUniformLocation(this.program, 'uTone2Pos'),
+            tone1Freq: this.gl.getUniformLocation(this.program, 'uTone1Freq'),
+            tone2Freq: this.gl.getUniformLocation(this.program, 'uTone2Freq'),
+            tone1Color: this.gl.getUniformLocation(this.program, 'uTone1Color'),
+            tone2Color: this.gl.getUniformLocation(this.program, 'uTone2Color'),
+            time: this.gl.getUniformLocation(this.program, 'uTime'),
+            amplitude: this.gl.getUniformLocation(this.program, 'uAmplitude'),
+            harmonicOrder: this.gl.getUniformLocation(this.program, 'uHarmonicOrder'),
+            isPlayingTone1: this.gl.getUniformLocation(this.program, 'uIsPlayingTone1'),
+            isPlayingTone2: this.gl.getUniformLocation(this.program, 'uIsPlayingTone2'),
+            tone1RevealRadiusMin: this.gl.getUniformLocation(this.program, 'uTone1RevealRadiusMin'),
+            tone1RevealRadiusMax: this.gl.getUniformLocation(this.program, 'uTone1RevealRadiusMax'),
+            tone2RevealRadiusMin: this.gl.getUniformLocation(this.program, 'uTone2RevealRadiusMin'),
+            tone2RevealRadiusMax: this.gl.getUniformLocation(this.program, 'uTone2RevealRadiusMax'),
+            beatAmplitude: this.gl.getUniformLocation(this.program, 'uBeatAmplitude'),
+            showOverallBeat: this.gl.getUniformLocation(this.program, 'uShowOverallBeat'),
+            overallBeatIntensity: this.gl.getUniformLocation(this.program, 'uOverallBeatIntensity'),
+            showNodePulse: this.gl.getUniformLocation(this.program, 'uShowNodePulse'),
+            nodePulseIntensity: this.gl.getUniformLocation(this.program, 'uNodePulseIntensity'),
+            nodePulseColor: this.gl.getUniformLocation(this.program, 'uNodePulseColor'),
+            ringBreathing: this.gl.getUniformLocation(this.program, 'uRingBreathing'),
+            ringBreathingIntensity: this.gl.getUniformLocation(this.program, 'uRingBreathingIntensity'),
+            heatMap: this.gl.getUniformLocation(this.program, 'uHeatMap'),
+            heatMapIntensity: this.gl.getUniformLocation(this.program, 'uHeatMapIntensity'),
+            nodeMigration: this.gl.getUniformLocation(this.program, 'uNodeMigration'),
+            nodeMigrationSpeed: this.gl.getUniformLocation(this.program, 'uNodeMigrationSpeed'),
+            nodeMigrationAnimate: this.gl.getUniformLocation(this.program, 'uNodeMigrationAnimate'),
+            nodeDensityFlow: this.gl.getUniformLocation(this.program, 'uNodeDensityFlow'),
+            nodeDensityIntensity: this.gl.getUniformLocation(this.program, 'uNodeDensityIntensity'),
+            phaseTrails: this.gl.getUniformLocation(this.program, 'uPhaseTrails'),
+            phaseTrailLength: this.gl.getUniformLocation(this.program, 'uPhaseTrailLength'),
+            nodeCoalescence: this.gl.getUniformLocation(this.program, 'uNodeCoalescence'),
+            coalescenceStrength: this.gl.getUniformLocation(this.program, 'uCoalescenceStrength'),
+            flowField: this.gl.getUniformLocation(this.program, 'uFlowField'),
+            flowTurbulence: this.gl.getUniformLocation(this.program, 'uFlowTurbulence'),
+            depthLayers: this.gl.getUniformLocation(this.program, 'uDepthLayers'),
+            depthLayerCount: this.gl.getUniformLocation(this.program, 'uDepthLayerCount'),
+            depthParallax: this.gl.getUniformLocation(this.program, 'uDepthParallax'),
+            zoneToggle: this.gl.getUniformLocation(this.program, 'uZoneToggle'),
+            zoneToggleContrast: this.gl.getUniformLocation(this.program, 'uZoneToggleContrast'),
+            particleResonance: this.gl.getUniformLocation(this.program, 'uParticleResonance'),
+            particleCount: this.gl.getUniformLocation(this.program, 'uParticleCount'),
+            particleSize: this.gl.getUniformLocation(this.program, 'uParticleSize'),
+            energyArcs: this.gl.getUniformLocation(this.program, 'uEnergyArcs'),
+            arcThickness: this.gl.getUniformLocation(this.program, 'uArcThickness'),
+            arcBranching: this.gl.getUniformLocation(this.program, 'uArcBranching'),
+            arcWaveAmplitude: this.gl.getUniformLocation(this.program, 'uArcWaveAmplitude'),
+            pressureWave: this.gl.getUniformLocation(this.program, 'uPressureWave'),
+            pressureIntensity: this.gl.getUniformLocation(this.program, 'uPressureIntensity'),
+            canvasStretch: this.gl.getUniformLocation(this.program, 'uCanvasStretch'),
+            stretchAmount: this.gl.getUniformLocation(this.program, 'uStretchAmount'),
+            drumPush: this.gl.getUniformLocation(this.program, 'uDrumPush'),
+            drumDepth: this.gl.getUniformLocation(this.program, 'uDrumDepth'),
+            gravityWell: this.gl.getUniformLocation(this.program, 'uGravityWell'),
+            gravityStrength: this.gl.getUniformLocation(this.program, 'uGravityStrength'),
+            gravityWellCount: this.gl.getUniformLocation(this.program, 'uGravityWellCount'),
+            gravityVariant1: this.gl.getUniformLocation(this.program, 'uGravityVariant1'),
+            gravityAmpRange: this.gl.getUniformLocation(this.program, 'uGravityAmpRange'),
+            gravityWellSize: this.gl.getUniformLocation(this.program, 'uGravityWellSize'),
+            gravityVariant2: this.gl.getUniformLocation(this.program, 'uGravityVariant2'),
+            repulsionForce: this.gl.getUniformLocation(this.program, 'uRepulsionForce'),
+            gravityVariant3: this.gl.getUniformLocation(this.program, 'uGravityVariant3'),
+            vortexSpeed: this.gl.getUniformLocation(this.program, 'uVortexSpeed'),
+            spiralTightness: this.gl.getUniformLocation(this.program, 'uSpiralTightness'),
+            gravityVariant4: this.gl.getUniformLocation(this.program, 'uGravityVariant4'),
+            tidalStrength: this.gl.getUniformLocation(this.program, 'uTidalStrength'),
+            gravityVariant5: this.gl.getUniformLocation(this.program, 'uGravityVariant5'),
+            pulseDepth: this.gl.getUniformLocation(this.program, 'uPulseDepth'),
+            eventHorizon: this.gl.getUniformLocation(this.program, 'uEventHorizon'),
+            gravityVariant6: this.gl.getUniformLocation(this.program, 'uGravityVariant6'),
+            attractionRepulsionForce: this.gl.getUniformLocation(this.program, 'uAttractionRepulsionForce'),
+            wellJitter: this.gl.getUniformLocation(this.program, 'uWellJitter'),
+            jitterIntensity: this.gl.getUniformLocation(this.program, 'uJitterIntensity'),
+            wellBreathing: this.gl.getUniformLocation(this.program, 'uWellBreathing'),
+            consonantBreathSpeed: this.gl.getUniformLocation(this.program, 'uConsonantBreathSpeed'),
+            dissonantPulseSpeed: this.gl.getUniformLocation(this.program, 'uDissonantPulseSpeed'),
+            lensRefraction: this.gl.getUniformLocation(this.program, 'uLensRefraction'),
+            refractionAmount: this.gl.getUniformLocation(this.program, 'uRefractionAmount'),
+            lensSize: this.gl.getUniformLocation(this.program, 'uLensSize'),
+            temporalShift: this.gl.getUniformLocation(this.program, 'uTemporalShift'),
+            timeOffset: this.gl.getUniformLocation(this.program, 'uTimeOffset'),
+            temporalLayers: this.gl.getUniformLocation(this.program, 'uTemporalLayers'),
+            membraneRipples: this.gl.getUniformLocation(this.program, 'uMembraneRipples'),
+            rippleAmplitude: this.gl.getUniformLocation(this.program, 'uRippleAmplitude'),
+            crystalGrowth: this.gl.getUniformLocation(this.program, 'uCrystalGrowth'),
+            crystalComplexity: this.gl.getUniformLocation(this.program, 'uCrystalComplexity'),
+            crystalGrowthSpeed: this.gl.getUniformLocation(this.program, 'uCrystalGrowthSpeed'),
+            useBoundary: this.gl.getUniformLocation(this.program, 'uUseBoundary'),
+            boundaryRadius: this.gl.getUniformLocation(this.program, 'uBoundaryRadius'),
+            speakerRadius: this.gl.getUniformLocation(this.program, 'uSpeakerRadius'),
+            useFoggyEdge: this.gl.getUniformLocation(this.program, 'uUseFoggyEdge'),
+            foggyEdgeStart: this.gl.getUniformLocation(this.program, 'uFoggyEdgeStart'),
+            rootIntensity: this.gl.getUniformLocation(this.program, 'uRootIntensity'),
+            intervalIntensity: this.gl.getUniformLocation(this.program, 'uIntervalIntensity'),
+            intersectionIntensity: this.gl.getUniformLocation(this.program, 'uIntersectionIntensity'),
+            usePianoMode: this.gl.getUniformLocation(this.program, 'uUsePianoMode'),
+            chromaticColors: this.gl.getUniformLocation(this.program, 'uChromaticColors'),
+            rootFreq: this.gl.getUniformLocation(this.program, 'uRootFreq'),
+            rootTone: this.gl.getUniformLocation(this.program, 'uRootTone')
+        };
+    }
+
+    hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? [
+            parseInt(result[1], 16) / 255,
+            parseInt(result[2], 16) / 255,
+            parseInt(result[3], 16) / 255
+        ] : [1, 1, 1];
+    }
+
+    getRevealRadius(toneStartTime, toneStopTime, isPlaying, toneX, toneY, width, height) {
+        const maxDist = Math.sqrt(width * width + height * height);
+        const revealSpeed = 300; // Pulse speed setting
+
+        if (isPlaying && toneStartTime) {
+            // Expanding - tone is playing
+            const elapsed = performance.now() - toneStartTime;
+            const radius = (elapsed / 1000) * revealSpeed;
+            return Math.min(radius, maxDist);
+        } else if (toneStopTime && toneStartTime) {
+            // Shrinking from center outward - show a "dead zone" expanding from center
+            const elapsedSinceStopped = performance.now() - toneStopTime;
+            const deadZoneRadius = (elapsedSinceStopped / 1000) * revealSpeed;
+
+            // The maximum expansion when stopped
+            const totalExpanded = toneStopTime - toneStartTime;
+            const maxRadius = Math.min((totalExpanded / 1000) * revealSpeed, maxDist);
+
+            // If dead zone has caught up to the edge, everything is gone
+            if (deadZoneRadius >= maxRadius) {
+                return 0;
+            }
+
+            // Return object with both radii so we can check if point is in the visible ring
+            return { minRadius: deadZoneRadius, maxRadius: maxRadius };
+        }
+
+        return 0;
+    }
+
+    updateUniforms() {
+        const width = this.canvas.width;
+        const height = this.canvas.height;
+        const time = (performance.now() - this.startTime) / 1000; // Convert to seconds
+
+        // Calculate reveal radii for expanding wave effect
+        const tone1RevealRadius = this.getRevealRadius(
+            this.tone1StartTime,
+            this.tone1StopTime,
+            this.isPlayingTone1,
+            this.tone1X,
+            this.tone1Y,
+            width,
+            height
+        );
+        const tone2RevealRadius = this.getRevealRadius(
+            this.tone2StartTime,
+            this.tone2StopTime,
+            this.isPlayingTone2,
+            this.tone2X,
+            this.tone2Y,
+            width,
+            height
+        );
+
+        // Handle reveal radius - can be a number (expanding) or object with minRadius/maxRadius (shrinking ring)
+        if (typeof tone1RevealRadius === 'number') {
+            this.tone1RevealRadiusMin = 0;
+            this.tone1RevealRadiusMax = tone1RevealRadius;
+        } else if (tone1RevealRadius && tone1RevealRadius.minRadius !== undefined) {
+            this.tone1RevealRadiusMin = tone1RevealRadius.minRadius;
+            this.tone1RevealRadiusMax = tone1RevealRadius.maxRadius;
+        } else {
+            // Tone is fully stopped or never started
+            this.tone1RevealRadiusMin = 0;
+            this.tone1RevealRadiusMax = tone1RevealRadius === 0 ? 0 : 9999;
+        }
+
+        if (typeof tone2RevealRadius === 'number') {
+            this.tone2RevealRadiusMin = 0;
+            this.tone2RevealRadiusMax = tone2RevealRadius;
+        } else if (tone2RevealRadius && tone2RevealRadius.minRadius !== undefined) {
+            this.tone2RevealRadiusMin = tone2RevealRadius.minRadius;
+            this.tone2RevealRadiusMax = tone2RevealRadius.maxRadius;
+        } else {
+            // Tone is fully stopped or never started
+            this.tone2RevealRadiusMin = 0;
+            this.tone2RevealRadiusMax = tone2RevealRadius === 0 ? 0 : 9999;
+        }
+
+        // Calculate absolute positions
+        const tone1X = width * this.tone1X;
+        const tone1Y = height * this.tone1Y;
+        const tone2X = width * this.tone2X;
+        const tone2Y = height * this.tone2Y;
+
+        // Update all uniforms
+        this.gl.uniform2f(this.uniforms.resolution, width, height);
+        this.gl.uniform2f(this.uniforms.tone1Pos, tone1X, tone1Y);
+        this.gl.uniform2f(this.uniforms.tone2Pos, tone2X, tone2Y);
+        this.gl.uniform1f(this.uniforms.tone1Freq, this.tone1Freq);
+        this.gl.uniform1f(this.uniforms.tone2Freq, this.tone2Freq);
+
+        const tone1Rgb = this.hexToRgb(this.settings.tone1Color);
+        const tone2Rgb = this.hexToRgb(this.settings.tone2Color);
+        this.gl.uniform3f(this.uniforms.tone1Color, tone1Rgb[0], tone1Rgb[1], tone1Rgb[2]);
+        this.gl.uniform3f(this.uniforms.tone2Color, tone2Rgb[0], tone2Rgb[1], tone2Rgb[2]);
+
+        this.gl.uniform1f(this.uniforms.time, time);
+        this.gl.uniform1f(this.uniforms.amplitude, this.settings.amplitude);
+        this.gl.uniform1i(this.uniforms.harmonicOrder, this.settings.harmonicOrder);
+        this.gl.uniform1i(this.uniforms.isPlayingTone1, this.isPlayingTone1 ? 1 : 0);
+        this.gl.uniform1i(this.uniforms.isPlayingTone2, this.isPlayingTone2 ? 1 : 0);
+        this.gl.uniform1f(this.uniforms.tone1RevealRadiusMin, this.tone1RevealRadiusMin || 0);
+        this.gl.uniform1f(this.uniforms.tone1RevealRadiusMax, this.tone1RevealRadiusMax || 9999);
+        this.gl.uniform1f(this.uniforms.tone2RevealRadiusMin, this.tone2RevealRadiusMin || 0);
+        this.gl.uniform1f(this.uniforms.tone2RevealRadiusMax, this.tone2RevealRadiusMax || 9999);
+        this.gl.uniform1f(this.uniforms.beatAmplitude, this.beatAmplitude || 0);
+        this.gl.uniform1f(this.uniforms.showOverallBeat, this.settings.showOverallBeat ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.overallBeatIntensity, this.settings.overallBeatIntensity);
+        this.gl.uniform1f(this.uniforms.showNodePulse, this.settings.showNodePulse ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.nodePulseIntensity, this.settings.nodePulseIntensity);
+
+        // Parse node pulse color
+        const nodePulseColor = this.hexToRgb(this.settings.nodePulseColor);
+        this.gl.uniform3f(this.uniforms.nodePulseColor, nodePulseColor[0], nodePulseColor[1], nodePulseColor[2]);
+
+        // Advanced beat visualizations
+        this.gl.uniform1f(this.uniforms.ringBreathing, this.settings.ringBreathing ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.ringBreathingIntensity, this.settings.ringBreathingIntensity);
+        this.gl.uniform1f(this.uniforms.heatMap, this.settings.heatMap ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.heatMapIntensity, this.settings.heatMapIntensity);
+        this.gl.uniform1f(this.uniforms.nodeMigration, this.settings.nodeMigration ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.nodeMigrationSpeed, this.settings.nodeMigrationSpeed);
+        this.gl.uniform1f(this.uniforms.nodeMigrationAnimate, this.settings.nodeMigrationAnimate ? 1.0 : 0.0);
+
+        // Advanced node migration modes
+        this.gl.uniform1f(this.uniforms.nodeDensityFlow, this.settings.nodeDensityFlow ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.nodeDensityIntensity, this.settings.nodeDensityIntensity);
+        this.gl.uniform1f(this.uniforms.phaseTrails, this.settings.phaseTrails ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.phaseTrailLength, this.settings.phaseTrailLength);
+        this.gl.uniform1f(this.uniforms.nodeCoalescence, this.settings.nodeCoalescence ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.coalescenceStrength, this.settings.coalescenceStrength);
+        this.gl.uniform1f(this.uniforms.flowField, this.settings.flowField ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.flowTurbulence, this.settings.flowTurbulence);
+        this.gl.uniform1f(this.uniforms.depthLayers, this.settings.depthLayers ? 1.0 : 0.0);
+        this.gl.uniform1i(this.uniforms.depthLayerCount, this.settings.depthLayerCount);
+        this.gl.uniform1f(this.uniforms.depthParallax, this.settings.depthParallax);
+
+        this.gl.uniform1f(this.uniforms.zoneToggle, this.settings.zoneToggle ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.zoneToggleContrast, this.settings.zoneToggleContrast);
+
+        // Emergent beat visualizations
+        this.gl.uniform1f(this.uniforms.particleResonance, this.settings.particleResonance ? 1.0 : 0.0);
+        this.gl.uniform1i(this.uniforms.particleCount, this.settings.particleCount);
+        this.gl.uniform1f(this.uniforms.particleSize, this.settings.particleSize);
+        this.gl.uniform1f(this.uniforms.energyArcs, this.settings.energyArcs ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.arcThickness, this.settings.arcThickness);
+        this.gl.uniform1i(this.uniforms.arcBranching, this.settings.arcBranching);
+        this.gl.uniform1f(this.uniforms.arcWaveAmplitude, this.settings.arcWaveAmplitude);
+        this.gl.uniform1f(this.uniforms.pressureWave, this.settings.pressureWave ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.pressureIntensity, this.settings.pressureIntensity);
+        this.gl.uniform1f(this.uniforms.canvasStretch, this.settings.canvasStretch ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.stretchAmount, this.settings.stretchAmount);
+        this.gl.uniform1f(this.uniforms.drumPush, this.settings.drumPush ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.drumDepth, this.settings.drumDepth);
+        this.gl.uniform1f(this.uniforms.gravityWell, this.settings.gravityWell ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.gravityStrength, this.settings.gravityStrength);
+        this.gl.uniform1i(this.uniforms.gravityWellCount, this.settings.gravityWellCount);
+        this.gl.uniform1f(this.uniforms.gravityVariant1, this.settings.gravityVariant1 ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.gravityAmpRange, this.settings.gravityAmpRange);
+        this.gl.uniform1f(this.uniforms.gravityWellSize, this.settings.gravityWellSize);
+        this.gl.uniform1f(this.uniforms.gravityVariant2, this.settings.gravityVariant2 ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.repulsionForce, this.settings.repulsionForce);
+        this.gl.uniform1f(this.uniforms.gravityVariant3, this.settings.gravityVariant3 ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.vortexSpeed, this.settings.vortexSpeed);
+        this.gl.uniform1f(this.uniforms.spiralTightness, this.settings.spiralTightness);
+        this.gl.uniform1f(this.uniforms.gravityVariant4, this.settings.gravityVariant4 ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.tidalStrength, this.settings.tidalStrength);
+        this.gl.uniform1f(this.uniforms.gravityVariant5, this.settings.gravityVariant5 ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.pulseDepth, this.settings.pulseDepth);
+        this.gl.uniform1f(this.uniforms.eventHorizon, this.settings.eventHorizon);
+        this.gl.uniform1f(this.uniforms.gravityVariant6, this.settings.gravityVariant6 ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.attractionRepulsionForce, this.settings.attractionRepulsionForce);
+        this.gl.uniform1f(this.uniforms.wellJitter, this.settings.wellJitter ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.jitterIntensity, this.settings.jitterIntensity);
+        this.gl.uniform1f(this.uniforms.wellBreathing, this.settings.wellBreathing ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.consonantBreathSpeed, this.settings.consonantBreathSpeed);
+        this.gl.uniform1f(this.uniforms.dissonantPulseSpeed, this.settings.dissonantPulseSpeed);
+        this.gl.uniform1f(this.uniforms.lensRefraction, this.settings.lensRefraction ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.refractionAmount, this.settings.refractionAmount);
+        this.gl.uniform1f(this.uniforms.lensSize, this.settings.lensSize);
+        this.gl.uniform1f(this.uniforms.temporalShift, this.settings.temporalShift ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.timeOffset, this.settings.timeOffset);
+        this.gl.uniform1i(this.uniforms.temporalLayers, this.settings.temporalLayers);
+        this.gl.uniform1f(this.uniforms.membraneRipples, this.settings.membraneRipples ? 1.0 : 0.0);
+        this.gl.uniform1f(this.uniforms.rippleAmplitude, this.settings.rippleAmplitude);
+        this.gl.uniform1f(this.uniforms.crystalGrowth, this.settings.crystalGrowth ? 1.0 : 0.0);
+        this.gl.uniform1i(this.uniforms.crystalComplexity, this.settings.crystalComplexity);
+        this.gl.uniform1f(this.uniforms.crystalGrowthSpeed, this.settings.crystalGrowthSpeed);
+
+        this.gl.uniform1i(this.uniforms.useBoundary, this.settings.useBoundary ? 1 : 0);
+        this.gl.uniform1f(this.uniforms.boundaryRadius, this.settings.boundaryRadius);
+        this.gl.uniform1f(this.uniforms.speakerRadius, this.settings.speakerRadius);
+        this.gl.uniform1i(this.uniforms.useFoggyEdge, this.settings.useFoggyEdge ? 1 : 0);
+        this.gl.uniform1f(this.uniforms.foggyEdgeStart, this.settings.foggyEdgeStart);
+        this.gl.uniform1f(this.uniforms.rootIntensity, this.settings.rootIntensity);
+        this.gl.uniform1f(this.uniforms.intervalIntensity, this.settings.intervalIntensity);
+        this.gl.uniform1f(this.uniforms.intersectionIntensity, this.settings.intersectionIntensity);
+        this.gl.uniform1i(this.uniforms.usePianoMode, this.settings.colorMode === 'piano' ? 1 : 0);
+        this.gl.uniform1f(this.uniforms.rootFreq, this.settings.rootFreq);
+        this.gl.uniform1i(this.uniforms.rootTone, this.rootTone);
+
+        // Upload chromatic colors array
+        const flatColors = this.chromaticColors.flat();
+        this.gl.uniform3fv(this.uniforms.chromaticColors, flatColors);
+    }
+
+    render() {
+        // Update colors based on consonance/dissonance
+        const rootFreq = (this.rootTone == 1) ? this.tone1Freq : this.tone2Freq;
+        this.settings.tone1Color = this.getFrequencyColor(this.tone1Freq, rootFreq);
+        this.settings.tone2Color = this.getFrequencyColor(this.tone2Freq, rootFreq);
+
+        // Calculate beat amplitude for gravity wells
+        // Beat frequency is the difference between the two tones
+        if (this.isPlayingTone1 && this.isPlayingTone2) {
+            const beatFreq = Math.abs(this.tone1Freq - this.tone2Freq);
+            const time = (performance.now() - this.startTime) / 1000; // Time in seconds
+            // Generate smooth pulsing beat amplitude (0 to 1)
+            this.beatAmplitude = (Math.sin(time * beatFreq * 2 * Math.PI) + 1) / 2;
+        } else {
+            this.beatAmplitude = 0;
+        }
+
+        // Clear with black background
+        this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
+        // Enable blending for transparency
+        this.gl.enable(this.gl.BLEND);
+        this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+
+        // Update uniforms
+        this.updateUniforms();
+
+        // Debug: Log state when tones are playing
+        if ((this.isPlayingTone1 || this.isPlayingTone2) && !this._debugLogged) {
+            console.log('WebGL Debug (tones playing):', {
+                canvasSize: [this.canvas.width, this.canvas.height],
+                isPlaying: [this.isPlayingTone1, this.isPlayingTone2],
+                frequencies: [this.tone1Freq, this.tone2Freq],
+                positions: [this.tone1X, this.tone1Y, this.tone2X, this.tone2Y],
+                boundaryRadius: this.settings.boundaryRadius,
+                amplitude: this.settings.amplitude,
+                syncedFrom: window.intervalViz ? 'Canvas2D' : 'none'
+            });
+            this._debugLogged = true;
+        }
+
+        // Draw fullscreen quad
+        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+
+        // Render 2D overlay (speakers)
+        this.renderOverlay();
+    }
+
+    renderOverlay() {
+        const width = this.overlayCanvas.width;
+        const height = this.overlayCanvas.height;
+
+        // Clear overlay
+        this.overlayCtx.clearRect(0, 0, width, height);
+
+        // Draw speakers
+        const tone1X = width * this.tone1X;
+        const tone1Y = height * this.tone1Y;
+        const tone2X = width * this.tone2X;
+        const tone2Y = height * this.tone2Y;
+
+        this.drawToneSource(this.overlayCtx, tone1X, tone1Y, this.settings.tone1Color, 'T1', this.isPlayingTone1);
+        this.drawToneSource(this.overlayCtx, tone2X, tone2Y, this.settings.tone2Color, 'T2', this.isPlayingTone2);
+    }
+
+    drawToneSource(ctx, x, y, color, label, isActive = false) {
+        if (this.speakerImageLoaded) {
+            // Draw speaker icon - size responsive to canvas dimensions
+            // Use percentage of canvas width, clamped between min and max
+            const baseSize = Math.min(this.overlayCanvas.width, this.overlayCanvas.height) * 0.08; // 8% of smallest dimension
+            const speakerSize = Math.max(40, Math.min(80, baseSize)); // Clamp between 40-80px
+            const bgRadius = speakerSize / 2;
+
+            ctx.save();
+
+            let speakerOpacity = 0.5;
+            if (isActive) {
+                const pulseSpeed = 3;
+                const time = performance.now() / 1000;
+                const pulse = (Math.sin(time * pulseSpeed * Math.PI * 2) + 1) / 2;
+                speakerOpacity = 0.5 + (pulse * 0.5);
+            }
+
+            if (isActive) {
+                // When playing: draw pulsing speaker with background
+                // Draw background circle with glow
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = color;
+                ctx.fillStyle = color;
+                ctx.globalAlpha = 0.3;
+                ctx.beginPath();
+                ctx.arc(x, y, bgRadius * 1.2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw speaker image
+                ctx.shadowBlur = 0;
+                ctx.globalAlpha = speakerOpacity;
+
+                // Use transparent image if loaded, otherwise regular image
+                const imgToUse = this.speakerImageTransparentLoaded ? this.speakerImageTransparent : this.speakerImage;
+
+                ctx.drawImage(
+                    imgToUse,
+                    x - speakerSize / 2,
+                    y - speakerSize / 2,
+                    speakerSize,
+                    speakerSize
+                );
+            } else {
+                ctx.fillStyle = '#000000';
+                ctx.globalAlpha = 0.8;
+                ctx.beginPath();
+                ctx.arc(x, y, bgRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.globalAlpha = 0.4;
+                ctx.stroke();
+
+                ctx.globalAlpha = 0.9;
+                ctx.save();
+                ctx.filter = 'invert(1) contrast(1.5) brightness(1.2)';
+                ctx.drawImage(
+                    this.speakerImage,
+                    x - speakerSize / 2,
+                    y - speakerSize / 2,
+                    speakerSize,
+                    speakerSize
+                );
+                ctx.restore();
+            }
+
+            ctx.restore();
+        }
+    }
+
+    start() {
+        // Re-check and initialize frequencies from DOM in case they weren't available in constructor
+        this.ensureFrequenciesInitialized();
+
+        const animate = () => {
+            this.render();
+            this.animationFrameId = requestAnimationFrame(animate);
+        };
+        animate();
+    }
+
+    ensureFrequenciesInitialized() {
+        // Check if frequencies are invalid and try to get them from DOM
+        if (isNaN(this.tone1Freq) || this.tone1Freq <= 0 || isNaN(this.tone2Freq) || this.tone2Freq <= 0) {
+            const tone1FreqSlider = document.getElementById('intervalVizTone1Freq');
+            const tone2FreqSlider = document.getElementById('intervalVizTone2Freq');
+
+            const freq1 = tone1FreqSlider ? parseFloat(tone1FreqSlider.value) : NaN;
+            const freq2 = tone2FreqSlider ? parseFloat(tone2FreqSlider.value) : NaN;
+
+            if (!isNaN(freq1) && freq1 > 0) this.tone1Freq = freq1;
+            else if (isNaN(this.tone1Freq) || this.tone1Freq <= 0) this.tone1Freq = 440;
+
+            if (!isNaN(freq2) && freq2 > 0) this.tone2Freq = freq2;
+            else if (isNaN(this.tone2Freq) || this.tone2Freq <= 0) this.tone2Freq = 554;
+
+            console.log('ensureFrequenciesInitialized - Final frequencies:', this.tone1Freq, this.tone2Freq);
+        }
+    }
+
+    stop() {
+        if (this.animationFrameId) {
+            cancelAnimationFrame(this.animationFrameId);
+            this.animationFrameId = null;
+        }
+    }
+
+
+    stopAll() {
+        this.isPlayingTone1 = false;
+        this.isPlayingTone2 = false;
+    }
+
+    setRootTone(toneNumber) {
+        this.rootTone = toneNumber;
+    }
+
+    updateRootNote(note, freq) {
+        this.settings.rootNote = note;
+        this.settings.rootFreq = freq;
+    }
+
+    // Consonance-based color system from original Cymatic Harmonic Visualization
+    getDissonanceCurve(cents) {
+        const normalizedCents = cents % 1200;
+        const dissonanceMap = [
+            { cents: 0, dissonance: 0.0 },      // Unison - perfect consonance
+            { cents: 100, dissonance: 0.9 },    // Minor 2nd - very dissonant
+            { cents: 200, dissonance: 0.5 },    // Major 2nd - moderately clear
+            { cents: 300, dissonance: 0.2 },    // Minor 3rd - consonant
+            { cents: 400, dissonance: 0.15 },   // Major 3rd - very consonant
+            { cents: 500, dissonance: 0.1 },    // Perfect 4th - extremely consonant
+            { cents: 600, dissonance: 1.0 },    // Tritone - most dissonant
+            { cents: 700, dissonance: 0.05 },   // Perfect 5th - most consonant
+            { cents: 800, dissonance: 0.25 },   // Minor 6th - fairly consonant
+            { cents: 900, dissonance: 0.2 },    // Major 6th - consonant
+            { cents: 1000, dissonance: 0.6 },   // Minor 7th - somewhat dissonant
+            { cents: 1100, dissonance: 0.75 },  // Major 7th - dissonant
+            { cents: 1200, dissonance: 0.0 }    // Octave - perfect consonance
+        ];
+
+        let prev = dissonanceMap[0];
+        let next = dissonanceMap[1];
+
+        for (let i = 0; i < dissonanceMap.length - 1; i++) {
+            if (normalizedCents >= dissonanceMap[i].cents && normalizedCents <= dissonanceMap[i + 1].cents) {
+                prev = dissonanceMap[i];
+                next = dissonanceMap[i + 1];
+                break;
+            }
+        }
+
+        const range = next.cents - prev.cents;
+        const position = (normalizedCents - prev.cents) / range;
+        return prev.dissonance + (next.dissonance - prev.dissonance) * position;
+    }
+
+    getFrequencyColor(freq, rootFreq) {
+        const ratio = freq / rootFreq;
+        const cents = 1200 * Math.log2(ratio);
+        const normalizedCents = ((cents % 1200) + 1200) % 1200;
+        const dissonance = this.getDissonanceCurve(cents);
+
+        let hue;
+        if (normalizedCents < 100) {
+            hue = 180 - (normalizedCents / 100) * 180;
+        } else if (normalizedCents < 200) {
+            hue = 0 + ((normalizedCents - 100) / 100) * 40;
+        } else if (normalizedCents < 300) {
+            const t = (normalizedCents - 200) / 100;
+            hue = 40 + t * 80;
+        } else if (normalizedCents < 400) {
+            const t = (normalizedCents - 300) / 100;
+            hue = 120 + t * 40;
+        } else if (normalizedCents < 500) {
+            const t = (normalizedCents - 400) / 100;
+            hue = 160 + t * 40;
+        } else if (normalizedCents < 600) {
+            const t = (normalizedCents - 500) / 100;
+            hue = 200 - t * 200;
+        } else if (normalizedCents < 700) {
+            const t = (normalizedCents - 600) / 100;
+            hue = 0 + t * 220;
+        } else if (normalizedCents < 800) {
+            const t = (normalizedCents - 700) / 100;
+            hue = 220 + t * 60;
+        } else if (normalizedCents < 900) {
+            const t = (normalizedCents - 800) / 100;
+            hue = 280 + t * 20;
+        } else if (normalizedCents < 1000) {
+            const t = (normalizedCents - 900) / 100;
+            hue = 300 + t * 90;
+        } else if (normalizedCents < 1100) {
+            const t = (normalizedCents - 1000) / 100;
+            hue = 30 - t * 15;
+        } else {
+            const t = (normalizedCents - 1100) / 100;
+            hue = 15 + t * 165;
+        }
+
+        const saturation = 60 + ((1.0 - dissonance) * 30);
+        const lightness = 65;
+        const finalHue = hue % 360;
+
+        return this.hslToHex(finalHue, saturation, lightness);
+    }
+
+    hslToHex(h, s, l) {
+        s = s / 100;
+        l = l / 100;
+        const c = (1 - Math.abs(2 * l - 1)) * s;
+        const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+        const m = l - c/2;
+        let r = 0, g = 0, b = 0;
+
+        if (h >= 0 && h < 60) { r = c; g = x; b = 0; }
+        else if (h >= 60 && h < 120) { r = x; g = c; b = 0; }
+        else if (h >= 120 && h < 180) { r = 0; g = c; b = x; }
+        else if (h >= 180 && h < 240) { r = 0; g = x; b = c; }
+        else if (h >= 240 && h < 300) { r = x; g = 0; b = c; }
+        else if (h >= 300 && h < 360) { r = c; g = 0; b = x; }
+
+        r = Math.round((r + m) * 255);
+        g = Math.round((g + m) * 255);
+        b = Math.round((b + m) * 255);
+
+        return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+    }
+
+    resize() {
+        const rect = this.canvas.getBoundingClientRect();
+        const containerWidth = rect.width;
+        const targetHeight = 600;
+
+        // Maintain aspect ratio - use square canvas
+        const size = Math.min(containerWidth, targetHeight);
+
+        this.canvas.width = size;
+        this.canvas.height = size;
+        if (this.overlayCanvas) {
+            this.overlayCanvas.width = size;
+            this.overlayCanvas.height = size;
+        }
+        this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+    }
+
+    destroy() {
+        this.stop();
+
+        // Remove keyboard event listener
+        if (this.handleKeyDown) {
+            document.removeEventListener('keydown', this.handleKeyDown);
+        }
+
+        // Clean up WebGL resources
+        if (this.vertexBuffer) {
+            this.gl.deleteBuffer(this.vertexBuffer);
+        }
+        if (this.program) {
+            this.gl.deleteProgram(this.program);
+        }
+
+        // Remove overlay canvas
+        if (this.overlayCanvas && this.overlayCanvas.parentElement) {
+            this.overlayCanvas.parentElement.removeChild(this.overlayCanvas);
+        }
+    }
+}

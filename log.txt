@@ -1,0 +1,3770 @@
+{
+  "timestamp": "2025-10-06T04:39:41.767Z",
+  "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1",
+  "testType": null,
+  "systemInfo": {
+    "device": "N/A",
+    "sampleRate": 48000,
+    "fftSize": 4096,
+    "smoothingTimeConstant": 0,
+    "bufferSize": 4096
+  },
+  "summary": {
+    "totalSamples": 168,
+    "detectedSamples": 38,
+    "detectionRate": "22.6%",
+    "avgRMS": "0.036653",
+    "maxRMS": "0.744427",
+    "minRMS": "0.000000",
+    "clippingOccurred": true
+  },
+  "detectionMethodBreakdown": {
+    "hybrid": 26,
+    "fftOnly": 5,
+    "autocorrFallback": 7,
+    "none": 130
+  },
+  "sampleData": [
+    {
+      "timestamp": 51,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0
+      },
+      "rms": 0,
+      "volume": 0,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 101,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0
+      },
+      "rms": 0,
+      "volume": 0,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 151,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 1.0656676205561862e-8
+      },
+      "rms": 1.0656676205561862e-8,
+      "volume": 0.000002131335241112372,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 202,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 2.1643606515406533e-7
+      },
+      "rms": 2.1643606515406533e-7,
+      "volume": 0.00004328721303081306,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 252,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 81.36279967139389,
+        "note": "E2",
+        "cents": -23,
+        "method": "autocorr-fallback"
+      },
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": 81.36279967139389,
+        "rms": 0.00890047914091432
+      },
+      "rms": 0.00890047914091432,
+      "volume": 1.7800958281828638,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 302,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 1521.2543769432725,
+        "note": "F#6",
+        "cents": 47,
+        "method": "hybrid",
+        "fftFrequency": 1651.0408828834566,
+        "fftConfidence": -98.04084777832031
+      },
+      "fftOnly": {
+        "frequency": 1651.0408828834566,
+        "confidence": -98.04084777832031,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 266.0108935526796,
+        "rms": 0.012725681433600488
+      },
+      "rms": 0.012725681433600488,
+      "volume": 2.5451362867200977,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 353,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 210.00667807698161,
+        "note": "G#3",
+        "cents": 19,
+        "method": "autocorr-fallback"
+      },
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": 210.00667807698161,
+        "rms": 0.000733062979863719
+      },
+      "rms": 0.000733062979863719,
+      "volume": 0.1466125959727438,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 404,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 1.8463485062843407e-7
+      },
+      "rms": 1.8463485062843407e-7,
+      "volume": 0.00003692697012568681,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 455,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 1.197178581056021e-7
+      },
+      "rms": 1.197178581056021e-7,
+      "volume": 0.000023943571621120417,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 505,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 1.207519121432291e-7
+      },
+      "rms": 1.207519121432291e-7,
+      "volume": 0.000024150382428645823,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 556,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 1.6721497163830784e-7
+      },
+      "rms": 1.6721497163830784e-7,
+      "volume": 0.000033442994327661565,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 1058,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 3.0189570664926903e-7
+      },
+      "rms": 3.0189570664926903e-7,
+      "volume": 0.000060379141329853805,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 1565,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 290.86283982860033,
+        "note": "D4",
+        "cents": -17,
+        "method": "hybrid",
+        "fftFrequency": 291.4001878777132,
+        "fftConfidence": -25.863853454589844
+      },
+      "fftOnly": {
+        "frequency": 291.4001878777132,
+        "confidence": -25.863853454589844,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 96.89866089659034,
+        "rms": 0.2905615774581355
+      },
+      "rms": 0.2905615774581355,
+      "volume": 58.1123154916271,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 2068,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 297.2404037797466,
+        "note": "D4",
+        "cents": 20,
+        "method": "hybrid",
+        "fftFrequency": 299.54338023936117,
+        "fftConfidence": -33.531280517578125
+      },
+      "fftOnly": {
+        "frequency": 299.54338023936117,
+        "confidence": -33.531280517578125,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 148.58270307112926,
+        "rms": 0.10887690302355964
+      },
+      "rms": 0.10887690302355964,
+      "volume": 21.775380604711927,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 2573,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 294.7476131411557,
+        "note": "D4",
+        "cents": 6,
+        "method": "hybrid",
+        "fftFrequency": 294.147514295462,
+        "fftConfidence": -85.19288635253906
+      },
+      "fftOnly": {
+        "frequency": 294.147514295462,
+        "confidence": -85.19288635253906,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0003490823979938363
+      },
+      "rms": 0.0003490823979938363,
+      "volume": 0.06981647959876726,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 3079,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000020548972361245716
+      },
+      "rms": 0.0000020548972361245716,
+      "volume": 0.00041097944722491434,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 3583,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000002583130877769419
+      },
+      "rms": 0.000002583130877769419,
+      "volume": 0.0005166261755538838,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 4087,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000003050551384731441
+      },
+      "rms": 0.000003050551384731441,
+      "volume": 0.0006101102769462881,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 4594,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000015967532395251348
+      },
+      "rms": 0.0000015967532395251348,
+      "volume": 0.000319350647905027,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 5099,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000004153978775076232
+      },
+      "rms": 0.000004153978775076232,
+      "volume": 0.0008307957550152465,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 5603,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000031538929990918397
+      },
+      "rms": 0.0000031538929990918397,
+      "volume": 0.000630778599818368,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 6110,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000003424484051341415
+      },
+      "rms": 0.000003424484051341415,
+      "volume": 0.000684896810268283,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 6616,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000002541872753430514
+      },
+      "rms": 0.000002541872753430514,
+      "volume": 0.0005083745506861029,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 7119,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000036366105079147716
+      },
+      "rms": 0.0000036366105079147716,
+      "volume": 0.0007273221015829544,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 7625,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000002136786797171943
+      },
+      "rms": 0.000002136786797171943,
+      "volume": 0.00042735735943438857,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 8029,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 54.38295619857022,
+        "note": "A1",
+        "cents": -20,
+        "method": "autocorr-fallback"
+      },
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": 54.38295619857022,
+        "rms": 0.0011219056349284205
+      },
+      "rms": 0.0011219056349284205,
+      "volume": 0.2243811269856841,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 8080,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.00010618850880999877
+      },
+      "rms": 0.00010618850880999877,
+      "volume": 0.021237701761999753,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 8130,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000030414184379276103
+      },
+      "rms": 0.000030414184379276103,
+      "volume": 0.00608283687585522,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 8181,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000030030027939512923
+      },
+      "rms": 0.0000030030027939512923,
+      "volume": 0.0006006005587902585,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 8232,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 67.44734866602161,
+        "note": "C#2",
+        "cents": -47,
+        "method": "autocorr-fallback"
+      },
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": 67.44734866602161,
+        "rms": 0.000975391505235979
+      },
+      "rms": 0.000975391505235979,
+      "volume": 0.19507830104719578,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 8283,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 1606.5815342959372,
+        "note": "G6",
+        "cents": 42,
+        "method": "hybrid",
+        "fftFrequency": 1616.9741116836528,
+        "fftConfidence": -92.0093994140625
+      },
+      "fftOnly": {
+        "frequency": 1616.9741116836528,
+        "confidence": -92.0093994140625,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 325.49258448387366,
+        "rms": 0.0009758056272762798
+      },
+      "rms": 0.0009758056272762798,
+      "volume": 0.19516112545525596,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 8333,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000036895193750304865
+      },
+      "rms": 0.0000036895193750304865,
+      "volume": 0.0007379038750060973,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 8383,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000011313858097013206
+      },
+      "rms": 0.0000011313858097013206,
+      "volume": 0.0002262771619402641,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 8433,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000011803257426310653
+      },
+      "rms": 0.0000011803257426310653,
+      "volume": 0.00023606514852621307,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 8483,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 7.720584627979505e-7
+      },
+      "rms": 7.720584627979505e-7,
+      "volume": 0.0001544116925595901,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    }
+  ],
+  "fullLog": [
+    {
+      "timestamp": 51,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0
+      },
+      "rms": 0,
+      "volume": 0,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 101,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0
+      },
+      "rms": 0,
+      "volume": 0,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 151,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 1.0656676205561862e-8
+      },
+      "rms": 1.0656676205561862e-8,
+      "volume": 0.000002131335241112372,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 202,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 2.1643606515406533e-7
+      },
+      "rms": 2.1643606515406533e-7,
+      "volume": 0.00004328721303081306,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 252,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 81.36279967139389,
+        "note": "E2",
+        "cents": -23,
+        "method": "autocorr-fallback"
+      },
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": 81.36279967139389,
+        "rms": 0.00890047914091432
+      },
+      "rms": 0.00890047914091432,
+      "volume": 1.7800958281828638,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 302,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 1521.2543769432725,
+        "note": "F#6",
+        "cents": 47,
+        "method": "hybrid",
+        "fftFrequency": 1651.0408828834566,
+        "fftConfidence": -98.04084777832031
+      },
+      "fftOnly": {
+        "frequency": 1651.0408828834566,
+        "confidence": -98.04084777832031,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 266.0108935526796,
+        "rms": 0.012725681433600488
+      },
+      "rms": 0.012725681433600488,
+      "volume": 2.5451362867200977,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 353,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 210.00667807698161,
+        "note": "G#3",
+        "cents": 19,
+        "method": "autocorr-fallback"
+      },
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": 210.00667807698161,
+        "rms": 0.000733062979863719
+      },
+      "rms": 0.000733062979863719,
+      "volume": 0.1466125959727438,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 404,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 1.8463485062843407e-7
+      },
+      "rms": 1.8463485062843407e-7,
+      "volume": 0.00003692697012568681,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 455,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 1.197178581056021e-7
+      },
+      "rms": 1.197178581056021e-7,
+      "volume": 0.000023943571621120417,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 505,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 1.207519121432291e-7
+      },
+      "rms": 1.207519121432291e-7,
+      "volume": 0.000024150382428645823,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 556,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 1.6721497163830784e-7
+      },
+      "rms": 1.6721497163830784e-7,
+      "volume": 0.000033442994327661565,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 606,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 1.5329616393591067e-7
+      },
+      "rms": 1.5329616393591067e-7,
+      "volume": 0.000030659232787182135,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 656,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 1.5159787282417692e-7
+      },
+      "rms": 1.5159787282417692e-7,
+      "volume": 0.000030319574564835385,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 706,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 1.381785529757431e-7
+      },
+      "rms": 1.381785529757431e-7,
+      "volume": 0.00002763571059514862,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 756,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 1.4794813605361826e-7
+      },
+      "rms": 1.4794813605361826e-7,
+      "volume": 0.00002958962721072365,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 806,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 1.8175216674687693e-7
+      },
+      "rms": 1.8175216674687693e-7,
+      "volume": 0.00003635043334937539,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 856,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 1.748266515060048e-7
+      },
+      "rms": 1.748266515060048e-7,
+      "volume": 0.000034965330301200956,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 906,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 2.2486891137981552e-7
+      },
+      "rms": 2.2486891137981552e-7,
+      "volume": 0.00004497378227596311,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 957,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 2.3591218033551565e-7
+      },
+      "rms": 2.3591218033551565e-7,
+      "volume": 0.00004718243606710313,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 1008,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 2.5758487676669284e-7
+      },
+      "rms": 2.5758487676669284e-7,
+      "volume": 0.00005151697535333857,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 1058,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 3.0189570664926903e-7
+      },
+      "rms": 3.0189570664926903e-7,
+      "volume": 0.000060379141329853805,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 1109,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 3.531415405271269e-7
+      },
+      "rms": 3.531415405271269e-7,
+      "volume": 0.00007062830810542538,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 1160,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 2.892537620231528e-7
+      },
+      "rms": 2.892537620231528e-7,
+      "volume": 0.00005785075240463056,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 1211,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 100.03504521128647,
+        "note": "G2",
+        "cents": 35,
+        "method": "autocorr-fallback"
+      },
+      "fftOnly": {
+        "frequency": 276.5425738381702,
+        "confidence": -94.46833801269531,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 100.03504521128647,
+        "rms": 0.0008320995903155534
+      },
+      "rms": 0.0008320995903155534,
+      "volume": 0.16641991806311068,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 1261,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 521.4257861004778,
+        "note": null,
+        "cents": -7,
+        "method": "hybrid",
+        "fftFrequency": 487.25102225868255,
+        "fftConfidence": -28.175891876220703
+      },
+      "fftOnly": {
+        "frequency": 487.25102225868255,
+        "confidence": -28.175891876220703,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 88.2548365942889,
+        "rms": 0.4268579553321558
+      },
+      "rms": 0.4268579553321558,
+      "volume": 85.37159106643117,
+      "isClipping": true,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 1312,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 469.75354808368525,
+        "note": "A#4",
+        "cents": 13,
+        "method": "fft-only",
+        "fftFrequency": 469.75354808368525,
+        "fftConfidence": -16.76906394958496
+      },
+      "fftOnly": {
+        "frequency": 469.75354808368525,
+        "confidence": -16.76906394958496,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 116.35083083878614,
+        "rms": 0.744427499798335
+      },
+      "rms": 0.744427499798335,
+      "volume": 100,
+      "isClipping": true,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 1363,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 283.03997559552386,
+        "note": "C#4",
+        "cents": 36,
+        "method": "fft-only",
+        "fftFrequency": 283.03997559552386,
+        "fftConfidence": -22.371387481689453
+      },
+      "fftOnly": {
+        "frequency": 283.03997559552386,
+        "confidence": -22.371387481689453,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 82.05393095549437,
+        "rms": 0.6358572366073592
+      },
+      "rms": 0.6358572366073592,
+      "volume": 100,
+      "isClipping": true,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 1414,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 806.517342332868,
+        "note": "G5",
+        "cents": 49,
+        "method": "hybrid",
+        "fftFrequency": 877.6537641267421,
+        "fftConfidence": -19.55416488647461
+      },
+      "fftOnly": {
+        "frequency": 877.6537641267421,
+        "confidence": -19.55416488647461,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 144.98041282957684,
+        "rms": 0.4906339607367954
+      },
+      "rms": 0.4906339607367954,
+      "volume": 98.12679214735908,
+      "isClipping": true,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 1465,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 291.67542093421883,
+        "note": "D4",
+        "cents": -12,
+        "method": "hybrid",
+        "fftFrequency": 295.49536542073577,
+        "fftConfidence": -21.24798011779785
+      },
+      "fftOnly": {
+        "frequency": 295.49536542073577,
+        "confidence": -21.24798011779785,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 145.8873208144103,
+        "rms": 0.40930044144093675
+      },
+      "rms": 0.40930044144093675,
+      "volume": 81.86008828818736,
+      "isClipping": true,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 1515,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 293.89024338800147,
+        "note": "D4",
+        "cents": 1,
+        "method": "hybrid",
+        "fftFrequency": 294.0304553664888,
+        "fftConfidence": -21.561542510986328
+      },
+      "fftOnly": {
+        "frequency": 294.0304553664888,
+        "confidence": -21.561542510986328,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 146.8493705839106,
+        "rms": 0.3347503338357236
+      },
+      "rms": 0.3347503338357236,
+      "volume": 66.95006676714472,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 1565,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 290.86283982860033,
+        "note": "D4",
+        "cents": -17,
+        "method": "hybrid",
+        "fftFrequency": 291.4001878777132,
+        "fftConfidence": -25.863853454589844
+      },
+      "fftOnly": {
+        "frequency": 291.4001878777132,
+        "confidence": -25.863853454589844,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 96.89866089659034,
+        "rms": 0.2905615774581355
+      },
+      "rms": 0.2905615774581355,
+      "volume": 58.1123154916271,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 1615,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 291.176467492295,
+        "note": "D4",
+        "cents": -15,
+        "method": "hybrid",
+        "fftFrequency": 295.00551000477714,
+        "fftConfidence": -20.78099250793457
+      },
+      "fftOnly": {
+        "frequency": 295.00551000477714,
+        "confidence": -20.78099250793457,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 97.09448502249255,
+        "rms": 0.24876218797833627
+      },
+      "rms": 0.24876218797833627,
+      "volume": 49.75243759566725,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 1665,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 295.8382524821037,
+        "note": "D4",
+        "cents": 12,
+        "method": "hybrid",
+        "fftFrequency": 299.7147582712414,
+        "fftConfidence": -22.234594345092773
+      },
+      "fftOnly": {
+        "frequency": 299.7147582712414,
+        "confidence": -22.234594345092773,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 148.0337439759647,
+        "rms": 0.24301948199315074
+      },
+      "rms": 0.24301948199315074,
+      "volume": 48.60389639863015,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 1716,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 296.24589582325564,
+        "note": "D4",
+        "cents": 15,
+        "method": "hybrid",
+        "fftFrequency": 294.9553499749427,
+        "fftConfidence": -21.11790657043457
+      },
+      "fftOnly": {
+        "frequency": 294.9553499749427,
+        "confidence": -21.11790657043457,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 148.09430026581805,
+        "rms": 0.259823159721643
+      },
+      "rms": 0.259823159721643,
+      "volume": 51.9646319443286,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 1766,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 296.36090456422096,
+        "note": "D4",
+        "cents": 15,
+        "method": "hybrid",
+        "fftFrequency": 295.296482540765,
+        "fftConfidence": -20.584022521972656
+      },
+      "fftOnly": {
+        "frequency": 295.296482540765,
+        "confidence": -20.584022521972656,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 148.20193352812424,
+        "rms": 0.26120429580141447
+      },
+      "rms": 0.26120429580141447,
+      "volume": 52.240859160282895,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 1816,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 295.7581290702798,
+        "note": "D4",
+        "cents": 12,
+        "method": "hybrid",
+        "fftFrequency": 295.5141225302797,
+        "fftConfidence": -22.306306838989258
+      },
+      "fftOnly": {
+        "frequency": 295.5141225302797,
+        "confidence": -22.306306838989258,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 147.87858616936958,
+        "rms": 0.24387148825475136
+      },
+      "rms": 0.24387148825475136,
+      "volume": 48.774297650950274,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 1866,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 293.51659937285734,
+        "note": "D4",
+        "cents": -1,
+        "method": "hybrid",
+        "fftFrequency": 292.9088703745216,
+        "fftConfidence": -24.085905075073242
+      },
+      "fftOnly": {
+        "frequency": 292.9088703745216,
+        "confidence": -24.085905075073242,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 146.75083683765106,
+        "rms": 0.24772217187874707
+      },
+      "rms": 0.24772217187874707,
+      "volume": 49.54443437574941,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 1916,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 292.9868395166469,
+        "note": "D4",
+        "cents": -5,
+        "method": "hybrid",
+        "fftFrequency": 294.71581537618994,
+        "fftConfidence": -22.96987533569336
+      },
+      "fftOnly": {
+        "frequency": 294.71581537618994,
+        "confidence": -22.96987533569336,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 146.53445679777118,
+        "rms": 0.24566523481197883
+      },
+      "rms": 0.24566523481197883,
+      "volume": 49.13304696239577,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 1967,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 294.5852047531595,
+        "note": "D4",
+        "cents": 5,
+        "method": "hybrid",
+        "fftFrequency": 294.9670658152825,
+        "fftConfidence": -22.06926727294922
+      },
+      "fftOnly": {
+        "frequency": 294.9670658152825,
+        "confidence": -22.06926727294922,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 147.3443752925514,
+        "rms": 0.23302620850690295
+      },
+      "rms": 0.23302620850690295,
+      "volume": 46.60524170138059,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 2017,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 295.9851931090663,
+        "note": "D4",
+        "cents": 13,
+        "method": "hybrid",
+        "fftFrequency": 293.91883139257135,
+        "fftConfidence": -24.66413688659668
+      },
+      "fftOnly": {
+        "frequency": 293.91883139257135,
+        "confidence": -24.66413688659668,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 148.08817358608343,
+        "rms": 0.1877148784994455
+      },
+      "rms": 0.1877148784994455,
+      "volume": 37.5429756998891,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 2068,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 297.2404037797466,
+        "note": "D4",
+        "cents": 20,
+        "method": "hybrid",
+        "fftFrequency": 299.54338023936117,
+        "fftConfidence": -33.531280517578125
+      },
+      "fftOnly": {
+        "frequency": 299.54338023936117,
+        "confidence": -33.531280517578125,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 148.58270307112926,
+        "rms": 0.10887690302355964
+      },
+      "rms": 0.10887690302355964,
+      "volume": 21.775380604711927,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 2118,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 586.3210709989941,
+        "note": "D5",
+        "cents": -3,
+        "method": "fft-only",
+        "fftFrequency": 586.3210709989941,
+        "fftConfidence": -34.303688049316406
+      },
+      "fftOnly": {
+        "frequency": 586.3210709989941,
+        "confidence": -34.303688049316406,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 147.501630541809,
+        "rms": 0.09084611363114942
+      },
+      "rms": 0.09084611363114942,
+      "volume": 18.169222726229883,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 2168,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 794.374272324096,
+        "note": "G5",
+        "cents": 22,
+        "method": "hybrid",
+        "fftFrequency": 879.2761056064478,
+        "fftConfidence": -32.05975341796875
+      },
+      "fftOnly": {
+        "frequency": 879.2761056064478,
+        "confidence": -32.05975341796875,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 146.47475772875507,
+        "rms": 0.1043376660746921
+      },
+      "rms": 0.1043376660746921,
+      "volume": 20.86753321493842,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 2219,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 800.0599724868478,
+        "note": "G5",
+        "cents": 35,
+        "method": "hybrid",
+        "fftFrequency": 876.9257950453334,
+        "fftConfidence": -31.941940307617188
+      },
+      "fftOnly": {
+        "frequency": 876.9257950453334,
+        "confidence": -31.941940307617188,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 146.05743884558572,
+        "rms": 0.09900340128514475
+      },
+      "rms": 0.09900340128514475,
+      "volume": 19.80068025702895,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 2269,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 828.672961089259,
+        "note": "G#5",
+        "cents": -5,
+        "method": "hybrid",
+        "fftFrequency": 881.227422918325,
+        "fftConfidence": -35.62771224975586
+      },
+      "fftOnly": {
+        "frequency": 881.227422918325,
+        "confidence": -35.62771224975586,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 146.5829091687189,
+        "rms": 0.08382144330752067
+      },
+      "rms": 0.08382144330752067,
+      "volume": 16.764288661504136,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 2319,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 295.43632569907885,
+        "note": "D4",
+        "cents": 10,
+        "method": "hybrid",
+        "fftFrequency": 298.8857361202733,
+        "fftConfidence": -37.81654357910156
+      },
+      "fftOnly": {
+        "frequency": 298.8857361202733,
+        "confidence": -37.81654357910156,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 147.73639204683533,
+        "rms": 0.06734818684174138
+      },
+      "rms": 0.06734818684174138,
+      "volume": 13.469637368348275,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 2370,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 295.1660267869495,
+        "note": "D4",
+        "cents": 8,
+        "method": "hybrid",
+        "fftFrequency": 299.4972970011029,
+        "fftConfidence": -44.139591217041016
+      },
+      "fftOnly": {
+        "frequency": 299.4972970011029,
+        "confidence": -44.139591217041016,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 147.67707685132643,
+        "rms": 0.036557435549797124
+      },
+      "rms": 0.036557435549797124,
+      "volume": 7.311487109959424,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 2421,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 293.47916154177153,
+        "note": "D4",
+        "cents": -2,
+        "method": "hybrid",
+        "fftFrequency": 291.86681755060727,
+        "fftConfidence": -50.5439567565918
+      },
+      "fftOnly": {
+        "frequency": 291.86681755060727,
+        "confidence": -50.5439567565918,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 146.6883405248542,
+        "rms": 0.014777501026656885
+      },
+      "rms": 0.014777501026656885,
+      "volume": 2.955500205331377,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 2472,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 293.6217706395617,
+        "note": "D4",
+        "cents": -1,
+        "method": "hybrid",
+        "fftFrequency": 303.88774453428334,
+        "fftConfidence": -57.718231201171875
+      },
+      "fftOnly": {
+        "frequency": 303.88774453428334,
+        "confidence": -57.718231201171875,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 153.2069368247433,
+        "rms": 0.005304201234910932
+      },
+      "rms": 0.005304201234910932,
+      "volume": 1.0608402469821865,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 2523,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 294.932306087209,
+        "note": "D4",
+        "cents": 7,
+        "method": "hybrid",
+        "fftFrequency": 292.39526835286716,
+        "fftConfidence": -70.6151123046875
+      },
+      "fftOnly": {
+        "frequency": 292.39526835286716,
+        "confidence": -70.6151123046875,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 147.28263687523742,
+        "rms": 0.002009227939784957
+      },
+      "rms": 0.002009227939784957,
+      "volume": 0.40184558795699143,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 2573,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 294.7476131411557,
+        "note": "D4",
+        "cents": 6,
+        "method": "hybrid",
+        "fftFrequency": 294.147514295462,
+        "fftConfidence": -85.19288635253906
+      },
+      "fftOnly": {
+        "frequency": 294.147514295462,
+        "confidence": -85.19288635253906,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0003490823979938363
+      },
+      "rms": 0.0003490823979938363,
+      "volume": 0.06981647959876726,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 2624,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000384001728240105
+      },
+      "rms": 0.0000384001728240105,
+      "volume": 0.0076800345648021,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 2675,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000005520308983938072
+      },
+      "rms": 0.000005520308983938072,
+      "volume": 0.0011040617967876143,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 2725,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000003062124072580783
+      },
+      "rms": 0.000003062124072580783,
+      "volume": 0.0006124248145161565,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 2775,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000013934611993762699
+      },
+      "rms": 0.0000013934611993762699,
+      "volume": 0.00027869223987525397,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 2825,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000015699812871033115
+      },
+      "rms": 0.0000015699812871033115,
+      "volume": 0.0003139962574206623,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 2877,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000018172887958694207
+      },
+      "rms": 0.0000018172887958694207,
+      "volume": 0.00036345775917388416,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 2928,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000020484334357619942
+      },
+      "rms": 0.0000020484334357619942,
+      "volume": 0.0004096866871523988,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 2979,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000016958469187258438
+      },
+      "rms": 0.0000016958469187258438,
+      "volume": 0.00033916938374516873,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 3029,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000016784947179490323
+      },
+      "rms": 0.0000016784947179490323,
+      "volume": 0.0003356989435898065,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 3079,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000020548972361245716
+      },
+      "rms": 0.0000020548972361245716,
+      "volume": 0.00041097944722491434,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 3130,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000029220145433027165
+      },
+      "rms": 0.0000029220145433027165,
+      "volume": 0.0005844029086605433,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 3181,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000003196312265872643
+      },
+      "rms": 0.000003196312265872643,
+      "volume": 0.0006392624531745286,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 3232,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000034971923897167203
+      },
+      "rms": 0.0000034971923897167203,
+      "volume": 0.000699438477943344,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 3282,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000002835790984946332
+      },
+      "rms": 0.000002835790984946332,
+      "volume": 0.0005671581969892664,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 3332,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.00000199275147674953
+      },
+      "rms": 0.00000199275147674953,
+      "volume": 0.000398550295349906,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 3382,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000019409494476678396
+      },
+      "rms": 0.0000019409494476678396,
+      "volume": 0.0003881898895335679,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 3432,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000025387466877301687
+      },
+      "rms": 0.0000025387466877301687,
+      "volume": 0.0005077493375460337,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 3482,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000003219213361775388
+      },
+      "rms": 0.000003219213361775388,
+      "volume": 0.0006438426723550776,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 3533,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000002551140885894996
+      },
+      "rms": 0.000002551140885894996,
+      "volume": 0.0005102281771789993,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 3583,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000002583130877769419
+      },
+      "rms": 0.000002583130877769419,
+      "volume": 0.0005166261755538838,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 3633,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000018520388890855604
+      },
+      "rms": 0.0000018520388890855604,
+      "volume": 0.0003704077778171121,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 3683,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000014614927128776362
+      },
+      "rms": 0.0000014614927128776362,
+      "volume": 0.00029229854257552723,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 3734,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000014246364424808442
+      },
+      "rms": 0.0000014246364424808442,
+      "volume": 0.0002849272884961688,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 3784,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000015899645748988515
+      },
+      "rms": 0.0000015899645748988515,
+      "volume": 0.0003179929149797703,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 3834,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000023920235366236453
+      },
+      "rms": 0.0000023920235366236453,
+      "volume": 0.00047840470732472904,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 3885,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000034454481238300845
+      },
+      "rms": 0.0000034454481238300845,
+      "volume": 0.0006890896247660169,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 3935,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000003364389639993349
+      },
+      "rms": 0.000003364389639993349,
+      "volume": 0.0006728779279986698,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 3985,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000003613658198952128
+      },
+      "rms": 0.000003613658198952128,
+      "volume": 0.0007227316397904256,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 4036,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000003633079573118611
+      },
+      "rms": 0.000003633079573118611,
+      "volume": 0.0007266159146237223,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 4087,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000003050551384731441
+      },
+      "rms": 0.000003050551384731441,
+      "volume": 0.0006101102769462881,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 4137,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000002873981261943582
+      },
+      "rms": 0.000002873981261943582,
+      "volume": 0.0005747962523887164,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 4187,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000026133557493200223
+      },
+      "rms": 0.0000026133557493200223,
+      "volume": 0.0005226711498640045,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 4238,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000001573125141969559
+      },
+      "rms": 0.000001573125141969559,
+      "volume": 0.0003146250283939118,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 4289,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000017508439977467018
+      },
+      "rms": 0.0000017508439977467018,
+      "volume": 0.00035016879954934035,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 4340,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000021147147828219484
+      },
+      "rms": 0.0000021147147828219484,
+      "volume": 0.0004229429565643897,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 4391,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000025339805299643464
+      },
+      "rms": 0.0000025339805299643464,
+      "volume": 0.0005067961059928693,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 4442,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000023908897044515856
+      },
+      "rms": 0.0000023908897044515856,
+      "volume": 0.00047817794089031714,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 4492,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000002231003963246578
+      },
+      "rms": 0.000002231003963246578,
+      "volume": 0.0004462007926493156,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 4543,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000018475235640258494
+      },
+      "rms": 0.0000018475235640258494,
+      "volume": 0.00036950471280516986,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 4594,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000015967532395251348
+      },
+      "rms": 0.0000015967532395251348,
+      "volume": 0.000319350647905027,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 4645,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000018131179808390817
+      },
+      "rms": 0.0000018131179808390817,
+      "volume": 0.00036262359616781635,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 4695,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000001964592762261052
+      },
+      "rms": 0.000001964592762261052,
+      "volume": 0.0003929185524522104,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 4746,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000023578277354675232
+      },
+      "rms": 0.0000023578277354675232,
+      "volume": 0.00047156554709350463,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 4796,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000019033336298933783
+      },
+      "rms": 0.0000019033336298933783,
+      "volume": 0.00038066672597867566,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 4847,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000015503065220987189
+      },
+      "rms": 0.0000015503065220987189,
+      "volume": 0.0003100613044197438,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 4898,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000017488386360129796
+      },
+      "rms": 0.0000017488386360129796,
+      "volume": 0.0003497677272025959,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 4949,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000029031514951080356
+      },
+      "rms": 0.0000029031514951080356,
+      "volume": 0.0005806302990216071,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 4999,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000004403199640138394
+      },
+      "rms": 0.000004403199640138394,
+      "volume": 0.0008806399280276788,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 5049,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000048334272311037145
+      },
+      "rms": 0.0000048334272311037145,
+      "volume": 0.0009666854462207429,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 5099,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000004153978775076232
+      },
+      "rms": 0.000004153978775076232,
+      "volume": 0.0008307957550152465,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 5150,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000003528707870132024
+      },
+      "rms": 0.000003528707870132024,
+      "volume": 0.0007057415740264047,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 5200,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000033153858912342235
+      },
+      "rms": 0.0000033153858912342235,
+      "volume": 0.0006630771782468447,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 5250,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000027961984140949803
+      },
+      "rms": 0.0000027961984140949803,
+      "volume": 0.000559239682818996,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 5301,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000021518630295677833
+      },
+      "rms": 0.0000021518630295677833,
+      "volume": 0.0004303726059135567,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 5351,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000018232738642304963
+      },
+      "rms": 0.0000018232738642304963,
+      "volume": 0.00036465477284609925,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 5401,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000018627432696057432
+      },
+      "rms": 0.0000018627432696057432,
+      "volume": 0.0003725486539211487,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 5452,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000025714384174565588
+      },
+      "rms": 0.0000025714384174565588,
+      "volume": 0.0005142876834913117,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 5502,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000024118317704728906
+      },
+      "rms": 0.0000024118317704728906,
+      "volume": 0.0004823663540945781,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 5553,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000020730475143630045
+      },
+      "rms": 0.0000020730475143630045,
+      "volume": 0.0004146095028726009,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 5603,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000031538929990918397
+      },
+      "rms": 0.0000031538929990918397,
+      "volume": 0.000630778599818368,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 5654,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000005187865411650981
+      },
+      "rms": 0.000005187865411650981,
+      "volume": 0.0010375730823301962,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 5705,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.00000566620554649526
+      },
+      "rms": 0.00000566620554649526,
+      "volume": 0.001133241109299052,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 5755,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000004539923650060375
+      },
+      "rms": 0.000004539923650060375,
+      "volume": 0.000907984730012075,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 5806,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 280.25682604957524,
+        "note": "C#4",
+        "cents": 19,
+        "method": "fft-only",
+        "fftFrequency": 280.25682604957524,
+        "fftConfidence": -89.10086059570312
+      },
+      "fftOnly": {
+        "frequency": 280.25682604957524,
+        "confidence": -89.10086059570312,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 761.8062201891556,
+        "rms": 0.00608493051965818
+      },
+      "rms": 0.00608493051965818,
+      "volume": 1.216986103931636,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 5857,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 103.1177616991164,
+        "note": "G#2",
+        "cents": -12,
+        "method": "autocorr-fallback"
+      },
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": 103.1177616991164,
+        "rms": 0.0060819457490431566
+      },
+      "rms": 0.0060819457490431566,
+      "volume": 1.2163891498086312,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 5908,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000012519353788341522
+      },
+      "rms": 0.000012519353788341522,
+      "volume": 0.0025038707576683045,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 5958,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000003069710979914442
+      },
+      "rms": 0.000003069710979914442,
+      "volume": 0.0006139421959828885,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 6008,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000031367901024394353
+      },
+      "rms": 0.0000031367901024394353,
+      "volume": 0.0006273580204878871,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 6059,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000003950210780290328
+      },
+      "rms": 0.000003950210780290328,
+      "volume": 0.0007900421560580656,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 6110,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000003424484051341415
+      },
+      "rms": 0.000003424484051341415,
+      "volume": 0.000684896810268283,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 6161,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000022769210814370113
+      },
+      "rms": 0.0000022769210814370113,
+      "volume": 0.00045538421628740224,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 6211,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000020448559728417132
+      },
+      "rms": 0.0000020448559728417132,
+      "volume": 0.00040897119456834266,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 6262,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000018894728059861448
+      },
+      "rms": 0.0000018894728059861448,
+      "volume": 0.00037789456119722897,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 6313,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000014203788103342343
+      },
+      "rms": 0.0000014203788103342343,
+      "volume": 0.00028407576206684686,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 6365,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000025870862592126535
+      },
+      "rms": 0.0000025870862592126535,
+      "volume": 0.0005174172518425307,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 6415,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000003974152040833568
+      },
+      "rms": 0.000003974152040833568,
+      "volume": 0.0007948304081667136,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 6466,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.00000351207069847544
+      },
+      "rms": 0.00000351207069847544,
+      "volume": 0.000702414139695088,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 6516,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000022919680092112108
+      },
+      "rms": 0.0000022919680092112108,
+      "volume": 0.00045839360184224214,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 6566,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000027993808198331973
+      },
+      "rms": 0.0000027993808198331973,
+      "volume": 0.0005598761639666395,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 6616,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000002541872753430514
+      },
+      "rms": 0.000002541872753430514,
+      "volume": 0.0005083745506861029,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 6666,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000002598336012113977
+      },
+      "rms": 0.000002598336012113977,
+      "volume": 0.0005196672024227955,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 6716,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000029412637990280548
+      },
+      "rms": 0.0000029412637990280548,
+      "volume": 0.0005882527598056109,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 6767,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000033250062649096657
+      },
+      "rms": 0.0000033250062649096657,
+      "volume": 0.0006650012529819332,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 6817,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000003409427305680706
+      },
+      "rms": 0.000003409427305680706,
+      "volume": 0.0006818854611361412,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 6867,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000036600992382959604
+      },
+      "rms": 0.0000036600992382959604,
+      "volume": 0.0007320198476591921,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 6917,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000034723202531515684
+      },
+      "rms": 0.0000034723202531515684,
+      "volume": 0.0006944640506303136,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 6968,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.00000341309042558833
+      },
+      "rms": 0.00000341309042558833,
+      "volume": 0.000682618085117666,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 7018,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000027798397844463774
+      },
+      "rms": 0.0000027798397844463774,
+      "volume": 0.0005559679568892755,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 7068,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000037046417743384034
+      },
+      "rms": 0.0000037046417743384034,
+      "volume": 0.0007409283548676807,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 7119,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000036366105079147716
+      },
+      "rms": 0.0000036366105079147716,
+      "volume": 0.0007273221015829544,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 7169,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000003726482488238623
+      },
+      "rms": 0.000003726482488238623,
+      "volume": 0.0007452964976477246,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 7219,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000003195413925239627
+      },
+      "rms": 0.000003195413925239627,
+      "volume": 0.0006390827850479253,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 7270,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000003092949884682901
+      },
+      "rms": 0.000003092949884682901,
+      "volume": 0.0006185899769365803,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 7321,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.00000260099832816764
+      },
+      "rms": 0.00000260099832816764,
+      "volume": 0.0005201996656335281,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 7371,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000022118057994530137
+      },
+      "rms": 0.0000022118057994530137,
+      "volume": 0.0004423611598906027,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 7422,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000002067491519482743
+      },
+      "rms": 0.000002067491519482743,
+      "volume": 0.0004134983038965486,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 7473,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000020249032575772277
+      },
+      "rms": 0.0000020249032575772277,
+      "volume": 0.00040498065151544553,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 7524,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000002014761267448068
+      },
+      "rms": 0.000002014761267448068,
+      "volume": 0.0004029522534896136,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 7575,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000019722377691053057
+      },
+      "rms": 0.0000019722377691053057,
+      "volume": 0.00039444755382106114,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 7625,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000002136786797171943
+      },
+      "rms": 0.000002136786797171943,
+      "volume": 0.00042735735943438857,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 7675,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000022207879828583927
+      },
+      "rms": 0.0000022207879828583927,
+      "volume": 0.00044415759657167854,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 7726,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000021017337514047533
+      },
+      "rms": 0.0000021017337514047533,
+      "volume": 0.00042034675028095064,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 7776,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000002453055776875051
+      },
+      "rms": 0.000002453055776875051,
+      "volume": 0.0004906111553750102,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 7826,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000029212108645012945
+      },
+      "rms": 0.0000029212108645012945,
+      "volume": 0.0005842421729002589,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 7877,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.00010601605683490051
+      },
+      "rms": 0.00010601605683490051,
+      "volume": 0.021203211366980102,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 7927,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 236.71721026477735,
+        "note": "A#3",
+        "cents": 26,
+        "method": "autocorr-fallback"
+      },
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": 236.71721026477735,
+        "rms": 0.0007663947713127014
+      },
+      "rms": 0.0007663947713127014,
+      "volume": 0.1532789542625403,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 7978,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 1545.035802411234,
+        "note": "G6",
+        "cents": -26,
+        "method": "fft-only",
+        "fftFrequency": 1545.035802411234,
+        "fftConfidence": -99.1300048828125
+      },
+      "fftOnly": {
+        "frequency": 1545.035802411234,
+        "confidence": -99.1300048828125,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 327.6263035476873,
+        "rms": 0.0014912191951785775
+      },
+      "rms": 0.0014912191951785775,
+      "volume": 0.2982438390357155,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 8029,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 54.38295619857022,
+        "note": "A1",
+        "cents": -20,
+        "method": "autocorr-fallback"
+      },
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": 54.38295619857022,
+        "rms": 0.0011219056349284205
+      },
+      "rms": 0.0011219056349284205,
+      "volume": 0.2243811269856841,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 8080,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.00010618850880999877
+      },
+      "rms": 0.00010618850880999877,
+      "volume": 0.021237701761999753,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 8130,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.000030414184379276103
+      },
+      "rms": 0.000030414184379276103,
+      "volume": 0.00608283687585522,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 8181,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000030030027939512923
+      },
+      "rms": 0.0000030030027939512923,
+      "volume": 0.0006006005587902585,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 8232,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 67.44734866602161,
+        "note": "C#2",
+        "cents": -47,
+        "method": "autocorr-fallback"
+      },
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": 67.44734866602161,
+        "rms": 0.000975391505235979
+      },
+      "rms": 0.000975391505235979,
+      "volume": 0.19507830104719578,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 8283,
+      "testType": "singing",
+      "detectedPitch": {
+        "frequency": 1606.5815342959372,
+        "note": "G6",
+        "cents": 42,
+        "method": "hybrid",
+        "fftFrequency": 1616.9741116836528,
+        "fftConfidence": -92.0093994140625
+      },
+      "fftOnly": {
+        "frequency": 1616.9741116836528,
+        "confidence": -92.0093994140625,
+        "passedThreshold": true,
+        "threshold": -100
+      },
+      "autocorrOnly": {
+        "frequency": 325.49258448387366,
+        "rms": 0.0009758056272762798
+      },
+      "rms": 0.0009758056272762798,
+      "volume": 0.19516112545525596,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 8333,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000036895193750304865
+      },
+      "rms": 0.0000036895193750304865,
+      "volume": 0.0007379038750060973,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 8383,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000011313858097013206
+      },
+      "rms": 0.0000011313858097013206,
+      "volume": 0.0002262771619402641,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 8433,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 0.0000011803257426310653
+      },
+      "rms": 0.0000011803257426310653,
+      "volume": 0.00023606514852621307,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    },
+    {
+      "timestamp": 8483,
+      "testType": "singing",
+      "detectedPitch": null,
+      "fftOnly": null,
+      "autocorrOnly": {
+        "frequency": null,
+        "rms": 7.720584627979505e-7
+      },
+      "rms": 7.720584627979505e-7,
+      "volume": 0.0001544116925595901,
+      "isClipping": false,
+      "sampleRate": 48000,
+      "fftSize": 4096,
+      "smoothing": 0
+    }
+  ]

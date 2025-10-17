@@ -1,0 +1,17 @@
+# ToneDeath Deployment Configuration
+# Copy this file to deploy.conf and fill in your details
+# IMPORTANT: deploy.conf is in .gitignore - never commit credentials!
+
+# Hosting provider details
+DEPLOY_HOST="ftp.yourhostingprovider.com"
+DEPLOY_USER="john@tonedeath.app"
+DEPLOY_PATH="/public_html"  # or "/www" or "/" depending on your host
+
+# Deployment method: ftp, sftp, or rsync
+DEPLOY_METHOD="ftp"
+
+# Password (optional - will prompt if not set)
+# For better security, leave this blank and use environment variable:
+# export DEPLOY_PASSWORD="your_password"
+# Or the script will prompt you
+DEPLOY_PASSWORD=""

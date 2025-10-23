@@ -1,3 +1,6 @@
+const TONEDEATH_BUILD_VERSION = '2024.10.21-06';
+console.log(`[ToneDeath] App initializing – build ${TONEDEATH_BUILD_VERSION}`);
+
 // Main App Class
 class EarTrainerApp {
     constructor() {
@@ -139,6 +142,10 @@ class EarTrainerApp {
     }
 
     startExercise(type) {
+        if (type === 'intervalVisualization') {
+            type = 'interferenceVisualization';
+        }
+
         console.log('app.js startExercise called with type:', type);
 
         // Update URL to track current exercise
@@ -667,28 +674,175 @@ class EarTrainerApp {
                     this.addFadeIn(exerciseEl);
                 }
             }, 10);
-        } else if (type === 'intervalVisualization') {
-            // Interval Visualization exercise - WebGL only
-            if (!window.intervalViz) {
+        } else if (type === 'intervalOverview') {
+            // Interval Overview - Interference + Wave with Tutorial
+            if (typeof showIntervalOverview === 'function') {
+                showIntervalOverview();
+
+                setTimeout(() => {
+                    const exerciseEl = document.getElementById('intervalOverviewExercise');
+                    if (exerciseEl && exerciseEl.style.display === 'block') {
+                        this.addFadeIn(exerciseEl);
+                    }
+                }, 10);
+            } else {
+                console.error('Interval Overview not available');
+            }
+        } else if (type === 'unisonOverview') {
+            // Unison Overview - Interference + Wave with Tutorial
+            if (typeof showUnisonOverview === 'function') {
+                showUnisonOverview();
+
+                setTimeout(() => {
+                    const exerciseEl = document.getElementById('unisonOverviewExercise');
+                    if (exerciseEl && exerciseEl.style.display === 'block') {
+                        this.addFadeIn(exerciseEl);
+                    }
+                }, 10);
+            } else {
+                console.error('Unison Overview not available');
+            }
+        } else if (type === 'octaveOverview') {
+            // Octave Overview
+            if (typeof showOctaveOverview === 'function') {
+                showOctaveOverview();
+                setTimeout(() => {
+                    const exerciseEl = document.getElementById('generalIntervalOverviewExercise');
+                    if (exerciseEl && exerciseEl.style.display === 'block') {
+                        this.addFadeIn(exerciseEl);
+                    }
+                }, 10);
+            } else {
+                console.error('Octave Overview not available');
+            }
+        } else if (type === 'majorSecondOverview') {
+            // Major Second Overview
+            if (typeof showMajorSecondOverview === 'function') {
+                showMajorSecondOverview();
+                setTimeout(() => {
+                    const exerciseEl = document.getElementById('generalIntervalOverviewExercise');
+                    if (exerciseEl && exerciseEl.style.display === 'block') {
+                        this.addFadeIn(exerciseEl);
+                    }
+                }, 10);
+            } else {
+                console.error('Major Second Overview not available');
+            }
+        } else if (type === 'minorSecondOverview') {
+            // Minor Second Overview
+            if (typeof showMinorSecondOverview === 'function') {
+                showMinorSecondOverview();
+                setTimeout(() => {
+                    const exerciseEl = document.getElementById('generalIntervalOverviewExercise');
+                    if (exerciseEl && exerciseEl.style.display === 'block') {
+                        this.addFadeIn(exerciseEl);
+                    }
+                }, 10);
+            } else {
+                console.error('Minor Second Overview not available');
+            }
+        } else if (type === 'majorThirdOverview') {
+            // Major Third Overview
+            if (typeof showMajorThirdOverview === 'function') {
+                showMajorThirdOverview();
+                setTimeout(() => {
+                    const exerciseEl = document.getElementById('generalIntervalOverviewExercise');
+                    if (exerciseEl && exerciseEl.style.display === 'block') {
+                        this.addFadeIn(exerciseEl);
+                    }
+                }, 10);
+            } else {
+                console.error('Major Third Overview not available');
+            }
+        } else if (type === 'fourthOverview') {
+            // Perfect Fourth Overview
+            if (typeof showFourthOverview === 'function') {
+                showFourthOverview();
+                setTimeout(() => {
+                    const exerciseEl = document.getElementById('generalIntervalOverviewExercise');
+                    if (exerciseEl && exerciseEl.style.display === 'block') {
+                        this.addFadeIn(exerciseEl);
+                    }
+                }, 10);
+            } else {
+                console.error('Perfect Fourth Overview not available');
+            }
+        } else if (type === 'fifthOverview') {
+            // Perfect Fifth Overview
+            if (typeof showFifthOverview === 'function') {
+                showFifthOverview();
+                setTimeout(() => {
+                    const exerciseEl = document.getElementById('generalIntervalOverviewExercise');
+                    if (exerciseEl && exerciseEl.style.display === 'block') {
+                        this.addFadeIn(exerciseEl);
+                    }
+                }, 10);
+            } else {
+                console.error('Perfect Fifth Overview not available');
+            }
+        } else if (type === 'majorSixthOverview') {
+            // Major Sixth Overview
+            if (typeof showMajorSixthOverview === 'function') {
+                showMajorSixthOverview();
+                setTimeout(() => {
+                    const exerciseEl = document.getElementById('generalIntervalOverviewExercise');
+                    if (exerciseEl && exerciseEl.style.display === 'block') {
+                        this.addFadeIn(exerciseEl);
+                    }
+                }, 10);
+            } else {
+                console.error('Major Sixth Overview not available');
+            }
+        } else if (type === 'majorSeventhOverview') {
+            // Major Seventh Overview
+            if (typeof showMajorSeventhOverview === 'function') {
+                showMajorSeventhOverview();
+                setTimeout(() => {
+                    const exerciseEl = document.getElementById('generalIntervalOverviewExercise');
+                    if (exerciseEl && exerciseEl.style.display === 'block') {
+                        this.addFadeIn(exerciseEl);
+                    }
+                }, 10);
+            } else {
+                console.error('Major Seventh Overview not available');
+            }
+        } else if (type === 'interferenceVisualization') {
+            // Interference Visualization exercise - WebGL only
+            if (!window.interferenceViz) {
                 try {
-                    window.intervalViz = new IntervalVisualization();
+                    window.interferenceViz = new InterferenceVisualization();
                 } catch (e) {
-                    console.error('Failed to initialize Interval Visualization:', e);
-                    alert('WebGL is required for Interval Visualization');
+                    console.error('Failed to initialize Interference Visualization:', e);
+                    alert('WebGL is required for Interference Visualization');
                     return;
                 }
             }
 
             // Show the exercise container
-            document.getElementById('intervalVizExercise').style.display = 'block';
+            document.getElementById('interferenceVizExercise').style.display = 'block';
             document.getElementById('appContainer').style.display = 'none';
 
             // Start visualization
             setTimeout(() => {
-                window.intervalViz.start();
-                window.intervalViz.resize();
+                window.interferenceViz.start();
+                window.interferenceViz.resize();
 
-                const exerciseEl = document.getElementById('intervalVizExercise');
+                const exerciseEl = document.getElementById('interferenceVizExercise');
+                if (exerciseEl && exerciseEl.style.display === 'block') {
+                    this.addFadeIn(exerciseEl);
+                }
+            }, 10);
+        } else if (type === 'waveVisualization') {
+            if (!window.waveVizExercise) {
+                window.waveVizExercise = new WaveVisualizationExercise();
+            }
+
+            document.getElementById('waveVisualizationExercise').style.display = 'block';
+            document.getElementById('appContainer').style.display = 'none';
+
+            setTimeout(() => {
+                window.waveVizExercise.start();
+                const exerciseEl = document.getElementById('waveVisualizationExercise');
                 if (exerciseEl && exerciseEl.style.display === 'block') {
                     this.addFadeIn(exerciseEl);
                 }

@@ -1,5 +1,5 @@
 /**
- * Interval Visualization - WebGL Implementation
+ * Interference Visualization - WebGL Implementation
  *
  * Displays harmonic interference patterns for two simultaneous tones using WebGL.
  * Features gravity wells, consonance-based coloring, and real-time audio-visual sync.
@@ -11,13 +11,200 @@
  * - HarmonicRendererSettings: Configuration presets for visualization
  * - ToneGenerator: Web Audio API tone synthesis
  */
+const INTERFERENCE_DEFAULT_SELECTORS = Object.freeze({
+    canvas: '[data-interference="canvas"]',
+    playBoth: '[data-interference="play-both"]',
+    playTone1: '[data-interference="play-tone1"]',
+    playTone2: '[data-interference="play-tone2"]',
+    randomize: '[data-interference="randomize"]',
+    exit: '[data-interference="exit"]',
+    tone1Slider: '[data-interference="tone1-slider"]',
+    tone1Input: '[data-interference="tone1-input"]',
+    tone2Slider: '[data-interference="tone2-slider"]',
+    tone2Input: '[data-interference="tone2-input"]',
+    solfegeButtons: '[data-interference-solfege]',
+    presetButtons: '[data-interference-preset]',
+    rootCycleButtons: '[data-interference-root-cycle]',
+    rootSelect: '[data-interference="root-select"]',
+    rootOctave: '#interferenceVizRootOctave',
+    colorSpectrum: '[data-interference="color-spectrum"]',
+    pianoSpectrum: '[data-interference="piano-spectrum"]',
+    copySettings: '[data-interference="copy-settings"]'
+});
 
-class IntervalVisualization {
-    constructor(canvasId = 'intervalVizCanvasWebGL') {
-        this.canvas = document.getElementById(canvasId);
-        if (!this.canvas) {
-            throw new Error(`Canvas with id "${canvasId}" not found`);
+const INTERFERENCE_UNIFORM_DEFAULTS = Object.freeze({
+    amplitude: 1.0,
+    harmonicOrder: 5,
+    tone1Color: '#00ffff',
+    tone2Color: '#00ffff',
+    rootIntensity: 1.0,
+    intervalIntensity: 0.8,
+    intersectionIntensity: 1.2,
+    showOverallBeat: false,
+    overallBeatIntensity: 0.0,
+    showNodePulse: false,
+    nodePulseIntensity: 0.0,
+    nodePulseColor: '#ffffff',
+    ringBreathing: false,
+    ringBreathingIntensity: 0.0,
+    heatMap: false,
+    heatMapIntensity: 0.0,
+    nodeMigration: false,
+    nodeMigrationSpeed: 0.0,
+    nodeMigrationAnimate: false,
+    nodeDensityFlow: false,
+    nodeDensityIntensity: 0.0,
+    phaseTrails: false,
+    phaseTrailLength: 0.0,
+    nodeCoalescence: false,
+    coalescenceStrength: 0.0,
+    flowField: false,
+    flowTurbulence: 0.0,
+    depthLayers: false,
+    depthLayerCount: 1,
+    depthParallax: 0.0,
+    zoneToggle: false,
+    zoneToggleContrast: 0.0,
+    particleResonance: false,
+    particleCount: 0,
+    particleSize: 0.0,
+    energyArcs: false,
+    arcThickness: 0.0,
+    arcBranching: 0,
+    arcWaveAmplitude: 0.0,
+    pressureWave: false,
+    pressureIntensity: 0.0,
+    canvasStretch: false,
+    stretchAmount: 0.0,
+    drumPush: false,
+    drumDepth: 0.0,
+    gravityWell: false,
+    gravityStrength: 0.0,
+    gravityWellCount: 0,
+    gravityVariant1: false,
+    gravityAmpRange: 0.0,
+    gravityWellSize: 0.0,
+    gravityVariant2: false,
+    repulsionForce: 0.0,
+    gravityVariant3: false,
+    vortexSpeed: 0.0,
+    spiralTightness: 0.0,
+    gravityVariant4: false,
+    tidalStrength: 0.0,
+    gravityVariant5: false,
+    pulseDepth: 0.0,
+    eventHorizon: 0.0,
+    gravityVariant6: false,
+    attractionRepulsionForce: 0.0,
+    wellJitter: false,
+    jitterIntensity: 0.0,
+    wellBreathing: false,
+    consonantBreathSpeed: 0.0,
+    dissonantPulseSpeed: 0.0,
+    lensRefraction: false,
+    refractionAmount: 0.0,
+    lensSize: 0.0,
+    temporalShift: false,
+    timeOffset: 0.0,
+    temporalLayers: 1,
+    membraneRipples: false,
+    rippleAmplitude: 0.0,
+    crystalGrowth: false,
+    crystalComplexity: 1,
+    crystalGrowthSpeed: 0.0,
+    useBoundary: true,
+    boundaryRadius: 300,
+    speakerRadius: 30,
+    useFoggyEdge: false,
+    foggyEdgeStart: 0.7,
+    rootFreq: 440,
+    colorMode: 'consonance',
+    rootNote: null
+});
+
+const INTERFERENCE_DEBUG_FLAG = '__INTERFERENCE_DEBUG';
+function interferenceDebugEnabled() {
+    try {
+        return typeof window !== 'undefined' && Boolean(window[INTERFERENCE_DEBUG_FLAG]);
+    } catch (err) {
+        return false;
+    }
+}
+
+function interferenceDebugLog(...args) {
+    if (interferenceDebugEnabled()) {
+        console.log(...args);
+    }
+}
+
+class InterferenceVisualization {
+    constructor(options = {}) {
+        if (typeof options === 'string') {
+            options = { canvas: document.getElementById(options) || document.querySelector(options) };
         }
+
+        this.container = options.container || document.getElementById('interferenceVizExercise') || null;
+        this.root = options.root || this.container || document;
+        this.alwaysShowWaves = Boolean(options.alwaysShowWaves);
+
+        this.selectors = Object.assign({}, INTERFERENCE_DEFAULT_SELECTORS, options.selectors || {});
+
+        const rootSelectFallback = this.selectors.rootSelect ? '#interferenceVizRootNote' : null;
+        const rootOctaveFallback = this.selectors.rootOctave ? '#interferenceVizRootOctave' : null;
+        const colorSpectrumFallback = this.selectors.colorSpectrum ? '#interferenceVizColorSpectrumBtn' : null;
+        const pianoSpectrumFallback = this.selectors.pianoSpectrum ? '#interferenceVizPianoSpectrumBtn' : null;
+        const copySettingsFallback = this.selectors.copySettings ? '#interferenceVizCopySettingsBtn' : null;
+
+        const defaultSelectors = INTERFERENCE_DEFAULT_SELECTORS;
+        const tone1SliderFallback = this.selectors.tone1Slider === defaultSelectors.tone1Slider ? '#interferenceVizTone1Freq' : null;
+        const tone1InputFallback = this.selectors.tone1Input === defaultSelectors.tone1Input ? '#interferenceVizTone1FreqNum' : null;
+        const tone2SliderFallback = this.selectors.tone2Slider === defaultSelectors.tone2Slider ? '#interferenceVizTone2Freq' : null;
+        const tone2InputFallback = this.selectors.tone2Input === defaultSelectors.tone2Input ? '#interferenceVizTone2FreqNum' : null;
+        const playBothFallback = this.selectors.playBoth === defaultSelectors.playBoth ? '#interferenceVizPlayBothBtn' : null;
+        const playTone1Fallback = this.selectors.playTone1 === defaultSelectors.playTone1 ? '#interferenceVizPlayTone1Btn' : null;
+        const playTone2Fallback = this.selectors.playTone2 === defaultSelectors.playTone2 ? '#interferenceVizPlayTone2Btn' : null;
+        const randomizeFallback = this.selectors.randomize === defaultSelectors.randomize ? '#interferenceVizRandomizeBtn' : null;
+
+        this.elements = {
+            canvas: this.resolveElement(options.canvas, this.selectors.canvas, '#interferenceVizCanvasWebGL'),
+            playBothBtn: this.resolveElement(options.playBothBtn, this.selectors.playBoth, playBothFallback),
+            playTone1Btn: this.resolveElement(options.playTone1Btn, this.selectors.playTone1, playTone1Fallback),
+            playTone2Btn: this.resolveElement(options.playTone2Btn, this.selectors.playTone2, playTone2Fallback),
+            randomizeBtn: this.resolveElement(options.randomizeBtn, this.selectors.randomize, randomizeFallback),
+            exitBtn: this.resolveElement(options.exitBtn, this.selectors.exit, this.selectors.exit ? '#interferenceVizExitBtn' : null),
+            tone1FreqSlider: this.resolveElement(options.tone1FreqSlider, this.selectors.tone1Slider, tone1SliderFallback),
+            tone1FreqNum: this.resolveElement(options.tone1FreqNum, this.selectors.tone1Input, tone1InputFallback),
+            tone2FreqSlider: this.resolveElement(options.tone2FreqSlider, this.selectors.tone2Slider, tone2SliderFallback),
+            tone2FreqNum: this.resolveElement(options.tone2FreqNum, this.selectors.tone2Input, tone2InputFallback),
+            rootSelect: this.resolveElement(options.rootSelect, this.selectors.rootSelect, rootSelectFallback),
+            rootOctave: this.resolveElement(options.rootOctave, this.selectors.rootOctave, rootOctaveFallback),
+            colorSpectrumBtn: this.resolveElement(options.colorSpectrumBtn, this.selectors.colorSpectrum, colorSpectrumFallback),
+            pianoSpectrumBtn: this.resolveElement(options.pianoSpectrumBtn, this.selectors.pianoSpectrum, pianoSpectrumFallback),
+            copySettingsBtn: this.resolveElement(options.copySettingsBtn, this.selectors.copySettings, copySettingsFallback),
+            solfegeButtons: this.selectors.solfegeButtons ? Array.from((this.container || this.root || document).querySelectorAll(this.selectors.solfegeButtons)) : []
+        };
+
+        this.ownsAudioController = !options.audioController;
+        if (options.audioController) {
+            this.audioController = options.audioController;
+        }
+
+        this.canvas = this.elements.canvas;
+        if (!this.canvas) {
+            throw new Error('InterferenceVisualization: canvas element not found');
+        }
+
+        interferenceDebugLog('InterferenceVisualization ctor v18', {
+            alwaysShowWaves: this.alwaysShowWaves,
+            hasAudioController: Boolean(this.audioController),
+            canvasWidthAttr: this.canvas.getAttribute('width'),
+            canvasHeightAttr: this.canvas.getAttribute('height')
+        });
+
+        this.handleWindowResize = () => {
+            this.resize();
+        };
+        window.addEventListener('resize', this.handleWindowResize);
 
         // Initialize WebGL context
         this.gl = this.canvas.getContext('webgl', {
@@ -31,7 +218,16 @@ class IntervalVisualization {
         }
 
         // Initialize settings from settings module
-        this.settings = HarmonicRendererSettings.getDefault();
+        this.settings = Object.assign(
+            {},
+            INTERFERENCE_UNIFORM_DEFAULTS,
+            HarmonicRendererSettings.getDefault() || {}
+        );
+        this.devicePixelRatio = window.devicePixelRatio || 1;
+        this.cssWidth = null;
+        this.cssHeight = null;
+        this.pixelWidth = null;
+        this.pixelHeight = null;
 
         // Initialize with hardcoded defaults - will be updated from DOM when controls initialize
         this.tone1Freq = 440;
@@ -63,16 +259,7 @@ class IntervalVisualization {
 
         // Set canvas size - wait for layout to complete
         setTimeout(() => {
-            const rect = this.canvas.getBoundingClientRect();
-            const containerWidth = rect.width || 800;
-            const targetHeight = 600;
-
-            // Maintain aspect ratio - use square canvas
-            const size = Math.min(containerWidth, targetHeight);
-
-            this.canvas.width = size;
-            this.canvas.height = size;
-            this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+            this.resize();
         }, 100);
 
         // Initialize WebGL
@@ -83,10 +270,12 @@ class IntervalVisualization {
         // Animation
         this.animationFrameId = null;
         this.startTime = performance.now();
+        this.debugFrameCount = 0;
 
         // Create overlay renderer for speaker icons (after canvas is ready)
         setTimeout(() => {
             this.overlayRenderer = new SpeakerOverlayRenderer(this.canvas);
+            this.resize();
         }, 100);
 
         // Initialize audio for tone playback
@@ -99,25 +288,57 @@ class IntervalVisualization {
         this.initializeControls();
     }
 
+    resolveElement(provided, selector, fallbackSelector) {
+        if (provided instanceof HTMLElement) {
+            return provided;
+        }
+
+        if (typeof provided === 'string') {
+            const fromRoot = this.root ? this.root.querySelector(provided) : null;
+            if (fromRoot) return fromRoot;
+            const fromDoc = document.querySelector(provided);
+            if (fromDoc) return fromDoc;
+        }
+
+        if (selector) {
+            const fromRoot = this.root ? this.root.querySelector(selector) : null;
+            if (fromRoot) return fromRoot;
+        }
+
+        if (fallbackSelector) {
+            const fromDoc = document.querySelector(fallbackSelector);
+            if (fromDoc) return fromDoc;
+        }
+
+        return null;
+    }
+
     initializeAudio() {
-        // Create audio controller for dual-tone playback
-        this.audioController = new DualToneAudioController();
+        if (!this.audioController) {
+            this.audioController = new DualToneAudioController();
+            this.ownsAudioController = true;
+        }
         this.audioController.setFrequencies(this.tone1Freq, this.tone2Freq);
     }
 
     initializeControls() {
-        // Get button elements
-        const playBothBtn = document.getElementById('intervalVizPlayBothBtn');
-        const playTone1Btn = document.getElementById('intervalVizPlayTone1Btn');
-        const playTone2Btn = document.getElementById('intervalVizPlayTone2Btn');
-        const randomizeBtn = document.getElementById('intervalVizRandomizeBtn');
-        const exitBtn = document.getElementById('intervalVizExitBtn');
+        const {
+            playBothBtn,
+            playTone1Btn,
+            playTone2Btn,
+            randomizeBtn,
+            exitBtn,
+            tone1FreqSlider,
+            tone1FreqNum,
+            tone2FreqSlider,
+            tone2FreqNum
+        } = this.elements;
 
-        // Get frequency controls
-        const tone1FreqSlider = document.getElementById('intervalVizTone1Freq');
-        const tone1FreqNum = document.getElementById('intervalVizTone1FreqNum');
-        const tone2FreqSlider = document.getElementById('intervalVizTone2Freq');
-        const tone2FreqNum = document.getElementById('intervalVizTone2FreqNum');
+        const scope = this.container || this.root || document;
+        const solfegeButtons = (this.elements.solfegeButtons && this.elements.solfegeButtons.length)
+            ? this.elements.solfegeButtons
+            : (this.selectors.solfegeButtons ? Array.from(scope.querySelectorAll(this.selectors.solfegeButtons)) : []);
+        const exerciseContainer = this.container || document.getElementById('interferenceVizExercise');
 
         // Try to read frequencies from DOM, but keep hardcoded defaults if they fail
         if (tone1FreqSlider && tone1FreqSlider.value) {
@@ -183,15 +404,21 @@ class IntervalVisualization {
         // Frequency controls - Tone 1
         if (tone1FreqSlider && tone1FreqNum) {
             tone1FreqSlider.addEventListener('input', (e) => {
-                this.tone1Freq = parseFloat(e.target.value);
-                this.audioController.setTone1Frequency(this.tone1Freq, true);
-                tone1FreqNum.value = this.tone1Freq.toFixed(2);
+                const value = parseFloat(e.target.value);
+                if (isNaN(value)) return;
+                this.setFrequencies(value, this.tone2Freq);
+                tone1FreqNum.value = value.toFixed(2);
             });
 
             tone1FreqNum.addEventListener('input', (e) => {
-                this.tone1Freq = parseFloat(e.target.value);
-                this.audioController.setTone1Frequency(this.tone1Freq, true);
-                tone1FreqSlider.value = this.tone1Freq;
+                const value = parseFloat(e.target.value);
+                if (!isNaN(value) && value >= 27 && value <= 4186) {
+                    this.setFrequencies(value, this.tone2Freq);
+                    tone1FreqSlider.value = value;
+                }
+            });
+
+            tone1FreqNum.addEventListener('blur', () => {
                 tone1FreqNum.value = this.tone1Freq.toFixed(2);
             });
         }
@@ -199,39 +426,42 @@ class IntervalVisualization {
         // Frequency controls - Tone 2
         if (tone2FreqSlider && tone2FreqNum) {
             tone2FreqSlider.addEventListener('input', (e) => {
-                this.tone2Freq = parseFloat(e.target.value);
-                this.audioController.setTone2Frequency(this.tone2Freq, true);
-                tone2FreqNum.value = this.tone2Freq.toFixed(2);
+                const value = parseFloat(e.target.value);
+                if (isNaN(value)) return;
+                this.setFrequencies(this.tone1Freq, value);
+                tone2FreqNum.value = value.toFixed(2);
             });
 
             tone2FreqNum.addEventListener('input', (e) => {
-                this.tone2Freq = parseFloat(e.target.value);
-                this.audioController.setTone2Frequency(this.tone2Freq, true);
-                tone2FreqSlider.value = this.tone2Freq;
+                const value = parseFloat(e.target.value);
+                if (!isNaN(value) && value >= 27 && value <= 4186) {
+                    this.setFrequencies(this.tone1Freq, value);
+                    tone2FreqSlider.value = value;
+                }
+            });
+
+            tone2FreqNum.addEventListener('blur', () => {
                 tone2FreqNum.value = this.tone2Freq.toFixed(2);
             });
         }
 
         // Solfege buttons
-        document.querySelectorAll('.solfege-btn').forEach(btn => {
+        solfegeButtons.forEach(btn => {
             btn.addEventListener('click', () => {
                 const semitones = parseInt(btn.dataset.interval);
-                this.tone2Freq = this.tone1Freq * Math.pow(2, semitones / 12);
-                this.audioController.setTone2Frequency(this.tone2Freq);
-                if (tone2FreqSlider) tone2FreqSlider.value = this.tone2Freq;
-                if (tone2FreqNum) tone2FreqNum.value = this.tone2Freq.toFixed(2);
+                if (isNaN(semitones)) return;
 
-                const state = this.audioController.getState();
-                // If neither tone is playing, start both
-                if (!state.isPlayingTone1 && !state.isPlayingTone2) {
+                const rawFreq = this.tone1Freq * Math.pow(2, semitones / 12);
+                const slider = this.elements.tone2FreqSlider;
+                const maxFreq = slider ? parseFloat(slider.max) : 4186;
+                const minFreq = slider ? parseFloat(slider.min) : 27;
+                const newFreq = Math.min(Math.max(rawFreq, minFreq), maxFreq);
+
+                const wasPlaying = this.audioController && this.audioController.isAnyPlaying && this.audioController.isAnyPlaying();
+                this.setFrequencies(this.tone1Freq, newFreq, { updateAudio: wasPlaying });
+                if (!wasPlaying && this.audioController) {
                     this.audioController.playBoth();
                     if (playBothBtn) playBothBtn.textContent = '⏸️ Stop';
-                } else if (state.isPlayingTone2) {
-                    // Tone 2 is already playing - update frequency without resetting timing
-                    this.audioController.setTone2Frequency(this.tone2Freq, true);
-                } else {
-                    // Only tone 1 is playing - start tone 2
-                    this.audioController.playTone2();
                 }
             });
         });
@@ -241,30 +471,21 @@ class IntervalVisualization {
             randomizeBtn.addEventListener('click', () => {
                 const minFreq = 100;
                 const maxFreq = 1000;
-                this.tone1Freq = Math.random() * (maxFreq - minFreq) + minFreq;
+                const newRoot = Math.random() * (maxFreq - minFreq) + minFreq;
                 const semitones = Math.floor(Math.random() * 25);
-                this.tone2Freq = this.tone1Freq * Math.pow(2, semitones / 12);
+                const newInterval = newRoot * Math.pow(2, semitones / 12);
 
-                if (tone1FreqSlider) tone1FreqSlider.value = this.tone1Freq;
-                if (tone1FreqNum) tone1FreqNum.value = this.tone1Freq.toFixed(2);
-                if (tone2FreqSlider) tone2FreqSlider.value = this.tone2Freq;
-                if (tone2FreqNum) tone2FreqNum.value = this.tone2Freq.toFixed(2);
+                const wasPlaying = this.audioController && this.audioController.isAnyPlaying && this.audioController.isAnyPlaying();
+                this.setFrequencies(newRoot, newInterval, { updateAudio: wasPlaying });
 
-                // If tones are already playing, just update frequencies without expand animation
-                if (this.audioController.isAnyPlaying()) {
-                    // Update frequencies without resetting start times
-                    this.audioController.setFrequencies(this.tone1Freq, this.tone2Freq);
-                    this.audioController.updatePlayingFrequencies();
-                } else {
-                    // Start fresh if nothing playing
-                    this.audioController.setFrequencies(this.tone1Freq, this.tone2Freq);
+                if (!wasPlaying && this.audioController) {
                     this.audioController.playBoth();
                 }
 
-                // Update button states
                 if (playBothBtn) playBothBtn.textContent = '⏸️ Stop';
                 if (playTone1Btn) playTone1Btn.textContent = 'Stop';
                 if (playTone2Btn) playTone2Btn.textContent = 'Stop';
+                this.updatePlayButtonStates(true);
             });
         }
 
@@ -273,15 +494,20 @@ class IntervalVisualization {
             exitBtn.addEventListener('click', () => {
                 this.stop();
                 this.audioController.stopBoth();
-                document.getElementById('intervalVizExercise').style.display = 'none';
-                document.getElementById('appContainer').style.display = 'block';
+                if (exerciseContainer) {
+                    exerciseContainer.style.display = 'none';
+                }
+                const appContainer = document.getElementById('appContainer');
+                if (appContainer) {
+                    appContainer.style.display = 'block';
+                }
             });
         }
 
         // Keyboard controls
         this.handleKeyDown = (e) => {
             // Only handle arrow keys if the exercise is visible
-            const exerciseVisible = document.getElementById('intervalVizExercise').style.display === 'block';
+            const exerciseVisible = !exerciseContainer || exerciseContainer.style.display === 'block';
             if (!exerciseVisible) return;
 
             switch(e.key) {
@@ -920,8 +1146,8 @@ class IntervalVisualization {
                 // Compute individual tone colors with their brightness
                 // Apply falloff directly to get contribution from each tone
                 // Keep brightness lower so overlap doesn't get too bright when adding
-                vec3 tone1Contribution = color1 * (0.25 + brightness1 * 0.35) * falloff1;
-                vec3 tone2Contribution = color2 * (0.25 + brightness2 * 0.35) * falloff2;
+                vec3 tone1Contribution = color1 * (0.25 + brightness1 * 0.35) * falloff1 * uRootIntensity;
+                vec3 tone2Contribution = color2 * (0.25 + brightness2 * 0.35) * falloff2 * uIntervalIntensity;
 
                 // Natural overlap: just add the contributions together
                 // Where both are present, they combine and get brighter
@@ -991,6 +1217,9 @@ class IntervalVisualization {
                     }
 
                     // Overlap glow removed - natural additive combination is sufficient
+
+                    // Scale overlap brightness
+                    finalColor *= uIntersectionIntensity;
 
                     // Advanced beat visualization effects
                     // 1. Ring Breathing: Modulate wave brightness with beat to make rings expand/contract
@@ -1474,6 +1703,7 @@ class IntervalVisualization {
                 // Apply drum push factor (brightness modulation from z-depth illusion)
                 finalColor *= drumPushFactor;
 
+                finalColor = clamp(finalColor, 0.0, 1.0);
                 gl_FragColor = vec4(finalColor, finalAlpha);
             }
         `;
@@ -1678,6 +1908,14 @@ class IntervalVisualization {
         const height = this.canvas.height;
         const time = (performance.now() - this.startTime) / 1000; // Convert to seconds
         const state = this.audioController.getState();
+        if (this.alwaysShowWaves && !this.debugLogged) {
+            interferenceDebugLog('InterferenceVisualization (combined) state snapshot', {
+                tone1Freq: this.tone1Freq,
+                tone2Freq: this.tone2Freq,
+                state
+            });
+            this.debugLogged = true;
+        }
 
         // Calculate reveal radii for expanding wave effect
         const tone1RevealRadius = this.getRevealRadius(
@@ -1700,7 +1938,10 @@ class IntervalVisualization {
         );
 
         // Handle reveal radius - can be a number (expanding) or object with minRadius/maxRadius (shrinking ring)
-        if (typeof tone1RevealRadius === 'number') {
+        if (this.alwaysShowWaves) {
+            this.tone1RevealRadiusMin = 0;
+            this.tone1RevealRadiusMax = 9999;
+        } else if (typeof tone1RevealRadius === 'number') {
             this.tone1RevealRadiusMin = 0;
             this.tone1RevealRadiusMax = tone1RevealRadius;
         } else if (tone1RevealRadius && tone1RevealRadius.minRadius !== undefined) {
@@ -1712,7 +1953,10 @@ class IntervalVisualization {
             this.tone1RevealRadiusMax = tone1RevealRadius === 0 ? 0 : 9999;
         }
 
-        if (typeof tone2RevealRadius === 'number') {
+        if (this.alwaysShowWaves) {
+            this.tone2RevealRadiusMin = 0;
+            this.tone2RevealRadiusMax = 9999;
+        } else if (typeof tone2RevealRadius === 'number') {
             this.tone2RevealRadiusMin = 0;
             this.tone2RevealRadiusMax = tone2RevealRadius;
         } else if (tone2RevealRadius && tone2RevealRadius.minRadius !== undefined) {
@@ -1745,8 +1989,10 @@ class IntervalVisualization {
         this.gl.uniform1f(this.uniforms.time, time);
         this.gl.uniform1f(this.uniforms.amplitude, this.settings.amplitude);
         this.gl.uniform1i(this.uniforms.harmonicOrder, this.settings.harmonicOrder);
-        this.gl.uniform1i(this.uniforms.isPlayingTone1, state.isPlayingTone1 ? 1 : 0);
-        this.gl.uniform1i(this.uniforms.isPlayingTone2, state.isPlayingTone2 ? 1 : 0);
+        const tone1Active = this.alwaysShowWaves || state.isPlayingTone1;
+        const tone2Active = this.alwaysShowWaves || state.isPlayingTone2;
+        this.gl.uniform1i(this.uniforms.isPlayingTone1, tone1Active ? 1 : 0);
+        this.gl.uniform1i(this.uniforms.isPlayingTone2, tone2Active ? 1 : 0);
         this.gl.uniform1f(this.uniforms.tone1RevealRadiusMin, this.tone1RevealRadiusMin || 0);
         this.gl.uniform1f(this.uniforms.tone1RevealRadiusMax, this.tone1RevealRadiusMax || 9999);
         this.gl.uniform1f(this.uniforms.tone2RevealRadiusMin, this.tone2RevealRadiusMin || 0);
@@ -1853,6 +2099,25 @@ class IntervalVisualization {
     }
 
     render() {
+        if (this.debugFrameCount < 3) {
+            interferenceDebugLog('InterferenceVisualization render tick', {
+                pixelWidth: this.canvas.width,
+                pixelHeight: this.canvas.height,
+                cssWidth: this.cssWidth,
+                cssHeight: this.cssHeight,
+                ratio: this.devicePixelRatio,
+                tone1Freq: this.tone1Freq,
+                tone2Freq: this.tone2Freq,
+                alwaysShowWaves: this.alwaysShowWaves
+            });
+            this.debugFrameCount++;
+        }
+
+        const currentRatio = window.devicePixelRatio || 1;
+        if (currentRatio !== this.devicePixelRatio) {
+            this.resize();
+        }
+
         // Update colors based on consonance/dissonance
         const rootFreq = (this.rootTone == 1) ? this.tone1Freq : this.tone2Freq;
         this.settings.tone1Color = this.getFrequencyColor(this.tone1Freq, rootFreq);
@@ -1875,6 +2140,11 @@ class IntervalVisualization {
         // Draw fullscreen quad
         this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
 
+        const glError = this.gl.getError();
+        if (glError !== this.gl.NO_ERROR) {
+            console.error('InterferenceVisualization WebGL error', glError);
+        }
+
         // Render 2D overlay (speakers)
         this.renderOverlay();
     }
@@ -1882,31 +2152,56 @@ class IntervalVisualization {
     renderOverlay() {
         if (!this.overlayRenderer) return;
 
-        const width = this.canvas.width;
-        const height = this.canvas.height;
+        // Use pixel dimensions for calculation, then convert to CSS for overlay rendering
+        const pixelWidth = this.canvas.width;
+        const pixelHeight = this.canvas.height;
+        // Always get current ratio to handle dynamic changes
+        const ratio = window.devicePixelRatio || 1;
         const state = this.audioController.getState();
 
+        // Calculate positions in pixel space, then convert to CSS space for overlay
         const tone1State = {
-            x: width * this.tone1X,
-            y: height * this.tone1Y,
+            x: (pixelWidth * this.tone1X) / ratio,
+            y: (pixelHeight * this.tone1Y) / ratio,
             color: this.settings.tone1Color,
             label: 'T1',
             isActive: state.isPlayingTone1
         };
 
         const tone2State = {
-            x: width * this.tone2X,
-            y: height * this.tone2Y,
+            x: (pixelWidth * this.tone2X) / ratio,
+            y: (pixelHeight * this.tone2Y) / ratio,
             color: this.settings.tone2Color,
             label: 'T2',
             isActive: state.isPlayingTone2
         };
+
+        // Debug logging for Mac Chrome issue
+        if (interferenceDebugEnabled()) {
+            console.log('renderOverlay positions:', {
+                pixelWidth,
+                pixelHeight,
+                ratio,
+                cssWidth: this.cssWidth,
+                cssHeight: this.cssHeight,
+                tone1X_percentage: this.tone1X,
+                tone1X_pixel: pixelWidth * this.tone1X,
+                tone1X_css: tone1State.x,
+                tone2X_percentage: this.tone2X,
+                tone2X_pixel: pixelWidth * this.tone2X,
+                tone2X_css: tone2State.x
+            });
+        }
 
         this.overlayRenderer.render(tone1State, tone2State);
     }
 
 
     start() {
+        if (this.animationFrameId) {
+            return;
+        }
+
         // Re-check and initialize frequencies from DOM in case they weren't available in constructor
         this.ensureFrequenciesInitialized();
 
@@ -1920,8 +2215,8 @@ class IntervalVisualization {
     ensureFrequenciesInitialized() {
         // Check if frequencies are invalid and try to get them from DOM
         if (isNaN(this.tone1Freq) || this.tone1Freq <= 0 || isNaN(this.tone2Freq) || this.tone2Freq <= 0) {
-            const tone1FreqSlider = document.getElementById('intervalVizTone1Freq');
-            const tone2FreqSlider = document.getElementById('intervalVizTone2Freq');
+            const tone1FreqSlider = this.elements.tone1FreqSlider;
+            const tone2FreqSlider = this.elements.tone2FreqSlider;
 
             const freq1 = tone1FreqSlider ? parseFloat(tone1FreqSlider.value) : NaN;
             const freq2 = tone2FreqSlider ? parseFloat(tone2FreqSlider.value) : NaN;
@@ -1950,6 +2245,25 @@ class IntervalVisualization {
         this.rootTone = toneNumber;
     }
 
+    setFrequencies(rootFreq, intervalFreq, { updateAudio = true } = {}) {
+        this.tone1Freq = rootFreq;
+        this.tone2Freq = intervalFreq;
+        this.settings.rootFreq = rootFreq;
+
+        const { tone1FreqSlider, tone1FreqNum, tone2FreqSlider, tone2FreqNum } = this.elements;
+        if (tone1FreqSlider) tone1FreqSlider.value = rootFreq;
+        if (tone1FreqNum) tone1FreqNum.value = Number(rootFreq).toFixed(2);
+        if (tone2FreqSlider) tone2FreqSlider.value = intervalFreq;
+        if (tone2FreqNum) tone2FreqNum.value = Number(intervalFreq).toFixed(2);
+
+        if (this.audioController) {
+            this.audioController.setFrequencies(this.tone1Freq, this.tone2Freq);
+            if (updateAudio && typeof this.audioController.updatePlayingFrequencies === 'function') {
+                this.audioController.updatePlayingFrequencies();
+            }
+        }
+    }
+
     updateRootNote(note, freq) {
         this.settings.rootNote = note;
         this.settings.rootFreq = freq;
@@ -1969,21 +2283,76 @@ class IntervalVisualization {
     }
 
     resize() {
-        const rect = this.canvas.getBoundingClientRect();
-        const containerWidth = rect.width;
+        const parent = this.canvas.parentElement;
+        const attrWidth = parseInt(this.canvas.getAttribute('width'), 10) || 520;
         const targetHeight = 600;
 
-        // Maintain aspect ratio - use square canvas
-        const size = Math.min(containerWidth, targetHeight);
+        // Get dimensions from parent container, not from canvas itself
+        let containerWidth = attrWidth;
+        let containerHeight = targetHeight;
 
-        this.canvas.width = size;
-        this.canvas.height = size;
-
-        if (this.overlayRenderer) {
-            this.overlayRenderer.resize(size, size);
+        if (parent) {
+            containerWidth = parent.clientWidth || parent.offsetWidth || attrWidth;
+            containerHeight = parent.clientHeight || parent.offsetHeight || targetHeight;
         }
 
-        this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+        interferenceDebugLog('Interference resize measurement', {
+            containerWidth,
+            containerHeight,
+            attrWidth,
+            hasParent: !!parent
+        });
+
+        // Use full container dimensions
+        let cssWidth = containerWidth;
+        let cssHeight = containerHeight;
+
+        if (!cssWidth || cssWidth <= 0) {
+            cssWidth = Math.max(attrWidth, 520);
+            console.warn('InterferenceVisualization: fallback canvas width applied', {
+                rect,
+                attrWidth,
+                containerWidth,
+                cssWidth
+            });
+        }
+
+        const ratio = window.devicePixelRatio || 1;
+        const pixelWidth = Math.max(1, Math.round(cssWidth * ratio));
+        const pixelHeight = Math.max(1, Math.round(cssHeight * ratio));
+
+        this.devicePixelRatio = ratio;
+        this.cssWidth = cssWidth;
+        this.cssHeight = cssHeight;
+        this.pixelWidth = pixelWidth;
+        this.pixelHeight = pixelHeight;
+
+        if (this.canvas.width !== pixelWidth || this.canvas.height !== pixelHeight) {
+            this.canvas.width = pixelWidth;
+            this.canvas.height = pixelHeight;
+        }
+
+        this.canvas.style.width = `${cssWidth}px`;
+        this.canvas.style.height = `${cssHeight}px`;
+
+        if (this.overlayRenderer) {
+            this.overlayRenderer.resize(cssWidth, cssHeight, pixelWidth, pixelHeight, ratio);
+        }
+
+        this.gl.viewport(0, 0, pixelWidth, pixelHeight);
+        interferenceDebugLog('InterferenceVisualization resize', {
+            cssWidth,
+            cssHeight,
+            pixelWidth,
+            pixelHeight,
+            boundaryRadius: this.settings.boundaryRadius,
+            speakerRadius: this.settings.speakerRadius,
+            ratio,
+            canvasStyleWidth: this.canvas.style.width,
+            canvasStyleHeight: this.canvas.style.height,
+            containerClientWidth: this.canvas.parentElement ? this.canvas.parentElement.clientWidth : null,
+            containerClientHeight: this.canvas.parentElement ? this.canvas.parentElement.clientHeight : null
+        });
     }
 
     destroy() {
@@ -1995,7 +2364,7 @@ class IntervalVisualization {
         }
 
         // Clean up audio controller
-        if (this.audioController) {
+        if (this.audioController && this.ownsAudioController && typeof this.audioController.destroy === 'function') {
             this.audioController.destroy();
         }
 
@@ -2008,8 +2377,14 @@ class IntervalVisualization {
         if (this.vertexBuffer) {
             this.gl.deleteBuffer(this.vertexBuffer);
         }
+
+        if (this.handleWindowResize) {
+            window.removeEventListener('resize', this.handleWindowResize);
+        }
         if (this.program) {
             this.gl.deleteProgram(this.program);
         }
     }
 }
+
+InterferenceVisualization.DEFAULT_SELECTORS = INTERFERENCE_DEFAULT_SELECTORS;

@@ -8,24 +8,24 @@ class EarTrainingOverview {
 
         this.steps = [
             {
-                title: "Welcome to Ear Training!",
-                content: "PLACEHOLDER: Introduction to ear training and why it's important for musicians."
+                title: "About Ear Training",
+                content: "<p>The goal of ear training is to help you recognize what's happening musically when you hear melodies and chords.</p><p>This can be challenging at first, but like any skill, you can learn and improve with practice.</p>"
             },
             {
-                title: "Understanding Pitch",
-                content: "PLACEHOLDER: Explanation of what pitch is and how we perceive it."
+                title: "A More Effective Method",
+                content: "<p>There are many approaches to ear training, but most show limited results despite requiring significant effort.</p><p>This method has been proven to be the most effective and efficient way to develop your musical ear.</p>"
             },
             {
-                title: "Intervals and Relationships",
-                content: "PLACEHOLDER: Introduction to musical intervals and how notes relate to each other."
+                title: "Feel First, Hear Second",
+                content: "<p>The core principle is not focusing on your ears, but instead on your body.</p><p><strong>If you can feel the differences between notes, you can hear the differences.</strong></p><p>This body-centered approach helps you internalize musical relationships in a deeper, more intuitive way.</p>"
             },
             {
-                title: "Practice Makes Progress",
-                content: "PLACEHOLDER: Tips for effective ear training practice and building consistency."
+                title: "You'll Be Asked to Sing",
+                content: "<p>Core to this program is using your voice. You will be asked to sing different pitches throughout the exercises.</p><p>If you feel intimidated, don't worry—<strong>it's not about how good your voice sounds.</strong></p><p>It's about developing the muscles and skills within your body to internalize pitch and musical relationships.</p>"
             },
             {
-                title: "Ready to Begin!",
-                content: "PLACEHOLDER: Summary and encouragement to start the exercises."
+                title: "Follow the Order",
+                content: "<p>The exercises are arranged in a very specific sequence, with more fundamental skills appearing first.</p><p><strong>Try to tackle them in order</strong> for the best results—each builds upon the previous skills.</p><p>Good luck on your ear training journey!</p>"
             }
         ];
 
@@ -84,7 +84,7 @@ class EarTrainingOverview {
         }
 
         if (this.contentElement) {
-            this.contentElement.textContent = step.content;
+            this.contentElement.innerHTML = step.content;
         }
 
         if (this.stepIndicator) {
@@ -93,14 +93,18 @@ class EarTrainingOverview {
 
         // Show/hide navigation buttons
         if (this.prevBtn) {
-            this.prevBtn.style.display = stepIndex > 0 ? 'block' : 'none';
+            this.prevBtn.style.display = stepIndex > 0 ? 'inline-block' : 'none';
         }
 
         // On last step, show final buttons instead of next button
         const isLastStep = stepIndex === this.totalSteps - 1;
 
         if (this.nextBtn) {
-            this.nextBtn.style.display = isLastStep ? 'none' : 'block';
+            this.nextBtn.style.display = isLastStep ? 'none' : 'inline-block';
+        }
+
+        if (this.nextBtn && this.nextBtn.parentElement) {
+            this.nextBtn.parentElement.style.display = isLastStep ? 'none' : 'flex';
         }
 
         if (this.finalButtons) {

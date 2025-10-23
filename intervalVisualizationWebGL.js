@@ -4,7 +4,7 @@
  */
 
 class IntervalVisualizationWebGL {
-    constructor(canvasId = 'intervalVizCanvasWebGL') {
+    constructor(canvasId = 'interferenceVizCanvasWebGL') {
         this.canvas = document.getElementById(canvasId);
         if (!this.canvas) {
             throw new Error(`Canvas with id "${canvasId}" not found`);
@@ -2222,33 +2222,33 @@ class IntervalVisualizationWebGL {
         const time = (performance.now() - this.startTime) / 1000; // Convert to seconds
 
         // Sync state from Canvas 2D renderer if available
-        if (window.intervalViz) {
-            this.isPlayingTone1 = window.intervalViz.isPlayingTone1;
-            this.isPlayingTone2 = window.intervalViz.isPlayingTone2;
-            this.tone1Freq = window.intervalViz.tone1Freq;
-            this.tone2Freq = window.intervalViz.tone2Freq;
-            this.tone1X = window.intervalViz.tone1X / 100; // Convert from percentage
+        if (window.interferenceViz) {
+            this.isPlayingTone1 = window.interferenceViz.isPlayingTone1;
+            this.isPlayingTone2 = window.interferenceViz.isPlayingTone2;
+            this.tone1Freq = window.interferenceViz.tone1Freq;
+            this.tone2Freq = window.interferenceViz.tone2Freq;
+            this.tone1X = window.interferenceViz.tone1X / 100; // Convert from percentage
             this.tone1Y = 0.5; // Center vertically
-            this.tone2X = window.intervalViz.tone2X / 100;
+            this.tone2X = window.interferenceViz.tone2X / 100;
             this.tone2Y = 0.5;
-            this.rootTone = window.intervalViz.rootTone;
+            this.rootTone = window.interferenceViz.rootTone;
 
             // Sync reveal radii for expanding wave effect
-            const tone1RevealRadius = window.intervalViz.getRevealRadius(
-                window.intervalViz.tone1StartTime,
-                window.intervalViz.tone1StopTime,
+            const tone1RevealRadius = window.interferenceViz.getRevealRadius(
+                window.interferenceViz.tone1StartTime,
+                window.interferenceViz.tone1StopTime,
                 this.isPlayingTone1,
-                window.intervalViz.tone1X,
-                window.intervalViz.tone1Y,
+                window.interferenceViz.tone1X,
+                window.interferenceViz.tone1Y,
                 width,
                 height
             );
-            const tone2RevealRadius = window.intervalViz.getRevealRadius(
-                window.intervalViz.tone2StartTime,
-                window.intervalViz.tone2StopTime,
+            const tone2RevealRadius = window.interferenceViz.getRevealRadius(
+                window.interferenceViz.tone2StartTime,
+                window.interferenceViz.tone2StopTime,
                 this.isPlayingTone2,
-                window.intervalViz.tone2X,
-                window.intervalViz.tone2Y,
+                window.interferenceViz.tone2X,
+                window.interferenceViz.tone2Y,
                 width,
                 height
             );
@@ -2279,23 +2279,23 @@ class IntervalVisualizationWebGL {
             }
 
             // Sync beat amplitude for beat frequency visualization
-            this.beatAmplitude = window.intervalViz.currentBeatAmplitude || 0;
+            this.beatAmplitude = window.interferenceViz.currentBeatAmplitude || 0;
 
             // Sync settings
-            this.settings.tone1Color = window.intervalViz.settings.tone1Color;
-            this.settings.tone2Color = window.intervalViz.settings.tone2Color;
-            this.settings.colorMode = window.intervalViz.settings.colorMode;
-            this.settings.rootFreq = window.intervalViz.settings.rootFreq;
-            this.settings.amplitude = window.intervalViz.settings.amplitude;
-            this.settings.harmonicOrder = window.intervalViz.settings.harmonicOrder;
-            this.settings.useBoundary = window.intervalViz.settings.useBoundary;
-            this.settings.boundaryRadius = window.intervalViz.settings.boundaryRadius;
-            this.settings.speakerRadius = window.intervalViz.settings.speakerRadius;
-            this.settings.useFoggyEdge = window.intervalViz.settings.useFoggyEdge;
-            this.settings.foggyEdgeStart = window.intervalViz.settings.foggyEdgeStart;
-            this.settings.rootIntensity = window.intervalViz.settings.rootIntensity;
-            this.settings.intervalIntensity = window.intervalViz.settings.intervalIntensity;
-            this.settings.intersectionIntensity = window.intervalViz.settings.intersectionIntensity;
+            this.settings.tone1Color = window.interferenceViz.settings.tone1Color;
+            this.settings.tone2Color = window.interferenceViz.settings.tone2Color;
+            this.settings.colorMode = window.interferenceViz.settings.colorMode;
+            this.settings.rootFreq = window.interferenceViz.settings.rootFreq;
+            this.settings.amplitude = window.interferenceViz.settings.amplitude;
+            this.settings.harmonicOrder = window.interferenceViz.settings.harmonicOrder;
+            this.settings.useBoundary = window.interferenceViz.settings.useBoundary;
+            this.settings.boundaryRadius = window.interferenceViz.settings.boundaryRadius;
+            this.settings.speakerRadius = window.interferenceViz.settings.speakerRadius;
+            this.settings.useFoggyEdge = window.interferenceViz.settings.useFoggyEdge;
+            this.settings.foggyEdgeStart = window.interferenceViz.settings.foggyEdgeStart;
+            this.settings.rootIntensity = window.interferenceViz.settings.rootIntensity;
+            this.settings.intervalIntensity = window.interferenceViz.settings.intervalIntensity;
+            this.settings.intersectionIntensity = window.interferenceViz.settings.intersectionIntensity;
         }
 
         // Calculate absolute positions
@@ -2447,7 +2447,7 @@ class IntervalVisualizationWebGL {
                 positions: [this.tone1X, this.tone1Y, this.tone2X, this.tone2Y],
                 boundaryRadius: this.settings.boundaryRadius,
                 amplitude: this.settings.amplitude,
-                syncedFrom: window.intervalViz ? 'Canvas2D' : 'none'
+                syncedFrom: window.interferenceViz ? 'Canvas2D' : 'none'
             });
             this._debugLogged = true;
         }

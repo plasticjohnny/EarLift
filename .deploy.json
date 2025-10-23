@@ -17,7 +17,8 @@
       "*.wav"
     ],
     "exclude": [
-      "deploy.sh",
+      "*.md",
+      "deploy*.sh",
       "create-icons.html",
       "example-new-architecture.html"
     ],

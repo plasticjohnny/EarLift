@@ -28,7 +28,17 @@ class AudioSettings {
             document.getElementById('audioSettingsBtnOctave'),
             document.getElementById('audioSettingsBtnScale'),
             document.getElementById('audioSettingsBtnToneSlide'),
-            document.getElementById('audioSettingsBtnDarts')
+            document.getElementById('audioSettingsBtnDarts'),
+            document.getElementById('audioSettingsBtnOctaveFeelRoot'),
+            document.getElementById('audioSettingsBtnHalfStepFeelRoot'),
+            document.getElementById('audioSettingsBtnWholeStepFeelRoot'),
+            document.getElementById('audioSettingsBtnMajorThirdFeelRoot'),
+            document.getElementById('audioSettingsBtnPerfectFourthFeelRoot'),
+            document.getElementById('audioSettingsBtnPerfectFifthFeelRoot'),
+            document.getElementById('audioSettingsBtnMajorSixthFeelRoot'),
+            document.getElementById('audioSettingsBtnMajorSeventhFeelRoot'),
+            document.getElementById('audioSettingsBtnIntervalOverview'),
+            document.getElementById('audioSettingsBtnGeneralIntervalOverview')
         ];
 
         this.attachEventListeners();

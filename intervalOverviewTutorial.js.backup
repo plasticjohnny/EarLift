@@ -1,0 +1,471 @@
+/**
+ * Interval Overview Tutorial Data
+ *
+ * Comprehensive tutorial that guides users through:
+ * - Understanding frequency and pitch
+ * - Visualizing sound waves
+ * - Exploring the piano frequency range
+ * - Learning about intervals
+ * - Understanding consonance and dissonance
+ * - Exploring interference patterns
+ *
+ * Each step controls:
+ * - Text displayed to the user
+ * - UI element visibility/enabled states
+ * - Audio playback states
+ * - Visualization visibility
+ *
+ * Step numbers are auto-generated based on array position.
+ * To reference steps in conversation, use their current position (1-based index).
+ */
+
+const INTERVAL_OVERVIEW_TUTORIAL_STEPS = [
+    // ===== PHASE 1: Introduction to Frequency (Steps 1-3) =====
+    {
+        text: "Welcome! All musical tones have <strong>frequencies</strong> that control their pitch. Let's start by listening to a simple tone. <button class='tutorial-inline-btn tutorial-btn-pulse' data-tutorial-action='play-tone'>Play Tone</button>",
+        ui: {
+            simplifiedControls: { visible: true },
+            rootDisplay: { visible: false },
+            intervalDisplay: { visible: false },
+            intervalArrows: { visible: false },
+            intervalChromatic: { visible: false },
+            vizSelection: { visible: false },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false }
+        },
+        viz: "none",
+        audio: {
+            action: "set",
+            tone1: 440,
+            tone2: 440
+        },
+        waitForAction: "play-tone-inline"
+    },
+    {
+        text: "Frequency is measured in <strong>Hertz (Hz)</strong> — the number of wave cycles per second. This tone is <strong>440 Hz</strong>, vibrating 440 times per second. Higher Hz = higher pitch and faster wave movement. Lower Hz = lower pitch and slower waves. One Hz = one vibration per second. <button class='tutorial-inline-btn' data-tutorial-action='show-hertz'>Show Hertz (Hz)</button>",
+        ui: {
+            simplifiedControls: { visible: true },
+            rootDisplay: { visible: false },
+            intervalDisplay: { visible: false },
+            intervalArrows: { visible: false },
+            intervalChromatic: { visible: false },
+            vizSelection: { visible: false },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false }
+        },
+        viz: "none",
+        audio: {
+            action: "keep"
+        },
+        waitForAction: "show-hertz-inline"
+    },
+
+    // ===== PHASE 2: Visualizing Waves (Steps 3-5) =====
+    {
+        text: "One way to visualize frequency is with a <strong>sound wave</strong>. Let's see what that looks like. <button class='tutorial-inline-btn' data-tutorial-action='show-wave'>Show Wave Form</button><div data-tutorial-reveal='wave-shown' style='display:none; margin-top: 12px;'>This is the <strong>waveform</strong> of <span data-tutorial-dynamic='root-freq'>440</span> Hz. The visualization is slowed down so we can see the wave pattern. Each complete up-and-down cycle represents one vibration.</div>",
+        ui: {
+            rootDisplay: { visible: true, enabled: true },
+            intervalDisplay: { visible: false },
+            intervalArrows: { visible: false },
+            intervalChromatic: { visible: false },
+            vizSelection: { visible: true, enabled: false },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false }
+        },
+        viz: "none",
+        audio: {
+            action: "set",
+            tone1: 440,
+            tone2: 440
+        },
+        waitForAction: "show-wave-inline",
+        dynamicText: true
+    },
+    {
+        text: "Try clicking <button class='tutorial-inline-btn' data-tutorial-action='play-random'>Play Random Tone</button> a few times and watch how the wave pattern changes with different frequencies!",
+        ui: {
+            rootDisplay: { visible: true, enabled: true },
+            intervalDisplay: { visible: false },
+            intervalArrows: { visible: false },
+            intervalChromatic: { visible: false },
+            vizSelection: { visible: true, enabled: false },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false }
+        },
+        viz: "wave",
+        audio: {
+            action: "keep"
+        },
+        dynamicText: true
+    },
+
+    // ===== PHASE 3: Exploring Frequency Range (Steps 6-8) =====
+    {
+        text: "When we play two notes together, the distance between them is called an <strong>interval</strong>. Let's play a second tone at 440 Hz — the same as the first! <button class='tutorial-inline-btn' data-tutorial-action='play-second-tone'>Play Second Tone</button><div data-tutorial-reveal='same-freq-shown' style='display:none; margin-top: 12px; visibility: hidden;'>Notice how both waves move at the same speed? That's because they're both at 440 Hz — the same frequency!</div>",
+        ui: {
+            rootDisplay: { visible: true, enabled: true },
+            intervalDisplay: { visible: false },
+            intervalArrows: { visible: false },
+            intervalChromatic: { visible: false },
+            vizSelection: { visible: true, enabled: false },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false }
+        },
+        viz: "wave",
+        audio: {
+            action: "set",
+            tone1: 440,
+            tone2: 440
+        },
+        waitForAction: "play-second-tone-inline"
+    },
+    {
+        text: "Now let's try different frequencies! Try clicking <button class='tutorial-inline-btn' data-tutorial-action='play-random-tone2'>Play Random Tone <span data-tutorial-counter='random-count-2'>(3)</span></button> a few times. Notice when two notes are playing, you see two different waves moving at different speeds.",
+        ui: {
+            rootDisplay: { visible: true, enabled: true },
+            intervalDisplay: { visible: true, enabled: true },
+            intervalArrows: { visible: false },
+            intervalChromatic: { visible: false },
+            vizSelection: { visible: true, enabled: false },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false }
+        },
+        viz: "wave",
+        audio: {
+            action: "keep"
+        },
+        dynamicText: true,
+        waitForAction: "play-random-tone2-3x"
+    },
+
+    // ===== PHASE 4: Introducing Intervals (Steps 8-12) =====
+    {
+        text: "When you have two tones at the same frequency, it's called <strong>unison</strong> — the waves match exactly! <button class='tutorial-inline-btn' data-tutorial-action='combine-waves'>Combine Waves</button><div data-tutorial-reveal='wave-intersection-shown' style='display:none; margin-top: 12px; visibility: hidden;'>Notice the lighter areas where the waves intersect — that's where they're amplifying each other!</div>",
+        ui: {
+            rootDisplay: { visible: true, enabled: true },
+            intervalDisplay: { visible: true, enabled: false },
+            intervalArrows: { visible: false },
+            intervalChromatic: { visible: false },
+            vizSelection: { visible: true, enabled: false },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false }
+        },
+        viz: "wave",
+        audio: {
+            action: "set",
+            tone1: 440,
+            tone2: 440
+        },
+        waitForAction: "combine-waves-inline"
+    },
+    {
+        text: "Now let's demonstrate with different random notes. Try clicking <button class='tutorial-inline-btn' data-tutorial-action='play-random-tone2'>Play Random Tone</button> to hear how different intervals create different wave patterns.",
+        ui: {
+            rootDisplay: { visible: true, enabled: true },
+            intervalDisplay: { visible: true, enabled: false },
+            intervalArrows: { visible: false, enabled: false },
+            intervalChromatic: { visible: false },
+            vizSelection: { visible: true, enabled: false },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false }
+        },
+        viz: "wave",
+        audio: {
+            action: "keep"
+        },
+        waitForAction: "combine-waves-inline"
+    },
+    {
+        text: "Now let's demonstrate with different random notes. Try clicking <button class='tutorial-inline-btn' data-tutorial-action='play-random-tone2'>Play Random Tone</button> to hear how different intervals create different wave patterns.",
+        ui: {
+            rootDisplay: { visible: true, enabled: true },
+            intervalDisplay: { visible: true, enabled: true },
+            intervalArrows: { visible: false, enabled: true },
+            intervalChromatic: { visible: false },
+            vizSelection: { visible: true, enabled: true },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false }
+        },
+        viz: "wave",
+        waveMode: "overlay",
+        audio: {
+            action: "keep"
+        }
+    },
+
+    // ===== PHASE 5: Wave Interaction - Consonance & Dissonance (Steps 13-15) =====
+    {
+        text: "Look at the waveforms side by side. The perfect fifth (660 Hz) has waves that align in a simple 3:2 ratio with the root (440 Hz).",
+        ui: {
+            rootDisplay: { visible: true, enabled: true },
+            intervalDisplay: { visible: true, enabled: false },
+            intervalArrows: { visible: false, enabled: false },
+            intervalChromatic: { visible: false },
+            vizSelection: { visible: true, enabled: false },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false }
+        },
+        viz: "wave",
+        audio: {
+            action: "play",
+            which: "both",
+            tone1: 440,
+            tone2: 660
+        }
+    },
+    {
+        text: "This simple ratio creates <strong>consonance</strong> — a stable, pleasant sound. When wave peaks align regularly, the interval sounds harmonious.",
+        ui: {
+            rootDisplay: { visible: true, enabled: true },
+            intervalDisplay: { visible: true, enabled: false },
+            intervalArrows: { visible: false, enabled: false },
+            intervalChromatic: { visible: false },
+            vizSelection: { visible: true, enabled: false },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false }
+        },
+        viz: "wave",
+        audio: {
+            action: "keep"
+        }
+    },
+    {
+        text: "Now let's hear <strong>dissonance</strong>. I'll change to 622 Hz — a tritone, the most tense interval. Notice the complex, clashing wave pattern.",
+        ui: {
+            rootDisplay: { visible: true, enabled: true },
+            intervalDisplay: { visible: true, enabled: false },
+            intervalArrows: { visible: false, enabled: false },
+            intervalChromatic: { visible: false },
+            vizSelection: { visible: true, enabled: false },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false }
+        },
+        viz: "wave",
+        audio: {
+            action: "play",
+            which: "both",
+            tone1: 440,
+            tone2: 622
+        }
+    },
+
+    // ===== PHASE 6: More Interval Examples (Steps 16-18) =====
+    {
+        text: "You can quickly jump between notes using the <strong>♭ (flat)</strong> and <strong>♯ (sharp)</strong> buttons. These move by semitones — the smallest steps in Western music.",
+        ui: {
+            rootDisplay: { visible: true, enabled: true },
+            intervalDisplay: { visible: true, enabled: false },
+            intervalArrows: { visible: false, enabled: false },
+            intervalChromatic: { visible: true, enabled: true, highlight: true },
+            vizSelection: { visible: true, enabled: false },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false }
+        },
+        viz: "wave",
+        audio: {
+            action: "set",
+            tone1: 440,
+            tone2: 440
+        }
+    },
+    {
+        text: "Try clicking ♯ a few times to move up the chromatic scale. Each semitone creates a different interval quality — from tense to smooth.",
+        ui: {
+            rootDisplay: { visible: true, enabled: true },
+            intervalDisplay: { visible: true, enabled: true },
+            intervalArrows: { visible: false, enabled: true },
+            intervalChromatic: { visible: true, enabled: true, highlight: true },
+            vizSelection: { visible: true, enabled: false },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false }
+        },
+        viz: "wave",
+        audio: {
+            action: "keep"
+        }
+    },
+    {
+        text: "Experiment with different intervals by adjusting the frequency. Listen and watch how the waves interact differently at each step.",
+        ui: {
+            rootDisplay: { visible: true, enabled: true },
+            intervalDisplay: { visible: true, enabled: true },
+            intervalArrows: { visible: false, enabled: true },
+            intervalChromatic: { visible: true, enabled: true },
+            vizSelection: { visible: true, enabled: false },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false }
+        },
+        viz: "wave",
+        audio: {
+            action: "keep"
+        }
+    },
+
+    // ===== PHASE 7: Interference Visualization Intro (Steps 19-21) =====
+    {
+        text: "We've been looking at waves from the side. Now let's see them from above — as if sound waves were ripples in water.",
+        ui: {
+            rootDisplay: { visible: true, enabled: true },
+            intervalDisplay: { visible: true, enabled: false },
+            intervalArrows: { visible: false, enabled: false },
+            intervalChromatic: { visible: true, enabled: false },
+            vizSelection: { visible: true, enabled: true, highlight: true },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false }
+        },
+        viz: "interference",
+        audio: {
+            action: "keep"
+        }
+    },
+    {
+        text: "This is the <strong>interference visualization</strong>. It shows how sound waves spread out in space and interact when they overlap. You can switch between views anytime.",
+        ui: {
+            rootDisplay: { visible: true, enabled: true, highlight: true },
+            intervalDisplay: { visible: true, enabled: false },
+            intervalArrows: { visible: false, enabled: false },
+            intervalChromatic: { visible: true, enabled: false },
+            vizSelection: { visible: true, enabled: true, highlight: true },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false }
+        },
+        viz: "interference",
+        audio: {
+            action: "play",
+            which: "tone1",
+            tone1: 440,
+            tone2: 440
+        }
+    },
+    {
+        text: "When only the root (440 Hz) plays, you see concentric circles radiating outward. This is the sound wave spreading through space.",
+        ui: {
+            rootDisplay: { visible: true, enabled: true },
+            intervalDisplay: { visible: true, enabled: false },
+            intervalArrows: { visible: false, enabled: false },
+            intervalChromatic: { visible: true, enabled: false },
+            vizSelection: { visible: true, enabled: true },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false }
+        },
+        viz: "interference",
+        audio: {
+            action: "keep"
+        }
+    },
+
+    // ===== PHASE 8: Interference with Intervals (Steps 22-24) =====
+    {
+        text: "Now let's play both tones at the <strong>same frequency</strong> (unison). When waves match perfectly, they create amplification — like one louder tone.",
+        ui: {
+            rootDisplay: { visible: true, enabled: true, highlight: true },
+            intervalDisplay: { visible: true, enabled: true, highlight: true },
+            intervalArrows: { visible: false, enabled: false },
+            intervalChromatic: { visible: true, enabled: false },
+            vizSelection: { visible: true, enabled: true },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false }
+        },
+        viz: "interference",
+        audio: {
+            action: "play",
+            which: "both",
+            tone1: 440,
+            tone2: 440
+        }
+    },
+    {
+        text: "Notice the perfect symmetry — the waves reinforce each other completely. This is why unison sounds like one unified tone.",
+        ui: {
+            rootDisplay: { visible: true, enabled: true },
+            intervalDisplay: { visible: true, enabled: false },
+            intervalArrows: { visible: false, enabled: false },
+            intervalChromatic: { visible: true, enabled: false },
+            vizSelection: { visible: true, enabled: true },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false }
+        },
+        viz: "interference",
+        audio: {
+            action: "keep"
+        }
+    },
+    {
+        text: "Now an <strong>octave</strong> (880 Hz). The interval waves cycle exactly twice as fast, creating stable, symmetric patterns. Very consonant!",
+        ui: {
+            rootDisplay: { visible: true, enabled: true },
+            intervalDisplay: { visible: true, enabled: false },
+            intervalArrows: { visible: false, enabled: false },
+            intervalChromatic: { visible: true, enabled: false },
+            vizSelection: { visible: true, enabled: true },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false }
+        },
+        viz: "interference",
+        audio: {
+            action: "play",
+            which: "both",
+            tone1: 440,
+            tone2: 880
+        }
+    },
+
+    // ===== PHASE 9: Consonance vs Dissonance Patterns (Steps 25-27) =====
+    {
+        text: "Compare this to a <strong>minor second</strong> (466 Hz) — a very dissonant interval. The waves are almost the same, creating slow, chaotic beating patterns.",
+        ui: {
+            rootDisplay: { visible: true, enabled: true },
+            intervalDisplay: { visible: true, enabled: false },
+            intervalArrows: { visible: false, enabled: false },
+            intervalChromatic: { visible: true, enabled: false },
+            vizSelection: { visible: true, enabled: true },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false }
+        },
+        viz: "interference",
+        audio: {
+            action: "play",
+            which: "both",
+            tone1: 440,
+            tone2: 466
+        }
+    },
+    {
+        text: "Consonant intervals create <strong>simple, stable patterns</strong>. Dissonant intervals create <strong>complex, turbulent patterns</strong>. Both are essential to music!",
+        ui: {
+            rootDisplay: { visible: true, enabled: true },
+            intervalDisplay: { visible: true, enabled: false },
+            intervalArrows: { visible: false, enabled: false },
+            intervalChromatic: { visible: true, enabled: false },
+            vizSelection: { visible: true, enabled: true },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false }
+        },
+        viz: "interference",
+        audio: {
+            action: "keep"
+        }
+    },
+    {
+        text: "Now it's your turn! All controls are enabled. Explore different intervals, switch between visualizations, and discover how frequencies create the music you hear. Have fun!",
+        ui: {
+            rootDisplay: { visible: true, enabled: true },
+            intervalDisplay: { visible: true, enabled: true },
+            intervalArrows: { visible: false, enabled: true },
+            intervalChromatic: { visible: true, enabled: true },
+            vizSelection: { visible: true, enabled: true },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false }
+        },
+        viz: "interference",
+        audio: {
+            action: "keep"
+        }
+    }
+];
+
+// Auto-generate step numbers based on array position
+const INTERVAL_OVERVIEW_TUTORIAL = INTERVAL_OVERVIEW_TUTORIAL_STEPS.map((step, index) => ({
+    ...step,
+    step: index + 1
+}));

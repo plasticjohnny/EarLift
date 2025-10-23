@@ -133,6 +133,11 @@ class FeelTheRootExercise {
             this.rootFrequency * this.intervalRatio :
             this.rootFrequency / this.intervalRatio;
 
+        // Update debug mode with target frequency (the interval the user should match)
+        if (window.debugMode) {
+            window.debugMode.setTargetFrequency(this.intervalFrequency);
+        }
+
         // Display direction indicator
         const direction = this.goingUp ? '↑' : '↓';
         this.currentNote.textContent = `♪ ${direction}`;
@@ -361,17 +366,33 @@ class FeelTheRootExercise {
 
     updateButtonStates() {
         // Update Root button
+        const rootBtnText = this.rootBtn.querySelector('.btn-text');
         if (this.rootPlaying) {
             this.rootBtn.classList.add('playing');
+            if (rootBtnText) {
+                rootBtnText.innerHTML = '⏸ Root';
+            }
         } else {
             this.rootBtn.classList.remove('playing');
+            if (rootBtnText) {
+                rootBtnText.innerHTML = '▶ Root';
+            }
         }
 
         // Update Interval button
+        const intervalBtnText = this.intervalBtn.querySelector('.btn-text');
         if (this.intervalPlaying) {
             this.intervalBtn.classList.add('playing');
+            if (intervalBtnText) {
+                const intervalName = intervalBtnText.textContent.replace('▶ ', '').replace('⏸ ', '');
+                intervalBtnText.innerHTML = `⏸ ${intervalName}`;
+            }
         } else {
             this.intervalBtn.classList.remove('playing');
+            if (intervalBtnText) {
+                const intervalName = intervalBtnText.textContent.replace('▶ ', '').replace('⏸ ', '');
+                intervalBtnText.innerHTML = `▶ ${intervalName}`;
+            }
         }
 
         // Both button doesn't change state

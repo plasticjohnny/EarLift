@@ -1,10 +1,10 @@
-# Interval Visualization Integration Guide
+# Interference Visualization Integration Guide
 
-This guide explains how to integrate the Interval Visualization components into other exercises in the ToneDeath ear training app.
+This guide explains how to integrate the Interference Visualization components into other exercises in the ToneDeath ear training app.
 
 ## Overview
 
-The Interval Visualization has been refactored into 4 reusable modules that can be integrated into any exercise:
+The Interference Visualization has been refactored into 4 reusable modules that can be integrated into any exercise:
 
 1. **ConsonanceColorSystem** - Color calculation based on frequency relationships
 2. **SpeakerOverlayRenderer** - 2D canvas overlay for speaker icons

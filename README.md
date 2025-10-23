@@ -8,7 +8,7 @@ An ear training app that provides teaching and tools to effectively train your e
 
 ## Features
 
-- 🎯 **Interval Recognition** - Train your ear to identify musical intervals
+- 🎯 **Interference Visualization** - See harmonic patterns and interval color dynamics
 - 🎵 **Intonation Practice** - Match pitches accurately with real-time feedback
 - 📱 **Installable PWA** - Works on mobile and desktop
 - 🔌 **Offline Support** - Practice anywhere, anytime

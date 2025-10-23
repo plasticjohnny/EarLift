@@ -1,19 +1,19 @@
 #!/bin/bash
-# Quick deploy using lftp without password in URL
+# Quick helper that delegates to the universal deploy script.
+# Forces a full upload so every tracked asset (JS, CSS, lib, images, sounds, etc.)
+# goes out using the patterns in .deploy.json.
 
-USER="john@tonedeath.app"
-PASS="69cowsrcool!"
-HOST="chi201.greengeeks.net"
-DIR="."
+set -euo pipefail
 
-lftp -c "
-set ftp:ssl-allow no
-open -u $USER,$PASS $HOST
-cd $DIR || mkdir -p $DIR; cd $DIR
-mput index.html manifest.json service-worker.js styles.css
-mput app.js pitchDetector.js toneGenerator.js settings.js setup.js intonationExercise.js
-mput icon-192.png icon-512.png
-bye
-"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DEPLOY_SCRIPT="$HOME/.local/bin/deploy.sh"
 
-echo "Deploy complete!"
+if [[ ! -x "$DEPLOY_SCRIPT" ]]; then
+    echo "Missing deploy script at $DEPLOY_SCRIPT"
+    exit 1
+fi
+
+(
+    cd "$PROJECT_ROOT"
+    exec "$DEPLOY_SCRIPT" --project "$(basename "$PROJECT_ROOT")" -a "$@"
+)

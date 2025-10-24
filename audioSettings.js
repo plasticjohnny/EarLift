@@ -38,6 +38,7 @@ class AudioSettings {
             document.getElementById('audioSettingsBtnMajorSixthFeelRoot'),
             document.getElementById('audioSettingsBtnMajorSeventhFeelRoot'),
             document.getElementById('audioSettingsBtnIntervalOverview'),
+            document.getElementById('audioSettingsBtnUnisonOverview'),
             document.getElementById('audioSettingsBtnGeneralIntervalOverview')
         ];
 

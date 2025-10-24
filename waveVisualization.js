@@ -634,10 +634,9 @@ class WaveVisualizationExercise {
             ctx.stroke();
             ctx.restore();
         } else {
-            // Single panel - use same layout as two-panel mode (left side)
-            const panelGap = gutter;
-            const availableWidth = width - gutter * 2 - panelGap;
-            const panelWidth = availableWidth / 2;
+            // Single panel - use full width
+            const availableWidth = width - gutter * 2;
+            const panelWidth = availableWidth;
             const panelHeight = height - gutter * 2;
             const leftX = gutter;
 

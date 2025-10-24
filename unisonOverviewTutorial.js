@@ -24,8 +24,7 @@ const UNISON_OVERVIEW_TUTORIAL_STEPS = [
         },
         viz: "interference",
         audio: {
-            action: "play",
-            which: "tone1",
+            action: "set",
             tone1: 440,
             tone2: 440
         },

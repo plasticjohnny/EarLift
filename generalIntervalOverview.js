@@ -355,11 +355,13 @@ class GeneralIntervalOverview {
 
     updateVisualizations() {
         if (this.interferenceViz && typeof this.interferenceViz.setFrequencies === 'function') {
-            this.interferenceViz.setFrequencies(this.tone1Freq, this.tone2Freq);
+            // Pass updateAudio: false to prevent audio playback from visualization
+            this.interferenceViz.setFrequencies(this.tone1Freq, this.tone2Freq, { updateAudio: false });
         }
 
         if (this.waveViz && typeof this.waveViz.setFrequencies === 'function') {
-            this.waveViz.setFrequencies(this.tone1Freq, this.tone2Freq);
+            // Pass updateAudio: false to prevent audio playback from visualization
+            this.waveViz.setFrequencies(this.tone1Freq, this.tone2Freq, { updateAudio: false });
         }
 
         if (this.isPlaying && this.audioController) {

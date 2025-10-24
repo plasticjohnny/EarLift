@@ -33,7 +33,7 @@ const INTERVAL_OVERVIEW_TUTORIAL_STEPS = [
             advancedControls: { visible: false },
             controlsDivider: { visible: false }
         },
-        viz: "wave",
+        viz: "none",
         audio: {
             action: "set",
             tone1: 440,
@@ -43,9 +43,9 @@ const INTERVAL_OVERVIEW_TUTORIAL_STEPS = [
         dynamicText: true
     },
 
-    // ===== PHASE 2: Visualizing Waves (Steps 2-4) =====
+    // ===== PHASE 2: Visualizing Waves (Step 2) =====
     {
-        text: "Frequency is measured in <strong>Hertz (Hz)</strong>. This tone is <strong>440 Hz</strong>, vibrating 440 times per second. Higher Hz = higher pitch. Lower Hz = lower pitch.",
+        text: "Frequency is measured in <strong>Hertz (Hz)</strong>. This tone is <strong>440 Hz</strong>, vibrating 440 times per second. Try clicking <button class='tutorial-inline-btn' data-tutorial-action='play-random'>Play Random Tone</button> a few times — notice how <strong>higher frequencies</strong> create tightly packed waves, while <strong>lower frequencies</strong> create spread out waves.",
         ui: {
             simplifiedControls: { visible: false },
             rootDisplay: { visible: true, enabled: true },
@@ -61,28 +61,11 @@ const INTERVAL_OVERVIEW_TUTORIAL_STEPS = [
             action: "set",
             tone1: 440,
             tone2: 440
-        }
-    },
-    {
-        text: "Try clicking <button class='tutorial-inline-btn' data-tutorial-action='play-random'>Play Random Tone</button> a few times and watch how the wave pattern changes with different frequencies. Notice: <strong>higher frequencies</strong> create faster, more tightly packed waves, while <strong>lower frequencies</strong> create slower, more spread out waves.",
-        ui: {
-            simplifiedControls: { visible: false },
-            rootDisplay: { visible: true, enabled: true },
-            intervalDisplay: { visible: false },
-            intervalArrows: { visible: false },
-            intervalChromatic: { visible: false },
-            vizSelection: { visible: true, enabled: false },
-            advancedControls: { visible: false },
-            controlsDivider: { visible: false }
-        },
-        viz: "wave",
-        audio: {
-            action: "keep"
         },
         dynamicText: true
     },
 
-    // ===== PHASE 3: Exploring Frequency Range (Steps 6-8) =====
+    // ===== PHASE 3: Exploring Intervals (Step 3) =====
     {
         text: "When we play two notes together, the distance between them is called an <strong>interval</strong>. Let's play a second tone at 440 Hz — the same as the first! <button class='tutorial-inline-btn' data-tutorial-action='play-second-tone'>Play Second Tone</button><div data-tutorial-reveal='same-freq-shown' style='display:none; margin-top: 12px; visibility: hidden;'>Notice how both waves move at the same speed? That's because they're both at 440 Hz — the same frequency!</div>",
         ui: {
@@ -103,51 +86,10 @@ const INTERVAL_OVERVIEW_TUTORIAL_STEPS = [
         },
         waitForAction: "play-second-tone-inline"
     },
-    {
-        text: "Now let's try different frequencies! Try clicking <button class='tutorial-inline-btn' data-tutorial-action='play-random-tone2'>Play Random Tone <span data-tutorial-counter='random-count-2'>(3)</span></button> a few times. Notice when two notes are playing, you see two different waves moving at different speeds.",
-        ui: {
-            simplifiedControls: { visible: false },
-            rootDisplay: { visible: true, enabled: true },
-            intervalDisplay: { visible: true, enabled: true },
-            intervalArrows: { visible: false },
-            intervalChromatic: { visible: false },
-            vizSelection: { visible: true, enabled: false },
-            advancedControls: { visible: false },
-            controlsDivider: { visible: false }
-        },
-        viz: "wave",
-        audio: {
-            action: "keep"
-        },
-        dynamicText: true,
-        waitForAction: "play-random-tone2-3x"
-    },
 
-    // ===== PHASE 4: Introducing Intervals (Steps 7-11) =====
+    // ===== PHASE 4: Consonance & Dissonance (Steps 4-7) =====
     {
-        text: "Now let's demonstrate with different random notes. Try clicking <button class='tutorial-inline-btn' data-tutorial-action='play-random-tone2'>Play Random Tone <span data-tutorial-counter='random-count-3'>(3)</span></button> to hear how different intervals create different wave patterns.<div data-tutorial-reveal='wave-intersection-shown' style='display:none; margin-top: 12px; visibility: hidden;'>Notice the lighter areas where the waves intersect — that's where they're amplifying each other!</div>",
-        ui: {
-            simplifiedControls: { visible: false },
-            rootDisplay: { visible: true, enabled: true },
-            intervalDisplay: { visible: true, enabled: true },
-            intervalArrows: { visible: false },
-            intervalChromatic: { visible: false },
-            vizSelection: { visible: true, enabled: true },
-            advancedControls: { visible: false },
-            controlsDivider: { visible: false }
-        },
-        viz: "wave",
-        waveMode: "overlay",
-        audio: {
-            action: "keep"
-        },
-        dynamicText: true,
-        waitForAction: "play-random-tone2-step8-3x"
-    },
-
-    // ===== PHASE 5: Consonance & Dissonance (Steps 8-11) =====
-    {
-        text: "Now let's hear <strong>dissonance</strong>. I'll change to a <strong>minor seventh</strong> — a tense, unstable interval. Notice the complex interaction between the waves.",
+        text: "Different intervals create different feelings. This interval is a <strong>major third</strong> — bright, warm, and happy. Listen to how the waves align, creating <strong>consonance</strong> — a pleasant, stable sound.",
         ui: {
             simplifiedControls: { visible: false },
             rootDisplay: { visible: true, enabled: true },
@@ -161,10 +103,9 @@ const INTERVAL_OVERVIEW_TUTORIAL_STEPS = [
         viz: "wave",
         waveMode: "overlay",
         audio: {
-            action: "play",
-            which: "both",
+            action: "set",
             tone1: 440,
-            tone2: 830
+            tone2: 554.37
         }
     },
     {
@@ -182,8 +123,7 @@ const INTERVAL_OVERVIEW_TUTORIAL_STEPS = [
         viz: "wave",
         waveMode: "overlay",
         audio: {
-            action: "play",
-            which: "both",
+            action: "set",
             tone1: 440,
             tone2: 660
         }
@@ -203,8 +143,7 @@ const INTERVAL_OVERVIEW_TUTORIAL_STEPS = [
         viz: "wave",
         waveMode: "overlay",
         audio: {
-            action: "play",
-            which: "both",
+            action: "set",
             tone1: 440,
             tone2: 622
         }

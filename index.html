@@ -3370,24 +3370,24 @@
         <main>
             <section class="card">
                 <!-- Tutorial Instructions -->
-                <div style="margin-bottom: 15px; padding: 20px; background: rgba(0,255,136,0.1); border-radius: 8px;">
+                <div style="margin-bottom: 0; padding: 20px; background: rgba(0,255,136,0.1); border-radius: 8px;">
                     <div data-tutorial="text" style="color: rgba(255,255,255,0.9); line-height: 1.6; font-size: 1.1rem;">
                         Loading tutorial...
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; gap: 15px;">
-                        <button data-tutorial="prev" class="btn-control" style="min-width: 120px; padding: 10px 20px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);">← Previous</button>
+                        <button data-tutorial="prev" class="btn-control tutorial-nav-btn tutorial-prev-btn" style="min-width: 120px; padding: 12px 24px; background: linear-gradient(135deg, rgba(100,100,120,0.3), rgba(80,80,100,0.3)); border: 2px solid rgba(255,255,255,0.4); box-shadow: 0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2); border-radius: 6px; font-weight: 600; letter-spacing: 0.5px; transition: all 0.15s ease;">← Previous</button>
                         <span data-tutorial="progress" style="color: rgba(255,255,255,0.8); font-weight: 500; font-size: 0.95rem;">1 / 15</span>
-                        <button data-tutorial="next" class="btn-control" style="min-width: 120px; padding: 10px 20px; background: rgba(0,255,136,0.2); border: 1px solid rgba(0,255,136,0.4);">Next →</button>
+                        <button data-tutorial="next" class="btn-control tutorial-nav-btn tutorial-next-btn" style="min-width: 120px; padding: 12px 24px; background: linear-gradient(135deg, rgba(0,255,136,0.4), rgba(0,200,100,0.4)); border: 2px solid rgba(0,255,136,0.6); box-shadow: 0 4px 12px rgba(0,255,136,0.3), inset 0 1px 0 rgba(255,255,255,0.2); border-radius: 6px; font-weight: 600; letter-spacing: 0.5px; transition: all 0.15s ease;">Next →</button>
                     </div>
                 </div>
 
-                <!-- Visualizations (directly below text, no gap) -->
-                <div data-claude-panel="interference" style="margin-bottom: 15px; display: none; position: relative;">
+                <!-- Visualizations (tucked under text box) -->
+                <div data-claude-panel="interference" style="margin-top: -10px; margin-bottom: 15px; display: none; position: relative;">
                     <canvas data-claude="interference-canvas" style="width: 100%; max-width: 100%; height: 350px; display: block; background: #000; border-radius: 4px;"></canvas>
                     <div data-claude="interference-hz-labels" style="margin-top: 8px; text-align: center; color: rgba(255,255,255,0.6); font-size: 0.9rem;"></div>
                 </div>
 
-                <div data-claude-panel="wave" style="margin-bottom: 15px; display: none;">
+                <div data-claude-panel="wave" style="margin-top: -10px; margin-bottom: 15px; display: none;">
                     <canvas data-claude="wave-canvas" style="width: 100%; max-width: 100%; height: 350px; display: block; background: #000; border-radius: 4px;"></canvas>
                     <div data-claude="wave-settings-panel" style="margin-top: 10px; text-align: center; display: none;">
                         <label style="color: rgba(255,255,255,0.9); margin-right: 15px; cursor: pointer;">
@@ -3471,6 +3471,127 @@
                             <label style="color: rgba(255,255,255,0.8); display: block; margin-bottom: 5px; font-size: 0.85rem;">Tone 2 (Hz)</label>
                             <input type="range" data-claude="tone2-slider" min="220" max="880" value="660" style="width: 100%;">
                             <input type="number" data-claude="tone2-input" min="220" max="880" value="660" class="btn-control" style="width: 100%; margin-top: 5px; padding: 6px;">
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Unison Overview Exercise (Tutorial: Pitch, Frequency, Unison) -->
+    <div id="unisonOverviewExercise" class="container exercise-container" style="display: none;">
+        <header>
+            <button data-unison="exit" class="back-btn" aria-label="Back">← Back</button>
+            <div class="header-center">
+                <h1>ToneDeath</h1>
+                <p class="subtitle">Unison Overview</p>
+            </div>
+            <button id="audioSettingsBtnUnisonOverview" class="settings-btn" aria-label="Audio Settings">⚙️</button>
+        </header>
+        <main>
+            <section class="card">
+                <!-- Tutorial Instructions -->
+                <div style="margin-bottom: 0; padding: 20px; background: rgba(0,255,136,0.1); border-radius: 8px;">
+                    <div data-tutorial="text" style="color: rgba(255,255,255,0.9); line-height: 1.6; font-size: 1.1rem;">
+                        Loading tutorial...
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; gap: 15px;">
+                        <button data-tutorial="prev" class="btn-control tutorial-nav-btn tutorial-prev-btn" style="min-width: 120px; padding: 12px 24px; background: linear-gradient(135deg, rgba(100,100,120,0.3), rgba(80,80,100,0.3)); border: 2px solid rgba(255,255,255,0.4); box-shadow: 0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2); border-radius: 6px; font-weight: 600; letter-spacing: 0.5px; transition: all 0.15s ease;">← Previous</button>
+                        <span data-tutorial="progress" style="color: rgba(255,255,255,0.8); font-weight: 500; font-size: 0.95rem;">1 / 15</span>
+                        <button data-tutorial="next" class="btn-control tutorial-nav-btn tutorial-next-btn" style="min-width: 120px; padding: 12px 24px; background: linear-gradient(135deg, rgba(0,255,136,0.4), rgba(0,200,100,0.4)); border: 2px solid rgba(0,255,136,0.6); box-shadow: 0 4px 12px rgba(0,255,136,0.3), inset 0 1px 0 rgba(255,255,255,0.2); border-radius: 6px; font-weight: 600; letter-spacing: 0.5px; transition: all 0.15s ease;">Next →</button>
+                    </div>
+                </div>
+
+                <!-- Visualizations (tucked under text box) -->
+                <div data-unison-panel="interference" style="margin-top: -10px; margin-bottom: 15px; display: none; position: relative;">
+                    <canvas data-unison="interference-canvas" style="width: 100%; max-width: 100%; height: 350px; display: block; background: #000; border-radius: 4px;"></canvas>
+                    <div data-unison="interference-hz-labels" style="margin-top: 8px; text-align: center; color: rgba(255,255,255,0.6); font-size: 0.9rem;"></div>
+                </div>
+
+                <div data-unison-panel="wave" style="margin-top: -10px; margin-bottom: 15px; display: none;">
+                    <canvas data-unison="wave-canvas" style="width: 100%; max-width: 100%; height: 350px; display: block; background: #000; border-radius: 4px;"></canvas>
+                    <div data-unison="wave-settings-panel" style="margin-top: 10px; text-align: center; display: none;">
+                        <label style="color: rgba(255,255,255,0.9); margin-right: 15px; cursor: pointer;">
+                            <input type="radio" name="unisonWaveMode" data-unison="wave-mode" value="sideBySide" checked>
+                            Side-by-Side
+                        </label>
+                        <label style="color: rgba(255,255,255,0.9); cursor: pointer;">
+                            <input type="radio" name="unisonWaveMode" data-unison="wave-mode" value="overlay">
+                            Overlay
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Visualization Selection (hidden - tutorial controls viz directly) -->
+                <div data-tutorial-target="vizSelection" style="display: none;">
+                    <label style="color: rgba(255,255,255,0.9); margin-right: 20px; cursor: pointer;">
+                        <input type="radio" name="unisonVizSelect" data-viz-select="none" value="none">
+                        None
+                    </label>
+                    <label style="color: rgba(255,255,255,0.9); margin-right: 20px; cursor: pointer;">
+                        <input type="radio" name="unisonVizSelect" data-viz-select="wave" value="wave" checked>
+                        Wave
+                    </label>
+                    <label style="color: rgba(255,255,255,0.9); cursor: pointer;">
+                        <input type="radio" name="unisonVizSelect" data-viz-select="interference" value="interference">
+                        Interference
+                    </label>
+                </div>
+
+                <!-- Simplified Controls (tutorial-controlled) -->
+                <div data-tutorial-target="simplifiedControls" class="tutorial-hidden" style="margin-bottom: 15px; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                        <div style="text-align: center;">
+                            <div style="color: rgba(255,255,255,0.6); margin-bottom: 10px; text-transform: uppercase; font-size: 0.9rem;">Root</div>
+                            <button data-simple="play-root" class="btn-control" style="font-size: 1.5rem; padding: 15px 30px; width: 100%;">440 Hz</button>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="color: rgba(255,255,255,0.6); margin-bottom: 10px; text-transform: uppercase; font-size: 0.9rem;">Root Note</div>
+                            <div style="display: flex; gap: 6px; justify-content: center; margin-bottom: 10px;">
+                                <button data-simple="interval-down" class="btn-control" style="padding: 8px 12px;">↓</button>
+                                <button data-simple="interval-flat" class="btn-control" style="padding: 8px 12px;">♭</button>
+                                <button data-simple="interval-value" class="btn-control" style="font-size: 1.2rem; padding: 8px 16px; min-width: 100px;">440 Hz</button>
+                                <button data-simple="interval-sharp" class="btn-control" style="padding: 8px 12px;">♯</button>
+                                <button data-simple="interval-up" class="btn-control" style="padding: 8px 12px;">↑</button>
+                            </div>
+                            <button data-simple="play-interval" class="btn-control" style="width: 100%;">Play Root Note</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advanced Controls (tutorial-controlled) -->
+                <div data-tutorial-target="advancedControls" class="tutorial-hidden" style="margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                        <button data-unison="play-both" class="btn-control">Play Both</button>
+                        <button data-unison="randomize" class="btn-control">Randomize</button>
+                        <button data-unison="toggle-interference" class="btn-control">Interference</button>
+                        <button data-unison="toggle-wave" class="btn-control">Wave</button>
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 15px;">
+                        <button class="btn-control" data-unison-solfege="unison">Unison</button>
+                        <button class="btn-control" data-unison-solfege="minor-second">m2</button>
+                        <button class="btn-control" data-unison-solfege="major-second">M2</button>
+                        <button class="btn-control" data-unison-solfege="minor-third">m3</button>
+                        <button class="btn-control" data-unison-solfege="major-third">M3</button>
+                        <button class="btn-control" data-unison-solfege="fourth">P4</button>
+                        <button class="btn-control" data-unison-solfege="tritone">TT</button>
+                        <button class="btn-control" data-unison-solfege="fifth">P5</button>
+                        <button class="btn-control" data-unison-solfege="minor-sixth">m6</button>
+                        <button class="btn-control" data-unison-solfege="major-sixth">M6</button>
+                        <button class="btn-control" data-unison-solfege="minor-seventh">m7</button>
+                        <button class="btn-control" data-unison-solfege="major-seventh">M7</button>
+                        <button class="btn-control" data-unison-solfege="octave">8ve</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <label style="color: rgba(255,255,255,0.8); display: block; margin-bottom: 5px; font-size: 0.85rem;">Tone 1 (Hz)</label>
+                            <input type="range" data-unison="tone1-slider" min="220" max="880" value="440" style="width: 100%;">
+                            <input type="number" data-unison="tone1-input" min="220" max="880" value="440" class="btn-control" style="width: 100%; margin-top: 5px; padding: 6px;">
+                        </div>
+                        <div>
+                            <label style="color: rgba(255,255,255,0.8); display: block; margin-bottom: 5px; font-size: 0.85rem;">Tone 2 (Hz)</label>
+                            <input type="range" data-unison="tone2-slider" min="220" max="880" value="440" style="width: 100%;">
+                            <input type="number" data-unison="tone2-input" min="220" max="880" value="440" class="btn-control" style="width: 100%; margin-top: 5px; padding: 6px;">
                         </div>
                     </div>
                 </div>
@@ -3680,43 +3801,52 @@
             // Add click sound to all buttons
             document.addEventListener('click', (e) => {
                 const button = e.target.closest('button');
+                console.log('[Global Click Handler] Received click event, button:', button?.textContent || 'none');
                 if (button && !button.disabled) {
-                    // Check if we're in the interval overview
-                    const overviewExercise = document.getElementById('intervalOverviewExercise');
-                    if (overviewExercise && overviewExercise.style.display !== 'none') {
-                        const intervalOverviewInstance = window.intervalOverviewInstance;
-                        if (intervalOverviewInstance && intervalOverviewInstance.audioController) {
-                            // Comprehensive check: never play button sound if ANY tone is playing
-                            const checkAndPlay = () => {
-                                // Check immediately
-                                const stateNow = intervalOverviewInstance.audioController.getState();
-                                if (stateNow.isPlayingTone1 || stateNow.isPlayingTone2) {
-                                    return; // Tones playing, no sound
-                                }
+                    // Skip sound for buttons with no-sound class
+                    if (button.classList.contains('no-sound')) {
+                        // Add visual flash effect
+                        button.style.transition = 'filter 0.08s ease, transform 0.08s ease';
+                        button.style.filter = 'brightness(2.0)';
+                        button.style.transform = 'scale(1.05)';
+                        setTimeout(() => {
+                            button.style.filter = 'brightness(1)';
+                            button.style.transform = 'scale(1)';
+                        }, 80);
+                        return;
+                    }
 
-                                // Check after 50ms (for buttons that start tones)
-                                setTimeout(() => {
-                                    const state1 = intervalOverviewInstance.audioController.getState();
-                                    if (state1.isPlayingTone1 || state1.isPlayingTone2) {
-                                        return; // Tones started playing, no sound
-                                    }
+                    // Check if we're in the interval overview or unison overview
+                    const intervalOverviewExercise = document.getElementById('intervalOverviewExercise');
+                    const unisonOverviewExercise = document.getElementById('unisonOverviewExercise');
 
-                                    // Check after 100ms (final check)
-                                    setTimeout(() => {
-                                        const state2 = intervalOverviewInstance.audioController.getState();
-                                        if (state2.isPlayingTone1 || state2.isPlayingTone2) {
-                                            return; // Tones still/now playing, no sound
-                                        }
+                    // Handle Interval Overview (Pitch Overview) - suppress all sounds
+                    if (intervalOverviewExercise && intervalOverviewExercise.style.display !== 'none') {
+                        console.log('[Button Click] In Pitch Overview - suppressing sound for button:', button.textContent);
+                        // Add visual flash effect
+                        button.style.transition = 'filter 0.08s ease, transform 0.08s ease';
+                        button.style.filter = 'brightness(2.0)';
+                        button.style.transform = 'scale(1.05)';
+                        setTimeout(() => {
+                            button.style.filter = 'brightness(1)';
+                            button.style.transform = 'scale(1)';
+                        }, 80);
+                        return;
+                    }
 
-                                        // All checks passed - no tones playing at any point
-                                        buttonClickGenerator.playButtonClick();
-                                    }, 50);
-                                }, 50);
-                            };
+                    console.log('[Button Click] NOT in Pitch Overview, display:', intervalOverviewExercise?.style.display);
 
-                            checkAndPlay();
-                            return;
-                        }
+                    // Handle Unison Overview - suppress all sounds
+                    if (unisonOverviewExercise && unisonOverviewExercise.style.display !== 'none') {
+                        // Add visual flash effect
+                        button.style.transition = 'filter 0.08s ease, transform 0.08s ease';
+                        button.style.filter = 'brightness(2.0)';
+                        button.style.transform = 'scale(1.05)';
+                        setTimeout(() => {
+                            button.style.filter = 'brightness(1)';
+                            button.style.transform = 'scale(1)';
+                        }, 80);
+                        return;
                     }
 
                     buttonClickGenerator.playButtonClick();

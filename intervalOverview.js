@@ -344,11 +344,13 @@ class IntervalOverview {
 
     updateVisualizations() {
         if (this.interferenceViz && typeof this.interferenceViz.setFrequencies === 'function') {
-            this.interferenceViz.setFrequencies(this.tone1Freq, this.tone2Freq);
+            // Pass updateAudio: false to prevent audio playback from visualization
+            this.interferenceViz.setFrequencies(this.tone1Freq, this.tone2Freq, { updateAudio: false });
         }
 
         if (this.waveViz && typeof this.waveViz.setFrequencies === 'function') {
-            this.waveViz.setFrequencies(this.tone1Freq, this.tone2Freq);
+            // Pass updateAudio: false to prevent audio playback from visualization
+            this.waveViz.setFrequencies(this.tone1Freq, this.tone2Freq, { updateAudio: false });
         }
 
         if (this.isPlaying && this.audioController) {
@@ -671,6 +673,18 @@ class IntervalOverview {
             if (prevBtn) {
                 prevBtn.addEventListener('click', (e) => {
                     e.preventDefault();
+                    e.stopPropagation(); // Stop event from bubbling to global click handler
+                    e.stopImmediatePropagation(); // Stop other handlers on same element
+
+                    // Add visual flash effect
+                    prevBtn.style.transition = 'filter 0.08s ease, transform 0.08s ease';
+                    prevBtn.style.filter = 'brightness(2.0)';
+                    prevBtn.style.transform = 'scale(1.05)';
+                    setTimeout(() => {
+                        prevBtn.style.filter = 'brightness(1)';
+                        prevBtn.style.transform = 'scale(1)';
+                    }, 80);
+
                     prevBtn.blur();
                     this.tutorialController.prev();
                 });
@@ -679,6 +693,18 @@ class IntervalOverview {
             if (nextBtn) {
                 nextBtn.addEventListener('click', (e) => {
                     e.preventDefault();
+                    e.stopPropagation(); // Stop event from bubbling to global click handler
+                    e.stopImmediatePropagation(); // Stop other handlers on same element
+
+                    // Add visual flash effect
+                    nextBtn.style.transition = 'filter 0.08s ease, transform 0.08s ease';
+                    nextBtn.style.filter = 'brightness(2.0)';
+                    nextBtn.style.transform = 'scale(1.05)';
+                    setTimeout(() => {
+                        nextBtn.style.filter = 'brightness(1)';
+                        nextBtn.style.transform = 'scale(1)';
+                    }, 80);
+
                     nextBtn.blur();
                     this.tutorialController.next();
                 });

@@ -5685,3 +5685,37 @@ footer {
         font-size: 14px;
     }
 }
+
+/* Tutorial Navigation Button Styles */
+.tutorial-nav-btn:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+    background: linear-gradient(135deg, rgba(40,40,50,0.3), rgba(30,30,40,0.3)) !important;
+    border-color: rgba(100,100,100,0.4) !important;
+    box-shadow: none !important;
+    color: rgba(150,150,150,0.6) !important;
+}
+
+.tutorial-nav-btn:disabled:hover {
+    transform: none;
+}
+
+.tutorial-nav-btn:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3);
+}
+
+.tutorial-nav-btn:not(:disabled):active {
+    transform: translateY(0);
+}
+
+.tutorial-prev-btn:not(:disabled):hover {
+    background: linear-gradient(135deg, rgba(120,120,140,0.4), rgba(100,100,120,0.4));
+    border-color: rgba(255,255,255,0.6);
+}
+
+.tutorial-next-btn:not(:disabled):hover {
+    background: linear-gradient(135deg, rgba(0,255,136,0.5), rgba(0,220,120,0.5));
+    border-color: rgba(0,255,136,0.8);
+    box-shadow: 0 6px 16px rgba(0,255,136,0.4), inset 0 1px 0 rgba(255,255,255,0.3);
+}

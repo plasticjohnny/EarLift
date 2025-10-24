@@ -708,6 +708,9 @@ class TutorialController {
 
         this.updateNoSoundMode();
 
+        // Show wave visualization
+        this.applyVizState('wave');
+
         // Reveal the waveform explanation text
         this.revealText('tone-played');
 
@@ -1139,15 +1142,18 @@ class TutorialController {
         if (!audioState || !this.exercise.audioController) return;
 
         const action = audioState.action;
+        console.log('[Tutorial] applyAudioState called, action:', action, 'audioState:', audioState);
 
         switch (action) {
             case 'stop':
+                console.log('[Tutorial] Stopping audio');
                 this.exercise.audioController.stopBoth();
                 this.exercise.isPlaying = false;
                 this.exercise.updatePlayButtonState();
                 break;
 
             case 'set':
+                console.log('[Tutorial] Setting frequencies without playing');
                 if (audioState.tone1 !== undefined) {
                     this.exercise.tone1Freq = audioState.tone1;
                 }
@@ -1159,6 +1165,7 @@ class TutorialController {
                 break;
 
             case 'play':
+                console.log('[Tutorial] PLAYING audio - tone1:', audioState.tone1, 'tone2:', audioState.tone2, 'which:', audioState.which);
                 if (audioState.tone1 !== undefined) {
                     this.exercise.tone1Freq = audioState.tone1;
                 }

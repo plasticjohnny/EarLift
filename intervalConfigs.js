@@ -19,6 +19,23 @@
  */
 
 const INTERVAL_CONFIGS = Object.freeze({
+    // Unison (Perfect Consonance)
+    unison: {
+        intervalType: 'unison',
+        semitones: 0,
+        intervalName: 'Unison',
+        frequencyRatio: '1:1',
+        rootFreq: 440,
+        intervalFreq: 440,
+        description: 'the same exact note',
+        character: 'perfectly matched',
+        consonance: 'perfect',
+        tutorialEmphasis: 'Unison means singing the exact same note. It\'s the foundation of all pitch matching.',
+        waveEmphasis: 'Unison shows <strong>identical waves</strong> perfectly aligned.',
+        interferenceEmphasis: 'Unison creates <strong>perfect reinforcement</strong> with no interference pattern.',
+        comparisonIntervals: []
+    },
+
     // Perfect Consonances
     octave: {
         intervalType: 'octave',

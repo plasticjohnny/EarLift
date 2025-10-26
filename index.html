@@ -281,6 +281,12 @@
                             <h3>Unison Darts</h3>
                             <p>Match the root note - hit the bullseye</p>
                         </button>
+
+                        <button class="exercise-card" data-exercise="unisonSystemExercise">
+                            <div class="exercise-icon">📚</div>
+                            <h3>Unison System</h3>
+                            <p>Guided singing exercises for unison practice</p>
+                        </button>
                     </div>
                 </div>
 
@@ -314,6 +320,12 @@
                             <div class="exercise-icon">🎯</div>
                             <h3>Octave Darts</h3>
                             <p>Sing an octave above - hit the bullseye</p>
+                        </button>
+
+                        <button class="exercise-card" data-exercise="octaveSystemExercise">
+                            <div class="exercise-icon">📚</div>
+                            <h3>Octave System</h3>
+                            <p>Guided singing exercises for octave mastery</p>
                         </button>
                     </div>
                 </div>
@@ -349,6 +361,12 @@
                             <h3>Whole-Step Darts</h3>
                             <p>Sing a whole-step above - hit the bullseye</p>
                         </button>
+
+                        <button class="exercise-card" data-exercise="majorSecondSystemExercise">
+                            <div class="exercise-icon">📚</div>
+                            <h3>Major Second System</h3>
+                            <p>Guided singing exercises for major second mastery</p>
+                        </button>
                     </div>
                 </div>
 
@@ -382,6 +400,12 @@
                             <div class="exercise-icon">🎯</div>
                             <h3>Half-Step Darts</h3>
                             <p>Sing a half-step above - hit the bullseye</p>
+                        </button>
+
+                        <button class="exercise-card" data-exercise="minorSecondSystemExercise">
+                            <div class="exercise-icon">📚</div>
+                            <h3>Minor Second System</h3>
+                            <p>Guided singing exercises for minor second mastery</p>
                         </button>
                     </div>
                 </div>
@@ -417,6 +441,12 @@
                             <h3>Major Third Darts</h3>
                             <p>Sing a major third above - hit the bullseye</p>
                         </button>
+
+                        <button class="exercise-card" data-exercise="majorThirdSystemExercise">
+                            <div class="exercise-icon">📚</div>
+                            <h3>Major Third System</h3>
+                            <p>Guided singing exercises for major third mastery</p>
+                        </button>
                     </div>
                 </div>
 
@@ -450,6 +480,12 @@
                             <div class="exercise-icon">🎯</div>
                             <h3>Perfect Fourth Darts</h3>
                             <p>Sing a perfect fourth above - hit the bullseye</p>
+                        </button>
+
+                        <button class="exercise-card" data-exercise="fourthSystemExercise">
+                            <div class="exercise-icon">📚</div>
+                            <h3>Perfect Fourth System</h3>
+                            <p>Guided singing exercises for perfect fourth mastery</p>
                         </button>
                     </div>
                 </div>
@@ -485,6 +521,12 @@
                             <h3>Perfect Fifth Darts</h3>
                             <p>Sing a perfect fifth above - hit the bullseye</p>
                         </button>
+
+                        <button class="exercise-card" data-exercise="fifthSystemExercise">
+                            <div class="exercise-icon">📚</div>
+                            <h3>Perfect Fifth System</h3>
+                            <p>Guided singing exercises for perfect fifth mastery</p>
+                        </button>
                     </div>
                 </div>
 
@@ -519,6 +561,12 @@
                             <h3>Major Sixth Darts</h3>
                             <p>Sing a major sixth above - hit the bullseye</p>
                         </button>
+
+                        <button class="exercise-card" data-exercise="majorSixthSystemExercise">
+                            <div class="exercise-icon">📚</div>
+                            <h3>Major Sixth System</h3>
+                            <p>Guided singing exercises for major sixth mastery</p>
+                        </button>
                     </div>
                 </div>
 
@@ -552,6 +600,12 @@
                             <div class="exercise-icon">🎯</div>
                             <h3>Major Seventh Darts</h3>
                             <p>Sing a major seventh above - hit the bullseye</p>
+                        </button>
+
+                        <button class="exercise-card" data-exercise="majorSeventhSystemExercise">
+                            <div class="exercise-icon">📚</div>
+                            <h3>Major Seventh System</h3>
+                            <p>Guided singing exercises for major seventh mastery</p>
                         </button>
                     </div>
                 </div>
@@ -692,6 +746,111 @@
                 <button id="dontShowAgain" class="btn-secondary" style="margin-top: 20px;">Close</button>
             </div>
         </div>
+    </div>
+
+    <!-- System Exercise Menu -->
+    <div id="systemExerciseMenu" class="container exercise-container" style="display: none;">
+        <header>
+            <button id="systemExerciseMenuBack" class="back-btn" aria-label="Back">← Back</button>
+            <div class="header-center">
+                <h1>ToneDeath</h1>
+                <p class="subtitle" id="systemExerciseMenuTitle">System Exercises</p>
+            </div>
+            <button id="audioSettingsBtnSystemMenu" class="settings-btn" aria-label="Audio Settings">⚙️</button>
+        </header>
+
+        <main>
+            <section class="card">
+                <h2 id="systemExerciseMenuIntervalName">Choose an Exercise</h2>
+                <p class="category-description" id="systemExerciseMenuDescription">Select a guided singing exercise to practice</p>
+
+                <div class="exercise-grid" id="systemExerciseMenuGrid">
+                    <!-- Exercise cards will be dynamically added here -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Interval System Exercise (Generic Template) -->
+    <div id="intervalSystemExercise" class="container exercise-container" style="display: none;">
+        <header>
+            <button data-system-exercise="exit" class="back-btn" aria-label="Back">← Back</button>
+            <div class="header-center">
+                <h1>ToneDeath</h1>
+                <p class="subtitle" data-system-exercise="title">System Exercise</p>
+                <p class="exercise-label" data-system-exercise="exercise-label">Exercise Name</p>
+            </div>
+            <button id="audioSettingsBtnSystemExercise" class="settings-btn" aria-label="Audio Settings">⚙️</button>
+        </header>
+
+        <main>
+            <section class="card exercise-main">
+                <!-- Visual Indicators -->
+                <div class="system-exercise-indicators">
+                    <div class="tone-indicator" data-system-exercise="root-indicator">
+                        <div class="indicator-label">Root</div>
+                        <div class="indicator-animation">
+                            <div class="indicator-wave"></div>
+                            <div class="indicator-wave"></div>
+                            <div class="indicator-wave"></div>
+                        </div>
+                    </div>
+                    <div class="tone-indicator" data-system-exercise="interval-indicator">
+                        <div class="indicator-label">Interval</div>
+                        <div class="indicator-animation">
+                            <div class="indicator-wave"></div>
+                            <div class="indicator-wave"></div>
+                            <div class="indicator-wave"></div>
+                        </div>
+                    </div>
+                    <div class="glissando-indicator" data-system-exercise="glissando-indicator" style="display: none;">
+                        <div class="glissando-head" role="img" aria-label="Singer"></div>
+                        <div class="glissando-notes" role="img" aria-label="Glissando notes"></div>
+                    </div>
+                </div>
+
+                <!-- Step Indicator -->
+                <div class="system-exercise-step-indicator">
+                    <span data-system-exercise="step-indicator">Step 1 of 4</span>
+                </div>
+
+                <!-- Horizontal Carousel -->
+                <div class="system-exercise-carousel-horizontal">
+                    <!-- Previous Step Card -->
+                    <div class="carousel-step carousel-step-prev" data-system-exercise="step-prev">
+                        <div class="carousel-step-instruction" data-system-exercise="instruction-prev">
+                            Previous step
+                        </div>
+                    </div>
+
+                    <!-- Current Step Card -->
+                    <div class="carousel-step carousel-step-current" data-system-exercise="step-current">
+                        <div class="carousel-step-flow">
+                            <div class="carousel-step-instruction" data-system-exercise="instruction-current">
+                                Follow the instructions to practice this interval
+                            </div>
+                            <button class="carousel-step-action btn-action-primary" data-system-exercise="action-current">
+                                Continue
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Next Step Card -->
+                    <div class="carousel-step carousel-step-next" data-system-exercise="step-next">
+                        <div class="carousel-step-instruction" data-system-exercise="instruction-next">
+                            Next step
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Secondary Navigation -->
+                <div class="system-exercise-secondary-nav">
+                    <button data-system-exercise="skip-exercise" class="btn-skip">
+                        Skip Exercise
+                    </button>
+                </div>
+            </section>
+        </main>
     </div>
 
     <!-- Audio Settings Modal -->
@@ -3792,6 +3951,8 @@
     <script src="intervalConfigs.js?v=1"></script>
     <script src="intervalOverviewTutorialTemplate.js?v=1"></script>
     <script src="generalIntervalOverview.js?v=1"></script>
+    <script src="intervalSystemExerciseConfigs.js?v=1"></script>
+    <script src="intervalSystemExercise.js?v=1"></script>
     <script src="app.js"></script>
     <script>
         // Global button click sound

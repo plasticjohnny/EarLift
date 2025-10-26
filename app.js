@@ -141,6 +141,115 @@ class EarTrainerApp {
         }
     }
 
+    showSystemExerciseMenu(intervalType) {
+        const config = getIntervalConfig(intervalType);
+        if (!config) {
+            console.error(`No config found for interval type: ${intervalType}`);
+            alert(`System exercises for ${intervalType} not available`);
+            return;
+        }
+
+        const exercises = getSystemExercisesForInterval(intervalType);
+
+        // Show menu screen
+        document.getElementById('appContainer').style.display = 'none';
+        const menuEl = document.getElementById('systemExerciseMenu');
+        menuEl.style.display = 'block';
+
+        // Update title
+        document.getElementById('systemExerciseMenuTitle').textContent = `${config.intervalName} System Exercises`;
+        document.getElementById('systemExerciseMenuIntervalName').textContent = `${config.intervalName} Exercises`;
+
+        const description = config.intervalType === 'unison'
+            ? 'Practice matching pitch with guided exercises'
+            : `Practice the ${config.intervalName.toLowerCase()} interval with guided singing exercises`;
+        document.getElementById('systemExerciseMenuDescription').textContent = description;
+
+        // Generate exercise cards
+        const grid = document.getElementById('systemExerciseMenuGrid');
+        grid.innerHTML = '';
+
+        exercises.forEach((exercise, index) => {
+            const card = document.createElement('button');
+            card.className = 'exercise-card';
+            card.innerHTML = `
+                <div class="exercise-icon">📝</div>
+                <h3>${exercise.name}</h3>
+                <p>${exercise.steps.length} steps • Practice this interval relationship</p>
+            `;
+            card.addEventListener('click', () => {
+                this.startSystemExercise(intervalType, index);
+            });
+            grid.appendChild(card);
+        });
+
+        // Add "All Exercises" option
+        const allCard = document.createElement('button');
+        allCard.className = 'exercise-card';
+        allCard.style.borderColor = 'var(--neon-green)';
+        allCard.innerHTML = `
+            <div class="exercise-icon">📚</div>
+            <h3>All Exercises</h3>
+            <p>Complete all ${exercises.length} exercises in sequence</p>
+        `;
+        allCard.addEventListener('click', () => {
+            this.startSystemExercise(intervalType, 0, true); // Start from first, do all
+        });
+        grid.appendChild(allCard);
+
+        // Set up back button
+        const backBtn = document.getElementById('systemExerciseMenuBack');
+        backBtn.onclick = () => {
+            menuEl.style.display = 'none';
+            document.getElementById('appContainer').style.display = 'block';
+            this.clearExerciseFromURL();
+        };
+
+        this.addFadeIn(menuEl);
+    }
+
+    startSystemExercise(intervalType, exerciseIndex = 0, doAll = false) {
+        const config = getIntervalConfig(intervalType);
+
+        if (!config) {
+            console.error(`No config found for interval type: ${intervalType}`);
+            alert(`System exercise for ${intervalType} not available`);
+            return;
+        }
+
+        try {
+            // Create or reuse system exercise instance
+            if (!window.systemExerciseInstance || !(window.systemExerciseInstance instanceof IntervalSystemExercise)) {
+                window.systemExerciseInstance = new IntervalSystemExercise(config, 'intervalSystemExercise');
+            } else {
+                // Update config for new interval
+                window.systemExerciseInstance.intervalConfig = config;
+                window.systemExerciseInstance.intervalType = config.intervalType;
+                window.systemExerciseInstance.intervalName = config.intervalName;
+                window.systemExerciseInstance.isUnison = config.intervalType === 'unison';
+                window.systemExerciseInstance.exercises = getSystemExercisesForInterval(config.intervalType);
+            }
+
+            // Set starting exercise index
+            window.systemExerciseInstance.currentExerciseIndex = exerciseIndex;
+            window.systemExerciseInstance.doAllExercises = doAll;
+
+            // Hide menu, start exercise
+            document.getElementById('systemExerciseMenu').style.display = 'none';
+            window.systemExerciseInstance.start();
+
+            setTimeout(() => {
+                const exerciseEl = document.getElementById('intervalSystemExercise');
+                if (exerciseEl && exerciseEl.style.display === 'block') {
+                    this.addFadeIn(exerciseEl);
+                }
+            }, 10);
+        } catch (error) {
+            console.error('Error initializing system exercise:', error);
+            alert('Error starting system exercise: ' + error.message);
+        }
+    }
+
     startExercise(type) {
         if (type === 'intervalVisualization') {
             type = 'interferenceVisualization';
@@ -847,6 +956,10 @@ class EarTrainerApp {
                     this.addFadeIn(exerciseEl);
                 }
             }, 10);
+        } else if (type.endsWith('SystemExercise')) {
+            // System exercises for intervals - show menu to choose which exercise
+            const intervalType = type.replace('SystemExercise', '');
+            this.showSystemExerciseMenu(intervalType);
         } else {
             alert(`${type.charAt(0).toUpperCase() + type.slice(1)} exercise coming soon!`);
         }

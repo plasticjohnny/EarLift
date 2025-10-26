@@ -187,6 +187,14 @@ header h1::before {
     letter-spacing: 0.05em;
 }
 
+.exercise-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    margin-top: 4px;
+}
+
 main {
     flex: 1;
     display: flex;
@@ -5718,4 +5726,512 @@ footer {
     background: linear-gradient(135deg, rgba(0,255,136,0.5), rgba(0,220,120,0.5));
     border-color: rgba(0,255,136,0.8);
     box-shadow: 0 6px 16px rgba(0,255,136,0.4), inset 0 1px 0 rgba(255,255,255,0.3);
+}
+
+/* ===========================
+   Interval System Exercises
+   =========================== */
+
+.system-exercise-progress {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.system-exercise-progress .progress-text {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+    opacity: 0.7;
+}
+
+.system-exercise-note-display {
+    margin: 15px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.note-display-main {
+    text-align: center;
+}
+
+.note-display-main .note-name {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--neon-green);
+    text-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+}
+
+/* Tone Indicators */
+.system-exercise-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin: 30px 0;
+}
+
+.tone-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.tone-indicator:hover {
+    transform: scale(1.05);
+}
+
+.tone-indicator:active {
+    transform: scale(0.98);
+}
+
+.indicator-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.indicator-animation {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.tone-indicator:hover .indicator-animation {
+    border-color: rgba(0, 255, 136, 0.4);
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+}
+
+.indicator-wave {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 2px solid rgba(0, 255, 136, 0.5);
+    border-radius: 50%;
+    opacity: 0;
+}
+
+.tone-indicator.playing .indicator-animation {
+    border-color: rgba(0, 255, 136, 0.6);
+    background: rgba(0, 255, 136, 0.1);
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+}
+
+.tone-indicator.playing .indicator-wave {
+    animation: pulse-indicator 2s ease-out infinite;
+}
+
+.tone-indicator.playing .indicator-wave:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.tone-indicator.playing .indicator-wave:nth-child(2) {
+    animation-delay: 0.7s;
+}
+
+.tone-indicator.playing .indicator-wave:nth-child(3) {
+    animation-delay: 1.4s;
+}
+
+@keyframes pulse-indicator {
+    0% {
+        transform: scale(0.5);
+        opacity: 0.8;
+    }
+    50% {
+        opacity: 0.4;
+    }
+    100% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
+
+/* Glissando Indicator */
+.glissando-indicator {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    justify-content: center;
+}
+
+.glissando-head {
+    height: 112px;
+    width: 112px;
+    display: inline-block;
+    position: relative;
+    background-image: url('images/headtalking.png');
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.glissando-head::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        linear-gradient(90deg,
+            rgba(135, 206, 250, 0) 0%,
+            rgba(135, 206, 250, 0) 35%,
+            rgba(135, 206, 250, 0.7) 42%,
+            rgba(135, 206, 250, 0.9) 46%,
+            rgba(100, 180, 255, 1) 50%,
+            rgba(135, 206, 250, 0.9) 54%,
+            rgba(135, 206, 250, 0.7) 58%,
+            rgba(135, 206, 250, 0) 65%,
+            rgba(135, 206, 250, 0) 100%
+        );
+    background-size: 400% 100%;
+    background-position: 100% center;
+    background-repeat: no-repeat;
+    animation: flow-gradient-head 4.5s linear infinite;
+    mix-blend-mode: lighten;
+    -webkit-mask-image: url('images/headtalking.png');
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-image: url('images/headtalking.png');
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    clip-path: polygon(75% 50%, 100% 50%, 100% 100%, 75% 100%);
+    pointer-events: none;
+}
+
+@keyframes flow-gradient-head {
+    0% {
+        background-position: 100% center;
+    }
+    100% {
+        background-position: -300% center;
+    }
+}
+
+.glissando-notes {
+    height: 112px;
+    width: 200px;
+    display: inline-block;
+    position: relative;
+    background-image:
+        linear-gradient(90deg,
+            rgba(135, 206, 250, 0) 0%,
+            rgba(135, 206, 250, 0) 35%,
+            rgba(135, 206, 250, 0.7) 42%,
+            rgba(135, 206, 250, 0.9) 46%,
+            rgba(100, 180, 255, 1) 50%,
+            rgba(135, 206, 250, 0.9) 54%,
+            rgba(135, 206, 250, 0.7) 58%,
+            rgba(135, 206, 250, 0) 65%,
+            rgba(135, 206, 250, 0) 100%
+        ),
+        url('images/glissandonotes.png');
+    background-size: 400% 100%, contain;
+    background-position: 100% center, center center;
+    background-repeat: no-repeat, no-repeat;
+    background-blend-mode: lighten;
+    background-color: transparent;
+    isolation: isolate;
+    animation: flow-gradient-notes 4.5s linear infinite;
+    animation-delay: 0.285s;
+    -webkit-mask-image: url('images/glissandonotes.png');
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-image: url('images/glissandonotes.png');
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+}
+
+@keyframes flow-gradient-notes {
+    0% {
+        background-position: 100% center, center center;
+    }
+    100% {
+        background-position: -300% center, center center;
+    }
+}
+
+.glissando-notes.flipped {
+    transform: scaleX(-1);
+    animation-direction: reverse;
+}
+
+/* Step Indicator */
+.system-exercise-step-indicator {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    opacity: 0.6;
+}
+
+/* Horizontal Carousel */
+.system-exercise-carousel-horizontal {
+    margin: 40px 0 20px 0;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+/* Carousel Step Cards */
+.carousel-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    flex: 1;
+    max-width: 300px;
+}
+
+/* Flow container for instruction → button */
+.carousel-step-flow {
+    display: flex;
+    align-items: center;
+    position: relative;
+    width: 100%;
+}
+
+.carousel-step-instruction {
+    flex: 1;
+    padding: 20px;
+    line-height: 1.6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+}
+
+.carousel-step-action {
+    padding: 16px 32px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+}
+
+/* Previous/Next Step Cards - Dimmed */
+.carousel-step-prev,
+.carousel-step-next {
+    opacity: 0.5;
+    transform: scale(0.85);
+    cursor: pointer;
+}
+
+.carousel-step-prev:hover,
+.carousel-step-next:hover {
+    opacity: 0.7;
+    transform: scale(0.9);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.carousel-step-prev .carousel-step-instruction,
+.carousel-step-next .carousel-step-instruction {
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: var(--text-secondary);
+}
+
+.carousel-step-prev .carousel-step-action,
+.carousel-step-next .carousel-step-action {
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    pointer-events: none;
+}
+
+/* Current Step Card - Highlighted */
+.carousel-step-current {
+    opacity: 1;
+    transform: scale(1);
+    border: 2px solid var(--neon-cyan);
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+}
+
+.carousel-step-current .carousel-step-instruction {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #ffffff;
+    background: linear-gradient(135deg, rgb(176, 38, 255), rgb(156, 38, 235));
+    border: 2px solid rgb(176, 38, 255);
+    clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 0 100%);
+    border-radius: 8px 0 0 8px;
+    flex: 2;
+    min-width: 60%;
+    height: 100%;
+}
+
+.carousel-step-current .carousel-step-action {
+    margin-left: -20px;
+    padding-left: 36px;
+    border-radius: 0 8px 8px 0;
+    flex: 1;
+    max-width: 40%;
+}
+
+
+/* Current step action button */
+.carousel-step-current .btn-action-primary {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #000000;
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.7), rgba(0, 200, 255, 0.8));
+    border: 2px solid rgba(0, 255, 255, 0.8);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: capitalize;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(0, 255, 255, 0.25);
+    text-shadow: none;
+}
+
+.carousel-step-current .btn-action-primary:hover {
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.9), rgba(0, 220, 255, 0.9));
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 255, 255, 0.5);
+}
+
+.carousel-step-current .btn-action-primary:active {
+    transform: translateY(0px);
+    box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+}
+
+/* Progressive pulse animations */
+@keyframes pulse-instruction {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.02);
+        opacity: 0.9;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes pulse-button {
+    0%, 100% {
+        box-shadow: 0 6px 20px rgba(0, 255, 255, 0.3);
+        transform: translateY(0);
+    }
+    50% {
+        box-shadow: 0 8px 30px rgba(0, 255, 255, 0.6);
+        transform: translateY(-2px);
+    }
+}
+
+.carousel-step-current.step-animating .carousel-step-instruction {
+    animation: pulse-instruction 0.8s ease-out;
+}
+
+.carousel-step-current.step-animating .btn-action-primary {
+    animation: pulse-button 0.8s ease-out 0.9s;
+}
+
+/* Secondary Navigation */
+.system-exercise-secondary-nav {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+}
+
+.btn-skip {
+    min-width: 150px;
+    padding: 12px 24px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-skip:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: var(--text-primary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .system-exercise-indicators {
+        gap: 20px;
+    }
+
+    .indicator-animation {
+        width: 60px;
+        height: 60px;
+    }
+
+    .glissando-head,
+    .glissando-head::before {
+        height: 90px;
+        width: 90px;
+    }
+
+    .glissando-notes {
+        height: 90px;
+        width: 150px;
+    }
+
+    .system-exercise-carousel-horizontal {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .carousel-step {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .carousel-step-prev,
+    .carousel-step-next {
+        transform: scale(0.9);
+    }
+
+    .carousel-step-prev:hover,
+    .carousel-step-next:hover {
+        transform: scale(0.93);
+    }
+
+    .carousel-step-current .carousel-step-instruction {
+        font-size: 1.2rem;
+    }
+
+    .carousel-step-prev .carousel-step-instruction,
+    .carousel-step-next .carousel-step-instruction {
+        font-size: 0.85rem;
+    }
 }

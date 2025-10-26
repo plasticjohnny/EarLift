@@ -5980,61 +5980,30 @@ footer {
     opacity: 0.6;
 }
 
-/* Horizontal Carousel */
-.system-exercise-carousel-horizontal {
-    margin: 40px 0 20px 0;
+/* Step Display Container */
+.system-exercise-step-display {
+    margin: 10px 0 20px 0;
     padding: 0 20px;
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
     gap: 20px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* Carousel Step Cards */
 .carousel-step {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 15px;
+    justify-content: center;
     padding: 20px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     transition: all 0.3s ease;
-    flex: 1;
-    max-width: 300px;
-}
-
-/* Flow container for instruction → button */
-.carousel-step-flow {
-    display: flex;
-    align-items: center;
-    position: relative;
-    width: 100%;
-}
-
-.carousel-step-instruction {
-    flex: 1;
-    padding: 20px;
-    line-height: 1.6;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    position: relative;
-    z-index: 2;
-}
-
-.carousel-step-action {
-    padding: 16px 32px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-    z-index: 1;
-    flex-shrink: 0;
 }
 
 /* Previous/Next Step Cards - Dimmed */
@@ -6043,6 +6012,9 @@ footer {
     opacity: 0.5;
     transform: scale(0.85);
     cursor: pointer;
+    flex: 0 0 auto;
+    min-width: 180px;
+    max-width: 220px;
 }
 
 .carousel-step-prev:hover,
@@ -6052,75 +6024,146 @@ footer {
     background: rgba(255, 255, 255, 0.08);
 }
 
-.carousel-step-prev .carousel-step-instruction,
-.carousel-step-next .carousel-step-instruction {
+.carousel-step-text {
     font-size: 0.9rem;
     font-weight: 400;
     color: var(--text-secondary);
-}
-
-.carousel-step-prev .carousel-step-action,
-.carousel-step-next .carousel-step-action {
-    color: var(--text-secondary);
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    pointer-events: none;
+    text-align: center;
 }
 
 /* Current Step Card - Highlighted */
 .carousel-step-current {
     opacity: 1;
     transform: scale(1);
-    border: 2px solid var(--neon-cyan);
-    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+    flex: 0 1 auto;
+    width: 70%;
+    max-width: 700px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
 }
 
-.carousel-step-current .carousel-step-instruction {
+/* Flow container inside current step */
+.carousel-step-flow {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: baseline;
+    position: relative;
+    width: 100%;
+    column-gap: 0;
+}
+
+/* Command button - overlaps from left */
+.flow-command {
+    padding: 4px 6px 4px 12px;
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: #ffffff;
+    background: rgb(120, 30, 180);
+    border-radius: 8px 0 0 8px;
+    text-align: center;
+    position: relative;
+    z-index: 3;
+    grid-column: 1;
+    margin-left: -10px;
+    margin-right: -20px;
+    transition: background 0.2s, transform 0.2s;
+}
+
+/* Hover effect when command button is clickable */
+.flow-command.clickable:hover {
+    background: rgb(140, 50, 200);
+    transform: translateX(-2px);
+}
+
+.flow-command.clickable:hover::after {
+    border-left-color: rgb(140, 50, 200);
+}
+
+/* Triangle from command pointing into instruction */
+.flow-command::after {
+    content: '';
+    position: absolute;
+    right: -12px;
+    top: 0;
+    width: 0;
+    height: 0;
+    border-top: 20px solid transparent;
+    border-bottom: 20px solid transparent;
+    border-left: 12px solid rgb(120, 30, 180);
+    transition: border-left-color 0.2s;
+}
+
+/* Instruction card - center */
+.flow-instruction-card {
+    padding: 20px 30px 20px 25px;
+    background: linear-gradient(135deg, rgb(176, 38, 255), rgb(156, 38, 235));
+    border-radius: 12px;
+    position: relative;
+    z-index: 2;
+    grid-column: 2;
+    margin-left: -25px;
+    margin-right: -25px;
+}
+
+.flow-instruction {
     font-size: 1.5rem;
     font-weight: 600;
     color: #ffffff;
-    background: linear-gradient(135deg, rgb(176, 38, 255), rgb(156, 38, 235));
-    border: 2px solid rgb(176, 38, 255);
-    clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 0 100%);
-    border-radius: 8px 0 0 8px;
-    flex: 2;
-    min-width: 60%;
-    height: 100%;
+    text-align: left;
+    line-height: 1.6;
+    text-indent: 35px;
 }
 
-.carousel-step-current .carousel-step-action {
-    margin-left: -20px;
-    padding-left: 36px;
-    border-radius: 0 8px 8px 0;
-    flex: 1;
-    max-width: 40%;
-}
-
-
-/* Current step action button */
-.carousel-step-current .btn-action-primary {
+/* Action button - overlaps from right */
+.flow-action-button {
+    padding: 12px 20px 12px 20px;
     font-size: 0.95rem;
     font-weight: 600;
     color: #000000;
     background: linear-gradient(135deg, rgba(0, 255, 255, 0.7), rgba(0, 200, 255, 0.8));
-    border: 2px solid rgba(0, 255, 255, 0.8);
+    border: none;
+    border-radius: 0 8px 8px 0;
     cursor: pointer;
     transition: all 0.2s;
     text-transform: capitalize;
     letter-spacing: 0.5px;
-    box-shadow: 0 4px 15px rgba(0, 255, 255, 0.25);
+    box-shadow: 15px 4px 15px rgba(0, 255, 255, 0.25);
     text-shadow: none;
+    position: relative;
+    z-index: 3;
+    grid-column: 3;
+    align-self: end;
+    margin-top: -8px;
+    margin-left: -20px;
+    margin-right: -10px;
 }
 
-.carousel-step-current .btn-action-primary:hover {
+/* Triangle from instruction pointing into action button */
+.flow-action-button::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 0;
+    border-top: 21px solid transparent;
+    border-bottom: 21px solid transparent;
+    border-left: 12px solid rgb(156, 38, 235);
+    z-index: 1;
+}
+
+.flow-action-button:hover {
     background: linear-gradient(135deg, rgba(0, 255, 255, 0.9), rgba(0, 220, 255, 0.9));
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 255, 255, 0.5);
+    box-shadow: 15px 8px 25px rgba(0, 255, 255, 0.5);
 }
 
-.carousel-step-current .btn-action-primary:active {
+.flow-action-button:active {
     transform: translateY(0px);
-    box-shadow: 0 4px 15px rgba(0, 255, 255, 0.3);
+    box-shadow: 15px 4px 15px rgba(0, 255, 255, 0.3);
 }
 
 /* Progressive pulse animations */
@@ -6141,20 +6184,20 @@ footer {
 
 @keyframes pulse-button {
     0%, 100% {
-        box-shadow: 0 6px 20px rgba(0, 255, 255, 0.3);
+        box-shadow: 15px 6px 20px rgba(0, 255, 255, 0.3);
         transform: translateY(0);
     }
     50% {
-        box-shadow: 0 8px 30px rgba(0, 255, 255, 0.6);
+        box-shadow: 15px 8px 30px rgba(0, 255, 255, 0.6);
         transform: translateY(-2px);
     }
 }
 
-.carousel-step-current.step-animating .carousel-step-instruction {
+.flow-instruction-card.step-animating {
     animation: pulse-instruction 0.8s ease-out;
 }
 
-.carousel-step-current.step-animating .btn-action-primary {
+.flow-action-button.step-animating {
     animation: pulse-button 0.8s ease-out 0.9s;
 }
 
@@ -6206,9 +6249,10 @@ footer {
         width: 150px;
     }
 
-    .system-exercise-carousel-horizontal {
+    .system-exercise-step-display {
         flex-direction: column;
         gap: 15px;
+        padding: 0 10px;
     }
 
     .carousel-step {
@@ -6219,6 +6263,8 @@ footer {
     .carousel-step-prev,
     .carousel-step-next {
         transform: scale(0.9);
+        min-width: unset;
+        max-width: 100%;
     }
 
     .carousel-step-prev:hover,
@@ -6226,12 +6272,50 @@ footer {
         transform: scale(0.93);
     }
 
-    .carousel-step-current .carousel-step-instruction {
-        font-size: 1.2rem;
+    .carousel-step-current {
+        width: 100%;
+        max-width: 100%;
     }
 
-    .carousel-step-prev .carousel-step-instruction,
-    .carousel-step-next .carousel-step-instruction {
+    .carousel-step-flow {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+        row-gap: 10px;
+        padding: 15px;
+    }
+
+    .flow-command {
+        grid-column: 1;
+        grid-row: 1;
+        margin-left: 0;
+        margin-right: 0;
+        font-size: 1rem;
+        padding: 10px 12px;
+        justify-self: start;
+    }
+
+    .flow-instruction-card {
+        grid-column: 1;
+        grid-row: 2;
+        margin-left: 0;
+        margin-right: 0;
+        max-width: 100%;
+        padding: 18px 20px;
+    }
+
+    .flow-instruction {
+        font-size: 1.3rem;
+    }
+
+    .flow-action-button {
+        grid-column: 1;
+        grid-row: 3;
+        margin-left: 0;
+        margin-right: 0;
+        justify-self: end;
+    }
+
+    .carousel-step-text {
         font-size: 0.85rem;
     }
 }

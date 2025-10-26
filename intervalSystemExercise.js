@@ -54,22 +54,12 @@ class IntervalSystemExercise {
         // Display elements
         this.exerciseTitle = this.container.querySelector('[data-system-exercise="title"]');
         this.exerciseLabel = this.container.querySelector('[data-system-exercise="exercise-label"]');
-        this.stepIndicator = this.container.querySelector('[data-system-exercise="step-indicator"]');
 
-        // Carousel step cards
-        this.stepPrevCard = this.container.querySelector('[data-system-exercise="step-prev"]');
-        this.stepCurrentCard = this.container.querySelector('[data-system-exercise="step-current"]');
-        this.stepNextCard = this.container.querySelector('[data-system-exercise="step-next"]');
-
-        // Step instructions
-        this.instructionPrev = this.container.querySelector('[data-system-exercise="instruction-prev"]');
-        this.instructionCurrent = this.container.querySelector('[data-system-exercise="instruction-current"]');
-        this.instructionNext = this.container.querySelector('[data-system-exercise="instruction-next"]');
-
-        // Step action buttons
-        this.actionPrevBtn = this.container.querySelector('[data-system-exercise="action-prev"]');
-        this.actionCurrentBtn = this.container.querySelector('[data-system-exercise="action-current"]');
-        this.actionNextBtn = this.container.querySelector('[data-system-exercise="action-next"]');
+        // Flow layout elements
+        this.commandElement = this.container.querySelector('[data-system-exercise="command"]');
+        this.instructionElement = this.container.querySelector('[data-system-exercise="instruction"]');
+        this.actionButton = this.container.querySelector('[data-system-exercise="action"]');
+        this.flowInstructionCard = this.container.querySelector('.flow-instruction-card');
 
         // Control buttons
         this.skipExerciseBtn = this.container.querySelector('[data-system-exercise="skip-exercise"]');
@@ -83,17 +73,18 @@ class IntervalSystemExercise {
     }
 
     attachEventListeners() {
-        // Current step action button
-        if (this.actionCurrentBtn) {
-            this.actionCurrentBtn.addEventListener('click', () => this.handleCurrentAction());
+        // Command button - go back to previous step (if not on step 1)
+        if (this.commandElement) {
+            this.commandElement.addEventListener('click', () => {
+                if (this.currentStepIndex > 0) {
+                    this.navigateToPrev();
+                }
+            });
         }
 
-        // Clicking prev/next cards navigates to them
-        if (this.stepPrevCard) {
-            this.stepPrevCard.addEventListener('click', () => this.navigateToPrev());
-        }
-        if (this.stepNextCard) {
-            this.stepNextCard.addEventListener('click', () => this.navigateToNext());
+        // Action button
+        if (this.actionButton) {
+            this.actionButton.addEventListener('click', () => this.handleCurrentAction());
         }
 
         // Clicking visual indicators toggles their audio
@@ -236,8 +227,7 @@ class IntervalSystemExercise {
         const prevStep = currentExercise.steps[prevStepIndex];
         const nextStep = currentExercise.steps[nextStepIndex];
 
-        // Update instruction carousel
-        // Check if we should use alternate instructions based on glissando direction
+        // Helper function to get instruction based on glissando direction
         const getInstruction = (step) => {
             if (this.glissandoDirection === 'down' && step.instructionDown) {
                 return step.instructionDown;
@@ -245,52 +235,34 @@ class IntervalSystemExercise {
             return step.instruction;
         };
 
-        if (this.instructionPrev) {
-            this.instructionPrev.textContent = getInstruction(prevStep);
-        }
-        if (this.instructionCurrent) {
-            this.instructionCurrent.textContent = getInstruction(currentStep);
-        }
-        if (this.instructionNext) {
-            this.instructionNext.textContent = getInstruction(nextStep);
-        }
+        // Helper function to get command based on glissando direction
+        const getCommand = (step) => {
+            // For glissando, command doesn't change based on direction
+            return step.command;
+        };
 
-        // Update step indicator
-        if (this.stepIndicator) {
-            this.stepIndicator.textContent = `Step ${this.currentStepIndex + 1} of ${totalSteps}`;
-        }
+        // Update command element
+        if (this.commandElement) {
+            this.commandElement.textContent = getCommand(currentStep);
 
-        // Check if this is the last step
-        const isLastStep = this.currentStepIndex === totalSteps - 1;
-
-        // Update prev/current/next action button labels
-        if (this.actionPrevBtn) {
-            this.actionPrevBtn.textContent = prevStep.actionButtonLabel || 'Action';
-        }
-        if (this.actionCurrentBtn) {
-            // If last step, button should say "Finish"
-            this.actionCurrentBtn.textContent = isLastStep ? 'Finish' : (currentStep.actionButtonLabel || 'Continue');
-        }
-        if (this.actionNextBtn) {
-            this.actionNextBtn.textContent = nextStep.actionButtonLabel || 'Action';
-        }
-
-        // Hide previous step card when on first step, but maintain spacing
-        if (this.stepPrevCard) {
-            if (this.currentStepIndex === 0) {
-                this.stepPrevCard.style.visibility = 'hidden';
+            // Make command button clickable if not on first step
+            if (this.currentStepIndex > 0) {
+                this.commandElement.classList.add('clickable');
+                this.commandElement.style.cursor = 'pointer';
             } else {
-                this.stepPrevCard.style.visibility = 'visible';
+                this.commandElement.classList.remove('clickable');
+                this.commandElement.style.cursor = 'default';
             }
         }
 
-        // Hide next step card when on last step, but maintain spacing
-        if (this.stepNextCard) {
-            if (isLastStep) {
-                this.stepNextCard.style.visibility = 'hidden';
-            } else {
-                this.stepNextCard.style.visibility = 'visible';
-            }
+        // Update instruction element
+        if (this.instructionElement) {
+            this.instructionElement.textContent = getInstruction(currentStep);
+        }
+
+        // Update action button
+        if (this.actionButton) {
+            this.actionButton.textContent = currentStep.actionButtonLabel || 'Continue';
         }
 
         // Trigger progressive animation (instruction first, then button)
@@ -304,23 +276,34 @@ class IntervalSystemExercise {
     }
 
     triggerStepAnimation() {
-        // Remove animation class if present
-        if (this.stepCurrentCard) {
-            this.stepCurrentCard.classList.remove('step-animating');
+        // Remove animation classes if present
+        if (this.flowInstructionCard) {
+            this.flowInstructionCard.classList.remove('step-animating');
+        }
+        if (this.actionButton) {
+            this.actionButton.classList.remove('step-animating');
         }
 
         // Trigger reflow to restart animation
-        void this.stepCurrentCard.offsetWidth;
-
-        // Add animation class
-        if (this.stepCurrentCard) {
-            this.stepCurrentCard.classList.add('step-animating');
+        if (this.flowInstructionCard) {
+            void this.flowInstructionCard.offsetWidth;
         }
 
-        // Remove animation class after it completes (0.8s + 0.9s delay + 0.8s = 2.5s total)
+        // Add animation classes
+        if (this.flowInstructionCard) {
+            this.flowInstructionCard.classList.add('step-animating');
+        }
+        if (this.actionButton) {
+            this.actionButton.classList.add('step-animating');
+        }
+
+        // Remove animation classes after they complete (0.8s + 0.9s delay + 0.8s = 2.5s total)
         setTimeout(() => {
-            if (this.stepCurrentCard) {
-                this.stepCurrentCard.classList.remove('step-animating');
+            if (this.flowInstructionCard) {
+                this.flowInstructionCard.classList.remove('step-animating');
+            }
+            if (this.actionButton) {
+                this.actionButton.classList.remove('step-animating');
             }
         }, 2500);
     }

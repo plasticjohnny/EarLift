@@ -25,28 +25,32 @@ const INTERVAL_SYSTEM_EXERCISES = Object.freeze({
             name: "Unison Match",
             steps: [
                 {
-                    instruction: "Listen to the tone carefully",
+                    command: "Listen",
+                    instruction: "to the tone carefully",
                     audioState: "root",
                     userAction: "listen",
                     actionButtonLabel: "then Match It"
                 },
                 {
-                    instruction: "Match the tone with your voice and hold it steady",
+                    command: "Match It",
+                    instruction: "with your voice and hold it steady",
                     audioState: "root",
                     userAction: "match-root",
                     actionButtonLabel: "then Sing Alone"
                 },
                 {
-                    instruction: "Keep singing on pitch",
+                    command: "Sing Alone",
+                    instruction: "on pitch",
                     audioState: "none",
                     userAction: "sing-root",
                     actionButtonLabel: "then Check Pitch"
                 },
                 {
-                    instruction: "Check your pitch - are you still matching?",
+                    command: "Check Pitch",
+                    instruction: "- are you still matching?",
                     audioState: "root",
                     userAction: "test-root",
-                    actionButtonLabel: "Next Note"
+                    actionButtonLabel: "Finish"
                 }
             ]
         },
@@ -56,18 +60,20 @@ const INTERVAL_SYSTEM_EXERCISES = Object.freeze({
             hideRootIndicator: true,
             steps: [
                 {
-                    instruction: "Sing a steady low note towards the bottom of your range",
-                    instructionDown: "Sing a steady high note towards the top of your range",
+                    command: "Sing",
+                    instruction: "a steady low note towards the bottom of your range",
+                    instructionDown: "a steady high note towards the top of your range",
                     audioState: "none",
                     userAction: "sing-root",
                     actionButtonLabel: "then Glide"
                 },
                 {
-                    instruction: "Steadily raise the pitch to higher notes to the top of your range",
-                    instructionDown: "Steadily lower the pitch to lower notes to the bottom of your range",
+                    command: "Glide",
+                    instruction: "steadily raising the pitch to higher notes to the top of your range",
+                    instructionDown: "steadily lowering the pitch to lower notes to the bottom of your range",
                     audioState: "none",
                     userAction: "glissando-up",
-                    actionButtonLabel: "Done"
+                    actionButtonLabel: "Finish"
                 }
             ]
         }
@@ -82,16 +88,18 @@ const INTERVAL_SYSTEM_EXERCISES = Object.freeze({
             name: "Hear the Interval",
             steps: [
                 {
-                    instruction: "Match the root note with your voice",
+                    command: "Match",
+                    instruction: "the root note with your voice",
                     audioState: "root",
                     userAction: "match-root",
                     actionButtonLabel: "then Hear Both"
                 },
                 {
-                    instruction: "Listen to both notes together while holding the root",
+                    command: "Hear Both",
+                    instruction: "notes together while holding the root",
                     audioState: "both",
                     userAction: "listen",
-                    actionButtonLabel: "Next Note"
+                    actionButtonLabel: "Finish"
                 }
             ]
         },
@@ -101,28 +109,32 @@ const INTERVAL_SYSTEM_EXERCISES = Object.freeze({
             name: "Stay on Root",
             steps: [
                 {
-                    instruction: "Match the root note with your voice",
+                    command: "Match",
+                    instruction: "the root note with your voice",
                     audioState: "root",
                     userAction: "match-root",
                     actionButtonLabel: "then Hear Both"
                 },
                 {
-                    instruction: "Keep singing the root - don't follow the interval",
+                    command: "Hear Both",
+                    instruction: "while keeping singing the root - don't follow the interval",
                     audioState: "both",
                     userAction: "match-root",
                     actionButtonLabel: "then Interval Only"
                 },
                 {
-                    instruction: "Hold the root note steady",
+                    command: "Interval Only",
+                    instruction: "- hold the root note steady",
                     audioState: "interval",
                     userAction: "sing-root",
                     actionButtonLabel: "then Check Root"
                 },
                 {
-                    instruction: "Check your pitch - are you still on the root?",
+                    command: "Check Root",
+                    instruction: "- are you still on it?",
                     audioState: "root",
                     userAction: "test-root",
-                    actionButtonLabel: "Next Note"
+                    actionButtonLabel: "Finish"
                 }
             ]
         },
@@ -132,28 +144,32 @@ const INTERVAL_SYSTEM_EXERCISES = Object.freeze({
             name: "Back and Forth",
             steps: [
                 {
-                    instruction: "Match the root note with your voice",
+                    command: "Match",
+                    instruction: "the root note with your voice",
                     audioState: "root",
                     userAction: "match-root",
                     actionButtonLabel: "then Hear Interval"
                 },
                 {
-                    instruction: "Switch up to match the interval note",
+                    command: "Hear Interval",
+                    instruction: "and switch up to match it",
                     audioState: "interval",
                     userAction: "match-interval",
                     actionButtonLabel: "then Hear Root"
                 },
                 {
-                    instruction: "Switch back down to the root note",
+                    command: "Hear Root",
+                    instruction: "and switch back down to it",
                     audioState: "root",
                     userAction: "match-root",
                     actionButtonLabel: "then Hear Interval"
                 },
                 {
-                    instruction: "Switch up to the interval again",
+                    command: "Hear Interval",
+                    instruction: "and switch up to it again",
                     audioState: "interval",
                     userAction: "match-interval",
-                    actionButtonLabel: "Next Note"
+                    actionButtonLabel: "Finish"
                 }
             ]
         },
@@ -163,28 +179,32 @@ const INTERVAL_SYSTEM_EXERCISES = Object.freeze({
             name: "Root Holding",
             steps: [
                 {
-                    instruction: "Match the root note with your voice",
+                    command: "Match",
+                    instruction: "the root note with your voice",
                     audioState: "root",
                     userAction: "match-root",
                     actionButtonLabel: "then Hear Both"
                 },
                 {
-                    instruction: "Keep holding the root",
+                    command: "Hear Both",
+                    instruction: "while keeping holding the root",
                     audioState: "both",
                     userAction: "match-root",
                     actionButtonLabel: "then Shift Up"
                 },
                 {
-                    instruction: "Shift your voice up to the interval",
+                    command: "Shift Up",
+                    instruction: "to the interval",
                     audioState: "both",
                     userAction: "match-interval",
                     actionButtonLabel: "then Interval Only"
                 },
                 {
-                    instruction: "Hold the interval note steady",
+                    command: "Interval Only",
+                    instruction: "- hold it steady",
                     audioState: "interval",
                     userAction: "match-interval",
-                    actionButtonLabel: "Next Note"
+                    actionButtonLabel: "Finish"
                 }
             ]
         },
@@ -194,28 +214,32 @@ const INTERVAL_SYSTEM_EXERCISES = Object.freeze({
             name: "Match and Sing",
             steps: [
                 {
-                    instruction: "Match the root note with your voice",
+                    command: "Match",
+                    instruction: "the root note with your voice",
                     audioState: "root",
                     userAction: "match-root",
                     actionButtonLabel: "then Sing It"
                 },
                 {
-                    instruction: "Sing the interval from memory",
+                    command: "Sing It",
+                    instruction: "from memory",
                     audioState: "none",
                     userAction: "sing-interval",
                     actionButtonLabel: "then Check It"
                 },
                 {
-                    instruction: "Check how close you were - adjust with glissando",
+                    command: "Check It",
+                    instruction: "- adjust with glissando if needed",
                     audioState: "interval",
                     userAction: "test-interval",
                     actionButtonLabel: "then Hear Root"
                 },
                 {
-                    instruction: "Back to the root note",
+                    command: "Hear Root",
+                    instruction: "and return to it",
                     audioState: "root",
                     userAction: "match-root",
-                    actionButtonLabel: "Next Note"
+                    actionButtonLabel: "Finish"
                 }
             ]
         },
@@ -225,22 +249,25 @@ const INTERVAL_SYSTEM_EXERCISES = Object.freeze({
             name: "Hear and Sing",
             steps: [
                 {
-                    instruction: "Listen to the root note - don't sing yet",
+                    command: "Listen",
+                    instruction: "to the root note - don't sing yet",
                     audioState: "root",
                     userAction: "listen",
                     actionButtonLabel: "then Sing It"
                 },
                 {
-                    instruction: "Sing the interval from memory",
+                    command: "Sing It",
+                    instruction: "from memory",
                     audioState: "none",
                     userAction: "sing-interval",
                     actionButtonLabel: "then Check It"
                 },
                 {
-                    instruction: "Check your accuracy - adjust with glissando",
+                    command: "Check It",
+                    instruction: "- adjust with glissando if needed",
                     audioState: "interval",
                     userAction: "test-interval",
-                    actionButtonLabel: "Next Note"
+                    actionButtonLabel: "Finish"
                 }
             ]
         }

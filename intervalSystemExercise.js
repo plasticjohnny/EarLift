@@ -13,6 +13,7 @@ class IntervalSystemExercise {
         this.intervalName = intervalConfig.intervalName;
         this.containerId = containerId;
         this.isUnison = this.intervalType === 'unison';
+        this.isTutorial = this.intervalType === 'tutorial';
 
         // Audio
         this.toneGenerator = new ToneGenerator();
@@ -140,25 +141,43 @@ class IntervalSystemExercise {
     }
 
     generateNewTones() {
-        // Generate root frequency within vocal range
-        const lowFreq = this.vocalRange.low.frequency;
-        const highFreq = this.vocalRange.high.frequency;
+        // Check if custom root frequency is set (from training mode)
+        if (this.customRootFrequency) {
+            console.log('[SystemExercise] Using customRootFrequency:', this.customRootFrequency);
+            this.rootFrequency = this.customRootFrequency;
 
-        // For intervals, ensure both root and interval fit in range
-        if (this.isUnison) {
-            this.rootFrequency = Math.random() * (highFreq - lowFreq) + lowFreq;
-            this.intervalFrequency = this.rootFrequency; // Same as root for unison
+            // Calculate interval frequency based on custom root
+            if (this.isUnison || this.isTutorial) {
+                this.intervalFrequency = this.rootFrequency;
+            } else {
+                const semitones = this.intervalConfig.semitones;
+                const intervalRatio = Math.pow(2, semitones / 12);
+                this.intervalFrequency = this.rootFrequency * intervalRatio;
+            }
+
+            // Clear custom frequency so next repetition uses random
+            this.customRootFrequency = null;
         } else {
-            // Calculate interval frequency range
-            const semitones = this.intervalConfig.semitones;
-            const intervalRatio = Math.pow(2, semitones / 12);
+            // Generate root frequency within vocal range
+            const lowFreq = this.vocalRange.low.frequency;
+            const highFreq = this.vocalRange.high.frequency;
 
-            // Ensure interval fits in range (assuming upward interval)
-            const maxRootFreq = highFreq / intervalRatio;
-            const effectiveHighFreq = Math.min(maxRootFreq, highFreq);
+            // For intervals, ensure both root and interval fit in range
+            if (this.isUnison || this.isTutorial) {
+                this.rootFrequency = Math.random() * (highFreq - lowFreq) + lowFreq;
+                this.intervalFrequency = this.rootFrequency; // Same as root for unison/tutorial
+            } else {
+                // Calculate interval frequency range
+                const semitones = this.intervalConfig.semitones;
+                const intervalRatio = Math.pow(2, semitones / 12);
 
-            this.rootFrequency = Math.random() * (effectiveHighFreq - lowFreq) + lowFreq;
-            this.intervalFrequency = this.rootFrequency * intervalRatio;
+                // Ensure interval fits in range (assuming upward interval)
+                const maxRootFreq = highFreq / intervalRatio;
+                const effectiveHighFreq = Math.min(maxRootFreq, highFreq);
+
+                this.rootFrequency = Math.random() * (effectiveHighFreq - lowFreq) + lowFreq;
+                this.intervalFrequency = this.rootFrequency * intervalRatio;
+            }
         }
 
         // Randomize glissando direction if current exercise supports it
@@ -552,48 +571,12 @@ class IntervalSystemExercise {
             // LEFT: Minimal padding for middle lines (first line uses text-indent)
             this.flowInstructionCard.style.paddingLeft = '10px';
 
-            // RIGHT: Minimal padding (float pseudo-element handles last line clearance)
+            // RIGHT: Minimal padding (button extends past card)
             this.flowInstructionCard.style.paddingRight = '10px';
-
-            // Calculate float width and height for last line clearance
-            if (this.actionButton) {
-                const actionButtonWidth = this.actionButton.offsetWidth || 120;
-                const actionButtonHeight = this.actionButton.offsetHeight || 48;
-                const buttonOverhang = 20; // button extends 20px outside card
-                const visibleButtonWidth = actionButtonWidth - buttonOverhang;
-                const clearanceGap = 10; // gap between text and button
-                const floatWidth = visibleButtonWidth + clearanceGap;
-                const floatHeight = actionButtonHeight + 10;
-
-                // Set CSS custom properties for the ::after float element
-                this.instructionElement.style.setProperty('--action-float-width', `${floatWidth}px`);
-                this.instructionElement.style.setProperty('--action-float-height', `${floatHeight}px`);
-            } else {
-                // Fallback values
-                this.instructionElement.style.setProperty('--action-float-width', '110px');
-                this.instructionElement.style.setProperty('--action-float-height', '3em');
-            }
 
             // Keep top/bottom padding consistent
             this.flowInstructionCard.style.paddingTop = '20px';
-            this.flowInstructionCard.style.paddingBottom = '20px';
-        }
-
-        // Position ThenAction button to right of instruction card
-        // Fixed overhang matching Command button - button extends this far outside card (right side)
-        // Button grows LEFTWARD (into card) as text gets longer
-        if (this.actionButton && this.flowInstructionCard) {
-            try {
-                const buttonOverhang = 20; // static overhang distance (matches Command button)
-
-                // Position button's right edge at fixed distance from card's right edge
-                // Negative value extends button to the right
-                this.actionButton.style.right = -buttonOverhang + 'px';
-            } catch (e) {
-                console.warn('Could not calculate action button position:', e);
-                // Fallback to default position
-                this.actionButton.style.right = '-40px';
-            }
+            this.flowInstructionCard.style.paddingBottom = '8px'; // Reduced for tight button fit
         }
 
         // Show flow container after all positioning is complete
@@ -840,9 +823,8 @@ class IntervalSystemExercise {
 
             // If not doing all exercises, return to menu
             if (!this.doAllExercises) {
-                this.stopAll();
-                this.container.style.display = 'none';
-                document.getElementById('systemExerciseMenu').style.display = 'block';
+                // Call exit() so training mode can intercept and show rating UI
+                this.exit();
                 return;
             }
 

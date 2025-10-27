@@ -19,9 +19,8 @@
  */
 
 const INTERVAL_SYSTEM_EXERCISES = Object.freeze({
-    // ===== UNISON =====
-    unison: [
-
+    // ===== TUTORIAL SYSTEM =====
+    tutorial: [
         {
             name: "Glissando",
             randomizeDirection: true,
@@ -42,27 +41,31 @@ const INTERVAL_SYSTEM_EXERCISES = Object.freeze({
                     userAction: "glissando-up"
                 }
             ]
-        },
+        }
+    ],
+
+    // ===== UNISON =====
+    unison: [
         {
             name: "Unison Match Up",
             steps: [
                 {
                     command: "Listen",
-                    instruction: "to the tone and how it feelins inside of you",
+                    instruction: "to the tone and how it feels inside of you",
                     audioState: "root",
                     userAction: "listen"
                 },
                 {
                     command: "Start singing",
-                    instruction: "a low note at the bottom of your range and ",
+                    instruction: "a low note at the bottom of your range and use glissando until you match the note. ",
                     audioState: "root",
                     userAction: "match-root"
                 },
                 {
-                    command: "Use glissando",
-                    instruction: "to slowly your pitch up to match the note. If you pass it, try and find it and narrow in using your ears.",
+                    command: "Listen to",
+                    instruction: "how it feels to sing in unison. Try and move your singing pitch up and down a bit to learn the feel.",
                     audioState: "root",
-                    userAction: "sing-root"
+                    userAction: "match-root"
                 },
             ]
 
@@ -72,21 +75,21 @@ const INTERVAL_SYSTEM_EXERCISES = Object.freeze({
             steps: [
                 {
                     command: "Listen",
-                    instruction: "to the tone and how it feelins inside of you",
+                    instruction: "to the tone and how it feels inside of you",
                     audioState: "root",
                     userAction: "listen"
                 },
                 {
                     command: "Start singing",
-                    instruction: "a high note at the top of your range and ",
+                    instruction: "a high note at the top of your range and use glissando until you match the note. ",
                     audioState: "root",
                     userAction: "match-root"
                 },
                 {
-                    command: "Use glissando",
-                    instruction: "to slowly your pitch down to match the note. If you pass it, try and find it and narrow in using your ears.",
+                    command: "Listen to",
+                    instruction: "how it feels to sing in unison. Try and move your singing pitch up and down a bit to better learn the feel.",
                     audioState: "root",
-                    userAction: "sing-root"
+                    userAction: "match-root"
                 },
             ]
 
@@ -100,22 +103,23 @@ const INTERVAL_SYSTEM_EXERCISES = Object.freeze({
     intervals: [
         // Exercise 1: Hear the interval
         {
-            name: "Hear the Interval",
+            name: "Hear the Combo",
             steps: [
                 {
                     command: "Match",
-                    instruction: "the root note with your voice",
+                    instruction: "the root note with your voice and hold the root note.",
                     audioState: "root",
                     userAction: "match-root"
                 },
                 {
-                    command: "Hear Both",
-                    instruction: "notes together while holding the root",
+                    command: "Keep singing",
+                    instruction: "the root and hear both notes together. Listen to how the note your singing and the interval feel.",
                     audioState: "both",
                     userAction: "listen"
                 }
             ]
         },
+
 
         // Exercise 2: Stay on Root
         {
@@ -123,24 +127,18 @@ const INTERVAL_SYSTEM_EXERCISES = Object.freeze({
             steps: [
                 {
                     command: "Match",
-                    instruction: "the root note with your voice",
+                    instruction: "the root note with your voice and hold the root note.",
                     audioState: "root",
                     userAction: "match-root"
                 },
                 {
-                    command: "Hear Both",
-                    instruction: "while keeping singing the root - don't follow the interval",
-                    audioState: "both",
-                    userAction: "match-root"
-                },
-                {
-                    command: "Interval Only",
-                    instruction: "- hold the root note steady",
+                    command: "Keep singing",
+                    instruction: "the root and your singing with the interval. Listen to how they feel together.",
                     audioState: "interval",
-                    userAction: "sing-root"
+                    userAction: "listen"
                 },
                 {
-                    command: "Listen",
+                    command: "Listen back",
                     instruction: "- keep singing the root and check if you're still on it",
                     audioState: "root",
                     userAction: "listen"
@@ -159,20 +157,20 @@ const INTERVAL_SYSTEM_EXERCISES = Object.freeze({
                     userAction: "match-root"
                 },
                 {
-                    command: "Hear Interval",
-                    instruction: "and switch up to match it",
+                    command: "Match the interval",
+                    instruction: "by smoothly changing the pitch of your voice.",
                     audioState: "interval",
                     userAction: "match-interval"
                 },
                 {
-                    command: "Hear Root",
-                    instruction: "and switch back down to it",
+                    command: "Jump back to root",
+                    instruction: "And try to remember the difference in your head and body.",
                     audioState: "root",
                     userAction: "match-root"
                 },
                 {
-                    command: "Hear Interval",
-                    instruction: "and switch up to it again",
+                    command: "Jump to interval",
+                    instruction: "and switch up to it again. If you can't jump to it use glissando. You can go back and forth on this exercise until you get it.",
                     audioState: "interval",
                     userAction: "match-interval"
                 }

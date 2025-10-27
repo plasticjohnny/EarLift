@@ -1131,6 +1131,14 @@ function initializeTrainingMode() {
         });
     }
 
+    // Training Settings - Enable Tutorial Mode checkbox
+    const enableTutorialModeCheckbox = document.getElementById('settingEnableTutorialMode');
+    if (enableTutorialModeCheckbox) {
+        enableTutorialModeCheckbox.addEventListener('change', (e) => {
+            trainingUI.handleTutorialModeToggle(e.target.checked);
+        });
+    }
+
     // Training Settings - Reset button
     const resetTrainingDataBtn = document.getElementById('resetTrainingDataBtn');
     if (resetTrainingDataBtn) {

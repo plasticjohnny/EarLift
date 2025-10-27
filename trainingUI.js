@@ -79,6 +79,8 @@ class TrainingUI {
 
         // Select next exercise
         const exercise = this.trainingSystem.selectNextExercise();
+        console.log('[Training] Selected exercise:', exercise);
+
         if (!exercise) {
             alert('No exercises available. Please check your settings.');
             return;
@@ -86,8 +88,10 @@ class TrainingUI {
 
         this.currentExercise = exercise;
 
-        // Hide training menu
+        // Hide all containers
         document.getElementById('trainingMenu').style.display = 'none';
+        document.getElementById('appContainer').style.display = 'none';
+        document.getElementById('systemExerciseMenu').style.display = 'none';
 
         // Start the system exercise
         this.startSystemExercise(exercise.intervalType, exercise.exerciseIndex, exercise.targetNote);
@@ -97,14 +101,19 @@ class TrainingUI {
      * Start a system exercise with specific parameters
      */
     startSystemExercise(intervalType, exerciseIndex, targetNote) {
+        console.log('[Training] Starting system exercise:', intervalType, exerciseIndex, targetNote);
+        console.log('[Training] isInTrainingMode before starting:', this.isInTrainingMode);
+
         const config = getIntervalConfig(intervalType);
 
         if (!config) {
-            console.error(`No config found for interval type: ${intervalType}`);
+            console.error(`[Training] No config found for interval type: ${intervalType}`);
             alert(`System exercise for ${intervalType} not available`);
             this.showTrainingMenu();
             return;
         }
+
+        console.log('[Training] Got config:', config);
 
         // Store reference for completion callback
         this.currentIntervalType = intervalType;
@@ -114,31 +123,48 @@ class TrainingUI {
         try {
             // Create or reuse system exercise instance
             if (!window.systemExerciseInstance || !(window.systemExerciseInstance instanceof IntervalSystemExercise)) {
+                console.log('[Training] Creating new IntervalSystemExercise instance');
                 window.systemExerciseInstance = new IntervalSystemExercise(config, 'intervalSystemExercise');
             } else {
+                console.log('[Training] Reusing existing IntervalSystemExercise instance');
                 // Update config for new interval
                 window.systemExerciseInstance.intervalConfig = config;
                 window.systemExerciseInstance.intervalType = config.intervalType;
                 window.systemExerciseInstance.intervalName = config.intervalName;
                 window.systemExerciseInstance.isUnison = config.intervalType === 'unison';
+                window.systemExerciseInstance.isTutorial = config.intervalType === 'tutorial';
                 window.systemExerciseInstance.exercises = getSystemExercisesForInterval(config.intervalType);
             }
 
             // Set starting exercise index
             window.systemExerciseInstance.currentExerciseIndex = exerciseIndex;
             window.systemExerciseInstance.doAllExercises = false; // Single exercise mode
+            window.systemExerciseInstance.maxRepetitions = 1; // Only 1 repetition in training mode
 
             // Override the root frequency with our selected target note
             window.systemExerciseInstance.customRootFrequency = targetNote;
+            console.log('[Training] Set customRootFrequency:', targetNote);
+
+            // Ensure ALL other containers are hidden before starting
+            document.getElementById('appContainer').style.display = 'none';
+            document.getElementById('trainingMenu').style.display = 'none';
+            document.getElementById('systemExerciseMenu').style.display = 'none';
+            document.getElementById('trainingSettings').style.display = 'none';
+            document.getElementById('trainingProgress').style.display = 'none';
+            document.getElementById('trainingRatingUI').style.display = 'none';
+            console.log('[Training] All menus hidden, only exercise should be visible');
 
             // Start exercise
+            console.log('[Training] Calling start() on exercise instance');
             window.systemExerciseInstance.start();
 
             // Add completion callback
             this.attachCompletionCallback();
 
+            console.log('[Training] Exercise started successfully');
+
         } catch (error) {
-            console.error('Error initializing system exercise:', error);
+            console.error('[Training] Error initializing system exercise:', error);
             alert('Error starting system exercise: ' + error.message);
             this.showTrainingMenu();
         }
@@ -148,18 +174,43 @@ class TrainingUI {
      * Attach callback to intercept exercise completion
      */
     attachCompletionCallback() {
-        // We'll need to hook into the exercise's exit behavior
-        // Store original exit function
-        const originalExit = window.systemExerciseInstance.exitBtn.onclick;
+        console.log('[Training] Attaching completion callback, isInTrainingMode:', this.isInTrainingMode);
 
-        // Override exit to show rating UI instead
-        window.systemExerciseInstance.exitBtn.onclick = () => {
-            if (this.isInTrainingMode) {
-                // Show rating UI instead of exiting
-                this.showRatingUI();
+        // Store the original exit if we haven't already
+        if (!window.systemExerciseInstance._originalExit) {
+            window.systemExerciseInstance._originalExit = window.systemExerciseInstance.exit.bind(window.systemExerciseInstance);
+            console.log('[Training] Stored original exit method');
+        }
+
+        // Create a bound reference to this TrainingUI instance
+        const trainingUI = this;
+
+        // Override the exit method
+        window.systemExerciseInstance.exit = function() {
+            console.log('[Training] Exit called, isInTrainingMode:', trainingUI.isInTrainingMode);
+
+            if (trainingUI.isInTrainingMode) {
+                // Check if exercise was completed or user hit back early
+                const wasCompleted = this.repetitionsCompleted >= this.maxRepetitions;
+
+                // Stop audio but don't show appContainer
+                this.stopAll();
+                // Hide exercise screen
+                document.getElementById('intervalSystemExercise').style.display = 'none';
+
+                if (wasCompleted) {
+                    // Normal completion - show rating UI
+                    console.log('[Training] Exercise completed, showing rating UI');
+                    trainingUI.showRatingUI();
+                } else {
+                    // User hit back early - treat as skip (record as failed)
+                    console.log('[Training] Exercise skipped via back button, recording as failed');
+                    trainingUI.handleSkip();
+                }
             } else {
                 // Normal exit behavior
-                if (originalExit) originalExit.call(window.systemExerciseInstance.exitBtn);
+                console.log('[Training] Normal exit (not in training mode)');
+                window.systemExerciseInstance._originalExit();
             }
         };
     }
@@ -168,8 +219,13 @@ class TrainingUI {
      * Show difficulty rating UI
      */
     showRatingUI() {
-        // Hide exercise
+        console.log('[Training] Showing rating UI');
+
+        // Hide all other containers
         document.getElementById('intervalSystemExercise').style.display = 'none';
+        document.getElementById('appContainer').style.display = 'none';
+        document.getElementById('systemExerciseMenu').style.display = 'none';
+        document.getElementById('trainingMenu').style.display = 'none';
 
         // Show rating UI
         const ratingUI = document.getElementById('trainingRatingUI');
@@ -210,6 +266,34 @@ class TrainingUI {
     }
 
     /**
+     * Handle skip (back button pressed during exercise)
+     */
+    handleSkip() {
+        console.log('[Training] Handling skip');
+
+        // Get the actual root and interval frequencies from the exercise
+        const rootFreq = window.systemExerciseInstance.rootFrequency || this.currentTargetNote;
+        const intervalFreq = window.systemExerciseInstance.intervalFrequency || rootFreq;
+
+        // Record as failed
+        const newUnlocks = this.trainingSystem.recordExerciseResult(
+            this.currentIntervalType,
+            'failed',
+            rootFreq,
+            intervalFreq,
+            this.currentExerciseIndex
+        );
+
+        // Show unlock notification if any (unlikely with a failed attempt)
+        if (newUnlocks && newUnlocks.length > 0) {
+            this.showUnlockNotification(newUnlocks);
+        }
+
+        // Continue to next exercise
+        this.continueToNextExercise();
+    }
+
+    /**
      * Show unlock notification
      */
     showUnlockNotification(newUnlocks) {
@@ -234,6 +318,8 @@ class TrainingUI {
      * Continue to next exercise
      */
     continueToNextExercise() {
+        console.log('[Training] Continue to next exercise');
+
         // Select next exercise
         const exercise = this.trainingSystem.selectNextExercise();
         if (!exercise) {
@@ -243,6 +329,13 @@ class TrainingUI {
         }
 
         this.currentExercise = exercise;
+        console.log('[Training] Next exercise selected:', exercise);
+
+        // Ensure all menus are hidden before transitioning
+        document.getElementById('trainingMenu').style.display = 'none';
+        document.getElementById('appContainer').style.display = 'none';
+        document.getElementById('systemExerciseMenu').style.display = 'none';
+        document.getElementById('trainingRatingUI').style.display = 'none';
 
         // Small delay for smooth transition
         setTimeout(() => {
@@ -298,6 +391,9 @@ class TrainingUI {
 
         document.getElementById('settingUnlockWindow').value = settings.unlockWindow;
         document.getElementById('settingUnlockWindowValue').textContent = settings.unlockWindow;
+
+        // Update tutorial mode checkbox
+        document.getElementById('settingEnableTutorialMode').checked = settings.enableTutorialMode || false;
 
         // Update force unlock checkboxes
         this.updateForceUnlockDisplay();
@@ -359,6 +455,37 @@ class TrainingUI {
     updateSetting(settingName, value) {
         this.trainingData.data.settings[settingName] = parseFloat(value);
         this.trainingData.saveData();
+        this.updateSettingsDisplay();
+    }
+
+    /**
+     * Handle tutorial mode toggle
+     */
+    handleTutorialModeToggle(enabled) {
+        console.log('[Training] Tutorial mode toggled:', enabled);
+
+        // Update setting
+        this.trainingData.data.settings.enableTutorialMode = enabled;
+
+        // If enabling tutorial mode, add 'tutorial' to unlocked
+        if (enabled) {
+            if (!this.trainingData.data.unlocked.includes('tutorial')) {
+                this.trainingData.data.unlocked.unshift('tutorial'); // Add at beginning (most fundamental)
+                console.log('[Training] Added tutorial to unlocked exercises');
+            }
+        } else {
+            // If disabling tutorial mode, remove 'tutorial' from unlocked
+            const index = this.trainingData.data.unlocked.indexOf('tutorial');
+            if (index > -1) {
+                this.trainingData.data.unlocked.splice(index, 1);
+                console.log('[Training] Removed tutorial from unlocked exercises');
+            }
+        }
+
+        // Save changes
+        this.trainingData.saveData();
+
+        // Update display
         this.updateSettingsDisplay();
     }
 

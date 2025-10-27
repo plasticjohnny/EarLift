@@ -6149,7 +6149,7 @@ footer {
 
 /* Instruction card - center */
 .flow-instruction-card {
-    padding: 20px 10px; /* Minimal padding, JS sets text-indent for first line */
+    padding: 20px 10px 8px 10px; /* Reduced bottom padding for tight button fit */
     background: linear-gradient(135deg, rgb(176, 38, 255), rgb(156, 38, 235));
     border-radius: 12px;
     position: relative;
@@ -6168,37 +6168,33 @@ footer {
     display: block;
 }
 
-/* Float element to create right-side clearance for ThenAction button (last line only) */
-.flow-instruction::after {
-    content: '';
-    float: right;
-    width: var(--action-float-width, 95px);
-    height: var(--action-float-height, 3em);
-}
-
-
-/* Action button - locked to right edge of instruction box */
+/* Action button - positioned below text at lower-right corner */
 .flow-action-button {
-    padding: 12px 20px 12px 20px;
+    padding: 10px 18px;
     font-size: 0.95rem;
     font-weight: 600;
     color: #000000;
     background: linear-gradient(135deg, rgba(0, 255, 255, 0.7), rgba(0, 200, 255, 0.8));
     border: none;
-    border-radius: 0 8px 8px 0;
+    border-radius: 0; /* Box shape - no rounded corners */
     cursor: pointer;
     transition: all 0.2s;
     text-transform: capitalize;
     letter-spacing: 0.5px;
-    box-shadow: 15px 4px 15px rgba(0, 255, 255, 0.25);
+    box-shadow: 15px 4px 15px rgba(0, 255, 255, 0.25); /* Glow only on right/bottom */
     text-shadow: none;
-    position: absolute;
-    bottom: 20px;
-    right: -35px;
+    /* Position button extending past instruction box on right */
+    display: block;
+    margin-left: auto;
+    margin-top: 6px;
+    margin-right: -20px; /* Extend past right edge */
+    margin-bottom: 0;
+    width: fit-content;
+    position: relative;
     z-index: 3;
 }
 
-/* Triangle from instruction pointing into action button */
+/* Triangle pointing INTO button from left (entry triangle) */
 .flow-action-button::before {
     content: '';
     position: absolute;
@@ -6206,21 +6202,42 @@ footer {
     top: 0;
     width: 0;
     height: 0;
-    border-top: var(--action-triangle-size, 24px) solid transparent;
-    border-bottom: var(--action-triangle-size, 24px) solid transparent;
-    border-left: 12px solid rgb(156, 38, 235);
+    border-top: var(--action-triangle-size, 20px) solid transparent;
+    border-bottom: var(--action-triangle-size, 20px) solid transparent;
+    border-left: 12px solid rgb(156, 38, 235); /* Match instruction card color */
+    z-index: 1;
+}
+
+/* Triangle pointing OUT from button to right (exit triangle) */
+.flow-action-button::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 0;
+    height: 0;
+    border-top: var(--action-triangle-size, 20px) solid transparent;
+    border-bottom: var(--action-triangle-size, 20px) solid transparent;
+    border-left: 15px solid rgba(0, 255, 255, 0.65); /* Lighter and more transparent to match button appearance */
+    transform: translateX(100%); /* Push it outside the button */
+    filter: drop-shadow(4px 2px 6px rgba(0, 255, 255, 0.25)); /* Match button glow */
     z-index: 1;
 }
 
 .flow-action-button:hover {
     background: linear-gradient(135deg, rgba(0, 255, 255, 0.9), rgba(0, 220, 255, 0.9));
     transform: translateY(-2px);
-    box-shadow: 15px 8px 25px rgba(0, 255, 255, 0.5);
+    box-shadow: 15px 8px 25px rgba(0, 255, 255, 0.5); /* Glow only on right/bottom */
+}
+
+.flow-action-button:hover::after {
+    border-left-color: rgba(0, 255, 255, 0.85); /* Brighten exit triangle on hover to match */
+    filter: drop-shadow(6px 3px 10px rgba(0, 255, 255, 0.5)); /* Brighter glow on hover */
 }
 
 .flow-action-button:active {
     transform: translateY(0px);
-    box-shadow: 15px 4px 15px rgba(0, 255, 255, 0.3);
+    box-shadow: 15px 2px 8px rgba(0, 255, 255, 0.3); /* Glow only on right/bottom */
 }
 
 /* Progressive pulse animations */

@@ -42,7 +42,8 @@ class TrainingData {
                 // Future: allow customization of unlock thresholds, etc.
                 unlockThreshold: 0.75, // 75% of last 10 must be "easy"
                 unlockWindow: 10, // Last 10 attempts
-                priorityBoost: 1.5 // Multiplier for fundamental exercises
+                priorityBoost: 1.5, // Multiplier for fundamental exercises
+                enableTutorialMode: false // Include tutorial exercises in training mode
             }
         };
     }
@@ -195,8 +196,16 @@ class TrainingData {
      * Cascading unlock system based on mastery
      */
     checkUnlocks() {
-        const { unlockThreshold, unlockWindow } = this.data.settings;
+        const { unlockThreshold, unlockWindow, enableTutorialMode } = this.data.settings;
         let newUnlocks = [];
+
+        // Tier 0: Tutorial (if enabled) unlocks Unison
+        if (enableTutorialMode && this.isExerciseReady('tutorial', unlockThreshold, unlockWindow)) {
+            if (!this.data.unlocked.includes('unison')) {
+                this.data.unlocked.push('unison');
+                newUnlocks.push('unison');
+            }
+        }
 
         // Tier 1: Unison unlocks the foundational intervals
         if (this.isExerciseReady('unison', unlockThreshold, unlockWindow)) {
@@ -297,7 +306,14 @@ class TrainingData {
      * Get unlocked exercises
      */
     getUnlockedExercises() {
-        return [...this.data.unlocked, ...this.data.forceUnlocked];
+        let unlocked = [...this.data.unlocked, ...this.data.forceUnlocked];
+
+        // Filter out tutorial exercises if tutorial mode is disabled
+        if (!this.data.settings.enableTutorialMode) {
+            unlocked = unlocked.filter(interval => interval !== 'tutorial');
+        }
+
+        return unlocked;
     }
 
     /**
@@ -381,19 +397,20 @@ class TrainingData {
      */
     getFundamentalPriority(intervalType) {
         const priorityOrder = [
-            'unison',           // 0 - Most fundamental
-            'octave',           // 1
-            'fifth',            // 2
-            'major-third',      // 3
-            'major-second',     // 4
-            'minor-second',     // 5
-            'fourth',           // 6
-            'major-sixth',      // 7
-            'minor-sixth',      // 8
-            'minor-third',      // 9
-            'tritone',          // 10
-            'minor-seventh',    // 11
-            'major-seventh'     // 12 - Least fundamental
+            'tutorial',         // 0 - Most fundamental (vocal control basics)
+            'unison',           // 1
+            'octave',           // 2
+            'fifth',            // 3
+            'major-third',      // 4
+            'major-second',     // 5
+            'minor-second',     // 6
+            'fourth',           // 7
+            'major-sixth',      // 8
+            'minor-sixth',      // 9
+            'minor-third',      // 10
+            'tritone',          // 11
+            'minor-seventh',    // 12
+            'major-seventh'     // 13 - Least fundamental
         ];
 
         const index = priorityOrder.indexOf(intervalType);

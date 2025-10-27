@@ -19,6 +19,24 @@
  */
 
 const INTERVAL_CONFIGS = Object.freeze({
+    // Tutorial System (Foundational Vocal Exercises)
+    tutorial: {
+        intervalType: 'tutorial',
+        semitones: 0,
+        intervalName: 'Tutorial System',
+        frequencyRatio: 'N/A',
+        rootFreq: 440,
+        intervalFreq: 440,
+        description: 'foundational vocal control exercises',
+        character: 'non-interval based',
+        consonance: 'N/A',
+        tutorialEmphasis: 'Tutorial exercises focus on developing fundamental vocal control and pitch awareness without reference tones.',
+        waveEmphasis: 'Tutorial exercises develop your ability to control pitch through glissando and basic vocal techniques.',
+        interferenceEmphasis: 'Tutorial exercises are purely vocal exercises without harmonic relationships.',
+        comparisonIntervals: [],
+        isTutorial: true // Special flag to indicate this is not a traditional interval
+    },
+
     // Unison (Perfect Consonance)
     unison: {
         intervalType: 'unison',

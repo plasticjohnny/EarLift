@@ -102,6 +102,12 @@ class IntervalSystemExercise {
         if (this.exitBtn) {
             this.exitBtn.addEventListener('click', () => this.exit());
         }
+
+        // Update card width and triangle sizes on window resize
+        window.addEventListener('resize', () => {
+            this.calculateOptimalCardWidth();
+            this.updateTriangleSizes();
+        });
     }
 
     async start() {
@@ -220,6 +226,13 @@ class IntervalSystemExercise {
         const totalSteps = currentExercise.steps.length;
         const currentStep = currentExercise.steps[this.currentStepIndex];
 
+        // Hide flow container FIRST, before any text updates or DOM changes
+        const flowContainer = this.container.querySelector('.carousel-step-flow');
+        if (flowContainer) {
+            flowContainer.style.visibility = 'hidden';
+            flowContainer.style.opacity = '0';
+        }
+
         // Calculate prev/next step indices (with wrapping)
         const prevStepIndex = (this.currentStepIndex - 1 + totalSteps) % totalSteps;
         const nextStepIndex = (this.currentStepIndex + 1) % totalSteps;
@@ -265,11 +278,19 @@ class IntervalSystemExercise {
             this.actionButton.textContent = currentStep.actionButtonLabel || 'Continue';
         }
 
-        // Trigger progressive animation (instruction first, then button)
-        this.triggerStepAnimation();
-
         // Update glissando note pulsing based on step
         this.updateGlissandoPulse();
+
+        // Calculate optimal card width
+        this.calculateOptimalCardWidth();
+
+        // Force layout recalculation before positioning
+        if (this.flowInstructionCard) {
+            this.flowInstructionCard.offsetHeight;
+        }
+
+        // Position buttons based on calculated width
+        this.updateTriangleSizes();
 
         // Auto-play audio based on step's audioState
         this.applyAudioState(currentStep.audioState);
@@ -312,6 +333,195 @@ class IntervalSystemExercise {
         // Gradient animation is now handled by CSS and runs continuously
         // No step-based logic needed since we replaced the pulse effects
         // Keeping this method for future enhancements if needed
+    }
+
+    calculateOptimalCardWidth() {
+        if (!this.instructionElement || !this.flowInstructionCard) return;
+
+        const text = this.instructionElement.textContent;
+        if (!text) return;
+
+        // Create temporary element to measure text width without wrapping
+        const tempSpan = document.createElement('span');
+        tempSpan.style.cssText = `
+            position: absolute;
+            visibility: hidden;
+            white-space: nowrap;
+            font-size: 1.5rem;
+            font-weight: 600;
+            font-family: inherit;
+        `;
+        tempSpan.textContent = text;
+        document.body.appendChild(tempSpan);
+        const fullTextWidth = tempSpan.offsetWidth;
+        document.body.removeChild(tempSpan);
+
+        // Measure actual button widths and calculate clearances dynamically
+        let firstLineIndent = 60; // fallback
+        let lastLineFloatWidth = 100; // fallback
+
+        // Calculate first line clearance from Command button
+        if (this.commandElement) {
+            const commandWidth = this.commandElement.offsetWidth || 0;
+            const triangleWidth = 12;
+            const clearanceGap = 10;
+            firstLineIndent = commandWidth + triangleWidth + clearanceGap;
+        }
+
+        // Calculate last line clearance from ThenAction button
+        if (this.actionButton) {
+            const actionWidth = this.actionButton.offsetWidth || 0;
+            const buttonOverhang = 20; // button extends 20px outside card
+            const visibleWidth = actionWidth - buttonOverhang;
+            const clearanceGap = 10;
+            lastLineFloatWidth = visibleWidth + clearanceGap;
+        }
+
+        const horizontalClearance = firstLineIndent + lastLineFloatWidth;
+
+        // Aim for ~2.5 lines of text for good visual balance
+        const idealLineWidth = (fullTextWidth / 2.5) + horizontalClearance;
+
+        // Constrain between reasonable min/max values
+        const minWidth = 350; // prevent too narrow
+        const maxWidth = 700; // prevent too wide
+        const optimalWidth = Math.min(Math.max(idealLineWidth, minWidth), maxWidth);
+
+        this.flowInstructionCard.style.maxWidth = optimalWidth + 'px';
+    }
+
+    updateTriangleSizes() {
+        // Force browser to apply all pending layouts including CSS transforms
+        // This ensures getBoundingClientRect returns accurate positions
+        if (this.flowInstructionCard) {
+            this.flowInstructionCard.offsetHeight; // Reading offsetHeight forces reflow
+        }
+
+        // Calculate actual button heights
+        const commandHeight = this.commandElement?.offsetHeight || 0;
+        const actionHeight = this.actionButton?.offsetHeight || 0;
+
+        // Triangle borders should be half the button height (top + bottom = full height)
+        const commandTriangleSize = commandHeight / 2;
+        const actionTriangleSize = actionHeight / 2;
+
+        // Update triangle sizes using CSS custom properties
+        if (this.commandElement && commandHeight > 0) {
+            this.commandElement.style.setProperty('--command-triangle-size', `${commandTriangleSize}px`);
+        }
+
+        if (this.actionButton && actionHeight > 0) {
+            this.actionButton.style.setProperty('--action-triangle-size', `${actionTriangleSize}px`);
+        }
+
+        // Position Command button to left of instruction card
+        if (this.commandElement && this.flowInstructionCard) {
+            try {
+                const cardRect = this.flowInstructionCard.getBoundingClientRect();
+                const containerRect = this.container.querySelector('.carousel-step-flow').getBoundingClientRect();
+
+                // Fixed overhang - button extends this far outside card (left side)
+                // Button grows RIGHTWARD (into card) as text gets longer
+                const buttonOverhang = 20; // static overhang distance
+
+                // Position button's left edge at fixed distance from card's left edge
+                const buttonLeft = (cardRect.left - containerRect.left) - buttonOverhang;
+
+                // Align vertically with card's text area (card top + padding)
+                const cardPaddingTop = 20; // from CSS padding-top
+                const buttonTop = (cardRect.top - containerRect.top) + cardPaddingTop;
+
+                this.commandElement.style.left = buttonLeft + 'px';
+                this.commandElement.style.top = buttonTop + 'px';
+            } catch (e) {
+                console.warn('Could not calculate command button position:', e);
+            }
+        }
+
+        // Calculate and set instruction padding to prevent text overlap
+        if (this.flowInstructionCard && this.instructionElement) {
+            // FIRST LINE ONLY - use text-indent to clear Command button
+            if (this.commandElement) {
+                try {
+                    // Get actual pixel positions to account for all margins/positioning
+                    const buttonRect = this.commandElement.getBoundingClientRect();
+                    const cardRect = this.flowInstructionCard.getBoundingClientRect();
+
+                    // Calculate how far button extends past card's left edge
+                    const triangleWidth = 12; // triangle extends 12px beyond button
+                    const clearanceGap = 10; // gap between triangle and text
+                    const cardPaddingLeft = 10; // current padding-left on card
+
+                    // Button right edge + triangle - card left edge = overlap into card space
+                    const buttonRightWithTriangle = buttonRect.right + triangleWidth;
+                    const overlapIntoCard = buttonRightWithTriangle - cardRect.left;
+
+                    // Text-indent needed: overlap - existing padding + clearance
+                    const firstLineIndent = Math.max(0, overlapIntoCard - cardPaddingLeft + clearanceGap);
+                    this.instructionElement.style.textIndent = firstLineIndent + 'px';
+                } catch (e) {
+                    console.warn('Could not calculate first line indent:', e);
+                    // Fallback to safe default
+                    this.instructionElement.style.textIndent = '90px';
+                }
+            }
+
+            // LEFT: Minimal padding for middle lines (first line uses text-indent)
+            this.flowInstructionCard.style.paddingLeft = '10px';
+
+            // RIGHT: Minimal padding (float pseudo-element handles last line clearance)
+            this.flowInstructionCard.style.paddingRight = '10px';
+
+            // Calculate float width and height for last line clearance
+            if (this.actionButton) {
+                const actionButtonWidth = this.actionButton.offsetWidth || 120;
+                const actionButtonHeight = this.actionButton.offsetHeight || 48;
+                const buttonOverhang = 20; // button extends 20px outside card
+                const visibleButtonWidth = actionButtonWidth - buttonOverhang;
+                const clearanceGap = 10; // gap between text and button
+                const floatWidth = visibleButtonWidth + clearanceGap;
+                const floatHeight = actionButtonHeight + 10;
+
+                // Set CSS custom properties for the ::after float element
+                this.instructionElement.style.setProperty('--action-float-width', `${floatWidth}px`);
+                this.instructionElement.style.setProperty('--action-float-height', `${floatHeight}px`);
+            } else {
+                // Fallback values
+                this.instructionElement.style.setProperty('--action-float-width', '110px');
+                this.instructionElement.style.setProperty('--action-float-height', '3em');
+            }
+
+            // Keep top/bottom padding consistent
+            this.flowInstructionCard.style.paddingTop = '20px';
+            this.flowInstructionCard.style.paddingBottom = '20px';
+        }
+
+        // Position ThenAction button to right of instruction card
+        // Fixed overhang matching Command button - button extends this far outside card (right side)
+        // Button grows LEFTWARD (into card) as text gets longer
+        if (this.actionButton && this.flowInstructionCard) {
+            try {
+                const buttonOverhang = 20; // static overhang distance (matches Command button)
+
+                // Position button's right edge at fixed distance from card's right edge
+                // Negative value extends button to the right
+                this.actionButton.style.right = -buttonOverhang + 'px';
+            } catch (e) {
+                console.warn('Could not calculate action button position:', e);
+                // Fallback to default position
+                this.actionButton.style.right = '-40px';
+            }
+        }
+
+        // Show flow container after all positioning is complete
+        const flowContainer = this.container.querySelector('.carousel-step-flow');
+        if (flowContainer) {
+            flowContainer.style.visibility = 'visible';
+            flowContainer.style.opacity = '1';
+        }
+
+        // Trigger animation AFTER showing
+        this.triggerStepAnimation();
     }
 
     async applyAudioState(audioState) {

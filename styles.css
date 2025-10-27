@@ -6046,12 +6046,12 @@ footer {
 
 /* Flow container inside current step */
 .carousel-step-flow {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: baseline;
+    display: block;
     position: relative;
     width: 100%;
-    column-gap: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in, visibility 0s;
 }
 
 /* Command button - overlaps from left */
@@ -6064,11 +6064,10 @@ footer {
     background: rgb(120, 30, 180);
     border-radius: 8px 0 0 8px;
     text-align: center;
-    position: relative;
+    position: absolute;
     z-index: 3;
-    grid-column: 1;
-    margin-left: -10px;
-    margin-right: -20px;
+    left: 0; /* Will be set by JavaScript */
+    top: 0; /* Will be set by JavaScript */
     transition: background 0.2s, transform 0.2s;
 }
 
@@ -6090,22 +6089,22 @@ footer {
     top: 0;
     width: 0;
     height: 0;
-    border-top: 20px solid transparent;
-    border-bottom: 20px solid transparent;
+    border-top: var(--command-triangle-size, 22px) solid transparent;
+    border-bottom: var(--command-triangle-size, 22px) solid transparent;
     border-left: 12px solid rgb(120, 30, 180);
     transition: border-left-color 0.2s;
 }
 
 /* Instruction card - center */
 .flow-instruction-card {
-    padding: 20px 30px 20px 25px;
+    padding: 20px 10px; /* Minimal padding, JS sets text-indent for first line */
     background: linear-gradient(135deg, rgb(176, 38, 255), rgb(156, 38, 235));
     border-radius: 12px;
     position: relative;
     z-index: 2;
-    grid-column: 2;
-    margin-left: -25px;
-    margin-right: -25px;
+    margin: 0 auto;
+    overflow: visible;
+    max-width: 500px; /* Default width, JavaScript adjusts per step */
 }
 
 .flow-instruction {
@@ -6114,10 +6113,18 @@ footer {
     color: #ffffff;
     text-align: left;
     line-height: 1.6;
-    text-indent: 35px;
+    display: block;
 }
 
-/* Action button - overlaps from right */
+/* Float element to create right-side clearance for ThenAction button (last line only) */
+.flow-instruction::after {
+    content: '';
+    float: right;
+    width: var(--action-float-width, 95px);
+    height: var(--action-float-height, 3em);
+}
+
+/* Action button - locked to right edge of instruction box */
 .flow-action-button {
     padding: 12px 20px 12px 20px;
     font-size: 0.95rem;
@@ -6132,13 +6139,10 @@ footer {
     letter-spacing: 0.5px;
     box-shadow: 15px 4px 15px rgba(0, 255, 255, 0.25);
     text-shadow: none;
-    position: relative;
+    position: absolute;
+    bottom: 20px;
+    right: -35px;
     z-index: 3;
-    grid-column: 3;
-    align-self: end;
-    margin-top: -8px;
-    margin-left: -20px;
-    margin-right: -10px;
 }
 
 /* Triangle from instruction pointing into action button */
@@ -6149,8 +6153,8 @@ footer {
     top: 0;
     width: 0;
     height: 0;
-    border-top: 21px solid transparent;
-    border-bottom: 21px solid transparent;
+    border-top: var(--action-triangle-size, 24px) solid transparent;
+    border-bottom: var(--action-triangle-size, 24px) solid transparent;
     border-left: 12px solid rgb(156, 38, 235);
     z-index: 1;
 }
@@ -6278,29 +6282,45 @@ footer {
     }
 
     .carousel-step-flow {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto;
-        row-gap: 10px;
-        padding: 15px;
+        grid-template-columns: auto 1fr;
     }
 
     .flow-command {
-        grid-column: 1;
-        grid-row: 1;
-        margin-left: 0;
-        margin-right: 0;
-        font-size: 1rem;
-        padding: 10px 12px;
-        justify-self: start;
+        padding: 3px 5px 3px 10px;
+    }
+
+    .flow-command::after {
+        border-top: var(--command-triangle-size, 16px) solid transparent;
+        border-bottom: var(--command-triangle-size, 16px) solid transparent;
     }
 
     .flow-instruction-card {
-        grid-column: 1;
-        grid-row: 2;
-        margin-left: 0;
-        margin-right: 0;
-        max-width: 100%;
-        padding: 18px 20px;
+        padding: 15px 10px; /* Minimal padding, JS sets text-indent for first line */
+        margin-right: 10px;
+    }
+
+    .flow-instruction {
+        /* Keep desktop font size, let text wrap */
+    }
+
+    .flow-action-button {
+        padding: 10px 16px;
+    }
+
+    .flow-action-button::before {
+        border-top: var(--action-triangle-size, 17px) solid transparent;
+        border-bottom: var(--action-triangle-size, 17px) solid transparent;
+    }
+
+    .carousel-step-text {
+        font-size: 0.85rem;
+    }
+}
+
+/* Very small screens - reduce font sizes as last resort */
+@media (max-width: 400px) {
+    .flow-command {
+        font-size: 1.3rem;
     }
 
     .flow-instruction {
@@ -6308,14 +6328,6 @@ footer {
     }
 
     .flow-action-button {
-        grid-column: 1;
-        grid-row: 3;
-        margin-left: 0;
-        margin-right: 0;
-        justify-self: end;
-    }
-
-    .carousel-step-text {
         font-size: 0.85rem;
     }
 }

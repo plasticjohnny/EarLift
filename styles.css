@@ -5765,7 +5765,8 @@ footer {
 .system-exercise-indicators {
     display: flex;
     justify-content: center;
-    gap: 40px;
+    align-items: center;
+    gap: 30px;
     margin: 30px 0;
 }
 
@@ -5805,6 +5806,57 @@ footer {
     border-radius: 50%;
     background: rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
+}
+
+.solfege-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #ffffff;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.6), 0 2px 4px rgba(0, 0, 0, 0.5);
+    z-index: 10;
+    pointer-events: none;
+}
+
+.middle-icon-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.middle-icon-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 80px;
+    height: 80px;
+}
+
+.middle-icon-content .icon-face {
+    max-height: 80px;
+    max-width: 80px;
+    height: auto;
+    width: auto;
+    object-fit: contain;
+    filter: invert(1);
+}
+
+.middle-icon-content .icon-ear {
+    max-height: 40px;
+    max-width: 40px;
+    height: auto;
+    width: auto;
+    object-fit: contain;
+    filter: invert(1);
+}
+
+.middle-icon-content .icon-face.flipped {
+    transform: scaleX(-1);
 }
 
 .tone-indicator:hover .indicator-animation {
@@ -6124,52 +6176,6 @@ footer {
     height: var(--action-float-height, 3em);
 }
 
-/* System Exercise Icons */
-.system-exercise-icons {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 15px;
-    min-height: 112px;
-}
-
-.icon-speaker,
-.icon-face,
-.icon-ear {
-    max-height: 112px;
-    max-width: 112px;
-    height: auto;
-    width: auto;
-    object-fit: contain;
-    position: relative;
-}
-
-.icon-speaker-container {
-    position: relative;
-    display: inline-block;
-}
-
-.icon-speaker.silent {
-    opacity: 0.35;
-    filter: grayscale(80%);
-}
-
-.speaker-label {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #000000;
-    text-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
-    pointer-events: none;
-}
-
-.icon-face.flipped {
-    transform: scaleX(-1);
-}
 
 /* Action button - locked to right edge of instruction box */
 .flow-action-button {
@@ -6350,20 +6356,22 @@ footer {
         /* Keep desktop font size, let text wrap */
     }
 
-    .system-exercise-icons {
-        min-height: 90px;
-        gap: 10px;
-        margin-bottom: 10px;
+    .middle-icon-content {
+        width: 60px;
+        height: 60px;
     }
 
-    .icon-speaker,
-    .icon-face,
-    .icon-ear {
-        max-height: 90px;
-        max-width: 90px;
+    .middle-icon-content .icon-face {
+        max-height: 60px;
+        max-width: 60px;
     }
 
-    .speaker-label {
+    .middle-icon-content .icon-ear {
+        max-height: 30px;
+        max-width: 30px;
+    }
+
+    .solfege-label {
         font-size: 1.5rem;
     }
 

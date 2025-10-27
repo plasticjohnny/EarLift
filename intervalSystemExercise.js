@@ -70,7 +70,9 @@ class IntervalSystemExercise {
         this.intervalIndicator = this.container.querySelector('[data-system-exercise="interval-indicator"]');
         this.glissandoIndicator = this.container.querySelector('[data-system-exercise="glissando-indicator"]');
         this.glissandoNotesImg = this.glissandoIndicator ? this.glissandoIndicator.querySelector('.glissando-notes') : null;
-        this.iconsContainer = this.container.querySelector('[data-system-exercise="icons"]');
+        this.middleIconsContainer = this.container.querySelector('[data-system-exercise="middle-icons"]');
+        this.rootSolfegeLabel = this.container.querySelector('[data-system-exercise="root-solfege"]');
+        this.intervalSolfegeLabel = this.container.querySelector('[data-system-exercise="interval-solfege"]');
     }
 
     attachEventListeners() {
@@ -274,9 +276,16 @@ class IntervalSystemExercise {
             this.instructionElement.textContent = getInstruction(currentStep);
         }
 
-        // Update action button
+        // Update action button - dynamically generate label from next step's command
         if (this.actionButton) {
-            this.actionButton.textContent = currentStep.actionButtonLabel || 'Continue';
+            const isLastStep = this.currentStepIndex === totalSteps - 1;
+            if (isLastStep) {
+                this.actionButton.textContent = 'Finish';
+            } else {
+                const nextStep = currentExercise.steps[this.currentStepIndex + 1];
+                const nextCommand = nextStep.command.toLowerCase();
+                this.actionButton.textContent = `then ${nextCommand}`;
+            }
         }
 
         // Update glissando note pulsing based on step
@@ -359,105 +368,54 @@ class IntervalSystemExercise {
     }
 
     renderStepIcons(step) {
-        if (!this.iconsContainer) return;
+        if (!this.middleIconsContainer) return;
 
-        // For Unison Glissando exercise, don't show icons (uses separate indicator)
+        // For Unison Glissando exercise, hide middle icons (uses separate indicator)
         const currentExercise = this.exercises[this.currentExerciseIndex];
         if (currentExercise.name === 'Glissando') {
-            this.iconsContainer.innerHTML = '';
-            this.iconsContainer.style.display = 'none';
+            this.middleIconsContainer.innerHTML = '';
+            this.middleIconsContainer.style.display = 'none';
             return;
         }
 
-        this.iconsContainer.style.display = 'flex';
+        this.middleIconsContainer.style.display = 'flex';
 
         const { userAction, audioState } = step;
         const isUnison = this.isUnison;
         const intervalSemitones = this.intervalConfig?.semitones || 0;
         const intervalSolfege = this.getSolfegeLabel(intervalSemitones, this.goingUp);
 
-        let iconsHTML = '';
+        // Update solfege labels in circles
+        if (this.rootSolfegeLabel) {
+            this.rootSolfegeLabel.textContent = 'Do';
+        }
+        if (this.intervalSolfegeLabel && !isUnison) {
+            this.intervalSolfegeLabel.textContent = intervalSolfege;
+        }
 
-        // Determine which icons to show based on userAction and audioState
-        const showRootSpeaker = ['root', 'both'].includes(audioState) ||
-                                 ['sing-root', 'match-root'].includes(userAction);
-        const showIntervalSpeaker = !isUnison && (['interval', 'both'].includes(audioState) ||
-                                      ['sing-interval', 'match-interval'].includes(userAction));
-        const rootSpeakerSilent = !['root', 'both'].includes(audioState);
-        const intervalSpeakerSilent = !['interval', 'both'].includes(audioState);
+        // Build middle icons HTML (face/ear only, no speakers)
+        let iconsHTML = '';
 
         const showFace = ['match-root', 'match-interval', 'sing-root', 'sing-interval'].includes(userAction);
         const showEar = userAction === 'listen';
 
         const faceTowardsInterval = ['match-interval', 'sing-interval'].includes(userAction);
-        const faceFlipped = !faceTowardsInterval; // Face right by default (towards root)
 
-        // Build icons HTML
-        // Layout: [Root Speaker] [Face/Ear] [Interval Speaker]
-
-        // Root Speaker (left)
-        if (showRootSpeaker) {
-            const silentClass = rootSpeakerSilent ? ' silent' : '';
+        // Ear only shows for pure "listen" actions (no singing)
+        if (showEar) {
             iconsHTML += `
-                <div class="icon-speaker-container">
-                    <img src="images/roundspeaker.png" alt="Root note" class="icon-speaker${silentClass}">
-                    <div class="speaker-label">Do</div>
-                </div>
+                <img src="images/earwithsound.png" alt="Listening" class="icon-ear">
             `;
         }
-
-        // Middle: Face or Ear
-        if (showEar && audioState === 'both') {
-            // Special case: listening to both notes with ear in middle
-            iconsHTML += `
-                <img src="images/earwithsound.png" alt="Listening" class="icon-ear">
-            `;
-        } else if (showEar && audioState === 'root') {
-            // Listening to root only
-            iconsHTML += `
-                <img src="images/earwithsound.png" alt="Listening" class="icon-ear">
-            `;
-        } else if (showEar && audioState === 'interval') {
-            // Listening to interval only
-            iconsHTML += `
-                <img src="images/earwithsound.png" alt="Listening" class="icon-ear">
-            `;
-        } else if (showFace && audioState !== 'none') {
-            // Singing while audio plays (test/check scenario)
-            // Face faces the tone being sung, ear on opposite side
-            if (faceTowardsInterval) {
-                // Singing interval: ear, then face (facing right towards interval)
-                iconsHTML += `
-                    <img src="images/earwithsound.png" alt="Listening" class="icon-ear">
-                    <img src="images/facesinging.png" alt="Singing" class="icon-face">
-                `;
-            } else {
-                // Singing root: face (facing left towards root), then ear
-                iconsHTML += `
-                    <img src="images/facesinging.png" alt="Singing" class="icon-face flipped">
-                    <img src="images/earwithsound.png" alt="Listening" class="icon-ear">
-                `;
-            }
-        } else if (showFace) {
-            // Singing without audio (audioState = 'none')
-            const faceFlippedClass = faceFlipped ? ' flipped' : '';
+        // Face shows when user is singing/matching (with or without audio)
+        else if (showFace) {
+            const faceFlippedClass = faceTowardsInterval ? '' : ' flipped';
             iconsHTML += `
                 <img src="images/facesinging.png" alt="Singing" class="icon-face${faceFlippedClass}">
             `;
         }
 
-        // Interval Speaker (right) - only for non-unison
-        if (showIntervalSpeaker) {
-            const silentClass = intervalSpeakerSilent ? ' silent' : '';
-            iconsHTML += `
-                <div class="icon-speaker-container">
-                    <img src="images/roundspeaker.png" alt="Interval note" class="icon-speaker${silentClass}">
-                    <div class="speaker-label">${intervalSolfege}</div>
-                </div>
-            `;
-        }
-
-        this.iconsContainer.innerHTML = iconsHTML;
+        this.middleIconsContainer.innerHTML = iconsHTML;
     }
 
     calculateOptimalCardWidth() {

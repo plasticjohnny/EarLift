@@ -6124,6 +6124,53 @@ footer {
     height: var(--action-float-height, 3em);
 }
 
+/* System Exercise Icons */
+.system-exercise-icons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    min-height: 112px;
+}
+
+.icon-speaker,
+.icon-face,
+.icon-ear {
+    max-height: 112px;
+    max-width: 112px;
+    height: auto;
+    width: auto;
+    object-fit: contain;
+    position: relative;
+}
+
+.icon-speaker-container {
+    position: relative;
+    display: inline-block;
+}
+
+.icon-speaker.silent {
+    opacity: 0.35;
+    filter: grayscale(80%);
+}
+
+.speaker-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #000000;
+    text-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
+    pointer-events: none;
+}
+
+.icon-face.flipped {
+    transform: scaleX(-1);
+}
+
 /* Action button - locked to right edge of instruction box */
 .flow-action-button {
     padding: 12px 20px 12px 20px;
@@ -6301,6 +6348,23 @@ footer {
 
     .flow-instruction {
         /* Keep desktop font size, let text wrap */
+    }
+
+    .system-exercise-icons {
+        min-height: 90px;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .icon-speaker,
+    .icon-face,
+    .icon-ear {
+        max-height: 90px;
+        max-width: 90px;
+    }
+
+    .speaker-label {
+        font-size: 1.5rem;
     }
 
     .flow-action-button {

@@ -46,10 +46,10 @@ const INTERVAL_SYSTEM_EXERCISES = Object.freeze({
                     actionButtonLabel: "then Check Pitch"
                 },
                 {
-                    command: "Check Pitch",
-                    instruction: "- are you still matching?",
+                    command: "Listen",
+                    instruction: "- keep singing and check if you're still matching",
                     audioState: "root",
-                    userAction: "test-root",
+                    userAction: "listen",
                     actionButtonLabel: "Finish"
                 }
             ]
@@ -130,10 +130,10 @@ const INTERVAL_SYSTEM_EXERCISES = Object.freeze({
                     actionButtonLabel: "then Check Root"
                 },
                 {
-                    command: "Check Root",
-                    instruction: "- are you still on it?",
+                    command: "Listen",
+                    instruction: "- keep singing the root and check if you're still on it",
                     audioState: "root",
-                    userAction: "test-root",
+                    userAction: "listen",
                     actionButtonLabel: "Finish"
                 }
             ]
@@ -228,10 +228,10 @@ const INTERVAL_SYSTEM_EXERCISES = Object.freeze({
                     actionButtonLabel: "then Check It"
                 },
                 {
-                    command: "Check It",
-                    instruction: "- adjust with glissando if needed",
+                    command: "Listen",
+                    instruction: "- keep singing and adjust with glissando if needed",
                     audioState: "interval",
-                    userAction: "test-interval",
+                    userAction: "listen",
                     actionButtonLabel: "then Hear Root"
                 },
                 {
@@ -263,10 +263,10 @@ const INTERVAL_SYSTEM_EXERCISES = Object.freeze({
                     actionButtonLabel: "then Check It"
                 },
                 {
-                    command: "Check It",
-                    instruction: "- adjust with glissando if needed",
+                    command: "Listen",
+                    instruction: "- keep singing and adjust with glissando if needed",
                     audioState: "interval",
-                    userAction: "test-interval",
+                    userAction: "listen",
                     actionButtonLabel: "Finish"
                 }
             ]

@@ -1,0 +1,464 @@
+/**
+ * Training UI
+ *
+ * Handles all UI interactions for the Training Mode system.
+ */
+
+class TrainingUI {
+    constructor() {
+        this.trainingData = new TrainingData();
+        this.trainingSystem = new TrainingSystem(this.trainingData);
+        this.currentExercise = null;
+        this.isInTrainingMode = false;
+
+        // Initialize vocal range
+        this.initializeVocalRange();
+    }
+
+    initializeVocalRange() {
+        const range = appSettings.getVocalRange();
+        if (range && range.low && range.high) {
+            this.trainingSystem.setVocalRange(range.low.frequency, range.high.frequency);
+        }
+    }
+
+    /**
+     * Show Training Mode main menu
+     */
+    showTrainingMenu() {
+        // Hide main app
+        document.getElementById('appContainer').style.display = 'none';
+
+        // Show training menu
+        const trainingMenu = document.getElementById('trainingMenu');
+        trainingMenu.style.display = 'block';
+
+        // Update stats display
+        this.updateTrainingMenuStats();
+    }
+
+    /**
+     * Hide Training Mode and return to main app
+     */
+    hideTrainingMenu() {
+        document.getElementById('trainingMenu').style.display = 'none';
+        document.getElementById('appContainer').style.display = 'block';
+        this.isInTrainingMode = false;
+    }
+
+    /**
+     * Update stats on training menu
+     */
+    updateTrainingMenuStats() {
+        const unlocked = this.trainingData.getUnlockedExercises();
+        const allIntervals = ['unison', 'octave', 'fifth', 'major-third', 'fourth',
+                              'major-second', 'minor-second', 'minor-third',
+                              'major-sixth', 'minor-sixth', 'major-seventh', 'minor-seventh', 'tritone'];
+
+        // Update unlock count
+        document.getElementById('trainingUnlockCount').textContent =
+            `${unlocked.length} / ${allIntervals.length} intervals unlocked`;
+
+        // Calculate total practice count
+        let totalPractices = 0;
+        Object.values(this.trainingData.data.exercises).forEach(ex => {
+            totalPractices += ex.attempts ? ex.attempts.length : 0;
+        });
+        document.getElementById('trainingPracticeCount').textContent =
+            `${totalPractices} exercises completed`;
+
+        // Update progress indicators
+        this.updateProgressDisplay();
+    }
+
+    /**
+     * Start Train Now mode
+     */
+    startTrainNow() {
+        this.isInTrainingMode = true;
+
+        // Select next exercise
+        const exercise = this.trainingSystem.selectNextExercise();
+        if (!exercise) {
+            alert('No exercises available. Please check your settings.');
+            return;
+        }
+
+        this.currentExercise = exercise;
+
+        // Hide training menu
+        document.getElementById('trainingMenu').style.display = 'none';
+
+        // Start the system exercise
+        this.startSystemExercise(exercise.intervalType, exercise.exerciseIndex, exercise.targetNote);
+    }
+
+    /**
+     * Start a system exercise with specific parameters
+     */
+    startSystemExercise(intervalType, exerciseIndex, targetNote) {
+        const config = getIntervalConfig(intervalType);
+
+        if (!config) {
+            console.error(`No config found for interval type: ${intervalType}`);
+            alert(`System exercise for ${intervalType} not available`);
+            this.showTrainingMenu();
+            return;
+        }
+
+        // Store reference for completion callback
+        this.currentIntervalType = intervalType;
+        this.currentExerciseIndex = exerciseIndex;
+        this.currentTargetNote = targetNote;
+
+        try {
+            // Create or reuse system exercise instance
+            if (!window.systemExerciseInstance || !(window.systemExerciseInstance instanceof IntervalSystemExercise)) {
+                window.systemExerciseInstance = new IntervalSystemExercise(config, 'intervalSystemExercise');
+            } else {
+                // Update config for new interval
+                window.systemExerciseInstance.intervalConfig = config;
+                window.systemExerciseInstance.intervalType = config.intervalType;
+                window.systemExerciseInstance.intervalName = config.intervalName;
+                window.systemExerciseInstance.isUnison = config.intervalType === 'unison';
+                window.systemExerciseInstance.exercises = getSystemExercisesForInterval(config.intervalType);
+            }
+
+            // Set starting exercise index
+            window.systemExerciseInstance.currentExerciseIndex = exerciseIndex;
+            window.systemExerciseInstance.doAllExercises = false; // Single exercise mode
+
+            // Override the root frequency with our selected target note
+            window.systemExerciseInstance.customRootFrequency = targetNote;
+
+            // Start exercise
+            window.systemExerciseInstance.start();
+
+            // Add completion callback
+            this.attachCompletionCallback();
+
+        } catch (error) {
+            console.error('Error initializing system exercise:', error);
+            alert('Error starting system exercise: ' + error.message);
+            this.showTrainingMenu();
+        }
+    }
+
+    /**
+     * Attach callback to intercept exercise completion
+     */
+    attachCompletionCallback() {
+        // We'll need to hook into the exercise's exit behavior
+        // Store original exit function
+        const originalExit = window.systemExerciseInstance.exitBtn.onclick;
+
+        // Override exit to show rating UI instead
+        window.systemExerciseInstance.exitBtn.onclick = () => {
+            if (this.isInTrainingMode) {
+                // Show rating UI instead of exiting
+                this.showRatingUI();
+            } else {
+                // Normal exit behavior
+                if (originalExit) originalExit.call(window.systemExerciseInstance.exitBtn);
+            }
+        };
+    }
+
+    /**
+     * Show difficulty rating UI
+     */
+    showRatingUI() {
+        // Hide exercise
+        document.getElementById('intervalSystemExercise').style.display = 'none';
+
+        // Show rating UI
+        const ratingUI = document.getElementById('trainingRatingUI');
+        ratingUI.style.display = 'flex';
+
+        // Get interval name for display
+        const config = getIntervalConfig(this.currentIntervalType);
+        document.getElementById('ratingIntervalName').textContent = config ? config.intervalName : this.currentIntervalType;
+    }
+
+    /**
+     * Handle difficulty rating selection
+     */
+    handleRating(difficulty) {
+        // Get the actual root and interval frequencies from the exercise
+        const rootFreq = window.systemExerciseInstance.rootFrequency || this.currentTargetNote;
+        const intervalFreq = window.systemExerciseInstance.intervalFrequency || rootFreq;
+
+        // Record the result
+        const newUnlocks = this.trainingSystem.recordExerciseResult(
+            this.currentIntervalType,
+            difficulty,
+            rootFreq,
+            intervalFreq,
+            this.currentExerciseIndex
+        );
+
+        // Hide rating UI
+        document.getElementById('trainingRatingUI').style.display = 'none';
+
+        // Show unlock notification if any
+        if (newUnlocks && newUnlocks.length > 0) {
+            this.showUnlockNotification(newUnlocks);
+        }
+
+        // Continue to next exercise
+        this.continueToNextExercise();
+    }
+
+    /**
+     * Show unlock notification
+     */
+    showUnlockNotification(newUnlocks) {
+        const notification = document.getElementById('trainingUnlockNotification');
+        const list = document.getElementById('trainingUnlockList');
+
+        // Build list of unlocked intervals
+        list.innerHTML = newUnlocks.map(intervalType => {
+            const config = getIntervalConfig(intervalType);
+            return `<li>${config ? config.intervalName : intervalType}</li>`;
+        }).join('');
+
+        notification.style.display = 'flex';
+
+        // Auto-hide after 4 seconds
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 4000);
+    }
+
+    /**
+     * Continue to next exercise
+     */
+    continueToNextExercise() {
+        // Select next exercise
+        const exercise = this.trainingSystem.selectNextExercise();
+        if (!exercise) {
+            alert('No more exercises available.');
+            this.showTrainingMenu();
+            return;
+        }
+
+        this.currentExercise = exercise;
+
+        // Small delay for smooth transition
+        setTimeout(() => {
+            this.startSystemExercise(exercise.intervalType, exercise.exerciseIndex, exercise.targetNote);
+        }, 300);
+    }
+
+    /**
+     * Exit training mode (from rating UI or during exercise)
+     */
+    exitTrainingMode() {
+        this.isInTrainingMode = false;
+
+        // Hide all training UIs
+        document.getElementById('trainingRatingUI').style.display = 'none';
+        document.getElementById('intervalSystemExercise').style.display = 'none';
+
+        // Show training menu
+        this.showTrainingMenu();
+    }
+
+    /**
+     * Show Settings menu
+     */
+    showSettings() {
+        document.getElementById('trainingMenu').style.display = 'none';
+        document.getElementById('trainingSettings').style.display = 'block';
+
+        // Update settings values
+        this.updateSettingsDisplay();
+    }
+
+    /**
+     * Hide Settings menu
+     */
+    hideSettings() {
+        document.getElementById('trainingSettings').style.display = 'none';
+        this.showTrainingMenu();
+    }
+
+    /**
+     * Update settings display with current values
+     */
+    updateSettingsDisplay() {
+        const settings = this.trainingData.data.settings;
+
+        // Update sliders/inputs
+        document.getElementById('settingPriorityBoost').value = settings.priorityBoost;
+        document.getElementById('settingPriorityBoostValue').textContent = settings.priorityBoost.toFixed(1);
+
+        document.getElementById('settingUnlockThreshold').value = settings.unlockThreshold * 100;
+        document.getElementById('settingUnlockThresholdValue').textContent = Math.round(settings.unlockThreshold * 100) + '%';
+
+        document.getElementById('settingUnlockWindow').value = settings.unlockWindow;
+        document.getElementById('settingUnlockWindowValue').textContent = settings.unlockWindow;
+
+        // Update force unlock checkboxes
+        this.updateForceUnlockDisplay();
+    }
+
+    /**
+     * Update force unlock checkboxes
+     */
+    updateForceUnlockDisplay() {
+        const allIntervals = ['unison', 'octave', 'fifth', 'major-third', 'fourth',
+                              'major-second', 'minor-second', 'minor-third',
+                              'major-sixth', 'minor-sixth', 'major-seventh', 'minor-seventh', 'tritone'];
+
+        const container = document.getElementById('forceUnlockContainer');
+        container.innerHTML = '';
+
+        allIntervals.forEach(intervalType => {
+            const config = getIntervalConfig(intervalType);
+            const isUnlocked = this.trainingData.data.unlocked.includes(intervalType);
+            const isForceUnlocked = this.trainingData.data.forceUnlocked.includes(intervalType);
+
+            const label = document.createElement('label');
+            label.className = 'force-unlock-item';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = intervalType;
+            checkbox.checked = isForceUnlocked;
+            checkbox.disabled = isUnlocked; // Can't force unlock what's already unlocked
+
+            checkbox.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    this.trainingData.forceUnlock(intervalType);
+                } else {
+                    // Remove from force unlocked
+                    const index = this.trainingData.data.forceUnlocked.indexOf(intervalType);
+                    if (index > -1) {
+                        this.trainingData.data.forceUnlocked.splice(index, 1);
+                        this.trainingData.saveData();
+                    }
+                }
+            });
+
+            const text = document.createElement('span');
+            text.textContent = config ? config.intervalName : intervalType;
+            if (isUnlocked) {
+                text.textContent += ' (unlocked)';
+            }
+
+            label.appendChild(checkbox);
+            label.appendChild(text);
+            container.appendChild(label);
+        });
+    }
+
+    /**
+     * Update setting value
+     */
+    updateSetting(settingName, value) {
+        this.trainingData.data.settings[settingName] = parseFloat(value);
+        this.trainingData.saveData();
+        this.updateSettingsDisplay();
+    }
+
+    /**
+     * Show Progress screen
+     */
+    showProgress() {
+        document.getElementById('trainingMenu').style.display = 'none';
+        document.getElementById('trainingProgress').style.display = 'block';
+
+        this.updateProgressDisplay();
+    }
+
+    /**
+     * Hide Progress screen
+     */
+    hideProgress() {
+        document.getElementById('trainingProgress').style.display = 'none';
+        this.showTrainingMenu();
+    }
+
+    /**
+     * Update progress display
+     */
+    updateProgressDisplay() {
+        const unlocked = this.trainingData.getUnlockedExercises();
+        const container = document.getElementById('progressContainer');
+        container.innerHTML = '';
+
+        unlocked.forEach(intervalType => {
+            const stats = this.trainingData.getStats(intervalType);
+            const config = getIntervalConfig(intervalType);
+
+            const card = document.createElement('div');
+            card.className = 'progress-card';
+
+            // Header
+            const header = document.createElement('h3');
+            header.textContent = config ? config.intervalName : intervalType;
+            card.appendChild(header);
+
+            // Stats
+            if (stats.totalAttempts > 0) {
+                const accuracy = Math.round((stats.easyCount / stats.totalAttempts) * 100);
+
+                const statsDiv = document.createElement('div');
+                statsDiv.className = 'progress-stats';
+                statsDiv.innerHTML = `
+                    <div class="stat-item">
+                        <span class="stat-label">Attempts:</span>
+                        <span class="stat-value">${stats.totalAttempts}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Accuracy:</span>
+                        <span class="stat-value">${accuracy}%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Up:</span>
+                        <span class="stat-value">${Math.round(stats.upAccuracy * 100)}%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Down:</span>
+                        <span class="stat-value">${Math.round(stats.downAccuracy * 100)}%</span>
+                    </div>
+                `;
+                card.appendChild(statsDiv);
+
+                // Weakness indicators
+                const weaknesses = [];
+                if (stats.upAccuracy < 0.6) weaknesses.push('Struggles going up');
+                if (stats.downAccuracy < 0.6) weaknesses.push('Struggles going down');
+                if (stats.lowRangeAccuracy < 0.6) weaknesses.push('Struggles in low range');
+                if (stats.highRangeAccuracy < 0.6) weaknesses.push('Struggles in high range');
+
+                if (weaknesses.length > 0) {
+                    const weaknessDiv = document.createElement('div');
+                    weaknessDiv.className = 'weakness-indicators';
+                    weaknessDiv.innerHTML = '<strong>Focus areas:</strong> ' + weaknesses.join(', ');
+                    card.appendChild(weaknessDiv);
+                }
+            } else {
+                const noData = document.createElement('p');
+                noData.textContent = 'No practice data yet';
+                noData.style.color = '#888';
+                card.appendChild(noData);
+            }
+
+            container.appendChild(card);
+        });
+    }
+
+    /**
+     * Reset training data
+     */
+    resetTrainingData() {
+        if (confirm('Are you sure you want to reset all training data? This cannot be undone.')) {
+            this.trainingData.reset();
+            this.updateTrainingMenuStats();
+            this.updateSettingsDisplay();
+            alert('Training data has been reset.');
+        }
+    }
+}

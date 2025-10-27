@@ -222,6 +222,22 @@
             <section class="card">
                 <h2>Choose an Exercise</h2>
 
+                <!-- Training Mode Section -->
+                <div class="exercise-category training-category">
+                    <div class="category-header">
+                        <h3 class="category-title">🎯 Training Mode</h3>
+                        <button class="category-toggle" aria-label="Toggle Training Mode section">−</button>
+                    </div>
+                    <p class="category-description">Spaced repetition practice system - Learn intervals systematically!</p>
+                    <div class="exercise-grid">
+                        <button id="trainingModeBtn" class="exercise-card training-card">
+                            <div class="exercise-icon">🎯</div>
+                            <h3>Start Training</h3>
+                            <p>Adaptive spaced repetition practice</p>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Tutorial Section -->
                 <div class="exercise-category">
                     <div class="category-header">
@@ -3900,6 +3916,165 @@
         </main>
     </div>
 
+    <!-- Training Mode Main Menu -->
+    <div id="trainingMenu" class="container training-container" style="display: none;">
+        <header>
+            <button id="trainingExitBtn" class="back-btn" aria-label="Back">← Back</button>
+            <div class="header-center">
+                <h1>ToneDeath</h1>
+                <p class="subtitle">Training Mode</p>
+            </div>
+            <button id="audioSettingsBtnTraining" class="settings-btn" aria-label="Audio Settings">⚙️</button>
+        </header>
+
+        <main>
+            <section class="card training-stats-card">
+                <div class="training-stats">
+                    <div class="stat-display">
+                        <div id="trainingUnlockCount" class="stat-number">0 / 13 intervals unlocked</div>
+                        <div id="trainingPracticeCount" class="stat-number">0 exercises completed</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card training-menu-options">
+                <button id="trainNowBtn" class="training-menu-btn primary">
+                    <div class="training-btn-icon">🎯</div>
+                    <h3>Train Now!</h3>
+                    <p>Start practicing with spaced repetition</p>
+                </button>
+
+                <button id="trainingProgressBtn" class="training-menu-btn">
+                    <div class="training-btn-icon">📊</div>
+                    <h3>Progress</h3>
+                    <p>View your performance and unlocked intervals</p>
+                </button>
+
+                <button id="trainingSettingsBtn" class="training-menu-btn">
+                    <div class="training-btn-icon">⚙️</div>
+                    <h3>Settings</h3>
+                    <p>Adjust training parameters and force unlocks</p>
+                </button>
+            </section>
+        </main>
+    </div>
+
+    <!-- Training Settings -->
+    <div id="trainingSettings" class="container training-container" style="display: none;">
+        <header>
+            <button id="trainingSettingsBackBtn" class="back-btn" aria-label="Back">← Back</button>
+            <div class="header-center">
+                <h1>ToneDeath</h1>
+                <p class="subtitle">Training Settings</p>
+            </div>
+            <button id="audioSettingsBtnTrainingSettings" class="settings-btn" aria-label="Audio Settings">⚙️</button>
+        </header>
+
+        <main>
+            <section class="card">
+                <h3>Algorithm Settings</h3>
+
+                <div class="setting-item">
+                    <label for="settingPriorityBoost">Fundamental Priority Boost</label>
+                    <div class="setting-control">
+                        <input type="range" id="settingPriorityBoost" min="1.0" max="3.0" step="0.1" value="1.5">
+                        <span id="settingPriorityBoostValue">1.5</span>
+                    </div>
+                    <p class="setting-description">Higher values prioritize fundamental intervals more</p>
+                </div>
+
+                <div class="setting-item">
+                    <label for="settingUnlockThreshold">Unlock Threshold</label>
+                    <div class="setting-control">
+                        <input type="range" id="settingUnlockThreshold" min="50" max="100" step="5" value="75">
+                        <span id="settingUnlockThresholdValue">75%</span>
+                    </div>
+                    <p class="setting-description">Percentage of "easy" ratings needed to unlock next level</p>
+                </div>
+
+                <div class="setting-item">
+                    <label for="settingUnlockWindow">Unlock Window</label>
+                    <div class="setting-control">
+                        <input type="range" id="settingUnlockWindow" min="5" max="20" step="1" value="10">
+                        <span id="settingUnlockWindowValue">10</span>
+                    </div>
+                    <p class="setting-description">Number of recent attempts to consider for unlocking</p>
+                </div>
+            </section>
+
+            <section class="card">
+                <h3>Force Unlock Intervals</h3>
+                <p class="setting-description">Manually unlock intervals for practice (bypasses progression)</p>
+                <div id="forceUnlockContainer" class="force-unlock-list">
+                    <!-- Populated by JS -->
+                </div>
+            </section>
+
+            <section class="card">
+                <button id="resetTrainingDataBtn" class="btn-danger">Reset All Training Data</button>
+            </section>
+        </main>
+    </div>
+
+    <!-- Training Progress -->
+    <div id="trainingProgress" class="container training-container" style="display: none;">
+        <header>
+            <button id="trainingProgressBackBtn" class="back-btn" aria-label="Back">← Back</button>
+            <div class="header-center">
+                <h1>ToneDeath</h1>
+                <p class="subtitle">Training Progress</p>
+            </div>
+            <button id="audioSettingsBtnTrainingProgress" class="settings-btn" aria-label="Audio Settings">⚙️</button>
+        </header>
+
+        <main>
+            <section class="card">
+                <div id="progressContainer" class="progress-grid">
+                    <!-- Populated by JS -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Training Rating UI (overlay) -->
+    <div id="trainingRatingUI" class="training-overlay" style="display: none;">
+        <div class="training-rating-card">
+            <h2>How difficult was this exercise?</h2>
+            <h3 id="ratingIntervalName" class="rating-interval-name">Unison</h3>
+
+            <div class="rating-buttons">
+                <button class="rating-btn rating-easy" data-rating="easy">
+                    <span class="rating-emoji">😊</span>
+                    <span class="rating-label">Easy</span>
+                </button>
+                <button class="rating-btn rating-medium" data-rating="medium">
+                    <span class="rating-emoji">😐</span>
+                    <span class="rating-label">Medium</span>
+                </button>
+                <button class="rating-btn rating-hard" data-rating="hard">
+                    <span class="rating-emoji">😰</span>
+                    <span class="rating-label">Hard</span>
+                </button>
+                <button class="rating-btn rating-failed" data-rating="failed">
+                    <span class="rating-emoji">❌</span>
+                    <span class="rating-label">Couldn't do it</span>
+                </button>
+            </div>
+
+            <button id="trainingRatingExitBtn" class="btn-secondary">Exit Training</button>
+        </div>
+    </div>
+
+    <!-- Training Unlock Notification (overlay) -->
+    <div id="trainingUnlockNotification" class="training-notification" style="display: none;">
+        <div class="notification-card">
+            <h2>🎉 New Intervals Unlocked!</h2>
+            <ul id="trainingUnlockList" class="unlock-list">
+                <!-- Populated by JS -->
+            </ul>
+        </div>
+    </div>
+
     <!-- Audio System -->
     <script src="audioManager.js"></script>
 
@@ -3948,6 +4123,10 @@
     <script src="generalIntervalOverview.js?v=1"></script>
     <script src="intervalSystemExerciseConfigs.js?v=1"></script>
     <script src="intervalSystemExercise.js?v=1"></script>
+    <!-- Training System -->
+    <script src="trainingData.js"></script>
+    <script src="trainingSystem.js"></script>
+    <script src="trainingUI.js"></script>
     <script src="app.js"></script>
     <script>
         // Global button click sound

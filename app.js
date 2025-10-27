@@ -1028,12 +1028,134 @@ window.addEventListener('appinstalled', () => {
 
 // Initialize the app when DOM is ready
 let mainApp;
+let trainingUI;
+
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         mainApp = new EarTrainerApp();
         window.mainApp = mainApp;
+
+        // Initialize Training Mode
+        initializeTrainingMode();
     });
 } else {
     mainApp = new EarTrainerApp();
     window.mainApp = mainApp;
+
+    // Initialize Training Mode
+    initializeTrainingMode();
+}
+
+/**
+ * Initialize Training Mode UI and event listeners
+ */
+function initializeTrainingMode() {
+    // Create training UI instance
+    trainingUI = new TrainingUI();
+    window.trainingUI = trainingUI;
+
+    // Training Mode button (main menu)
+    const trainingModeBtn = document.getElementById('trainingModeBtn');
+    if (trainingModeBtn) {
+        trainingModeBtn.addEventListener('click', () => {
+            trainingUI.showTrainingMenu();
+        });
+    }
+
+    // Training Menu - Exit button
+    const trainingExitBtn = document.getElementById('trainingExitBtn');
+    if (trainingExitBtn) {
+        trainingExitBtn.addEventListener('click', () => {
+            trainingUI.hideTrainingMenu();
+        });
+    }
+
+    // Training Menu - Train Now button
+    const trainNowBtn = document.getElementById('trainNowBtn');
+    if (trainNowBtn) {
+        trainNowBtn.addEventListener('click', () => {
+            trainingUI.startTrainNow();
+        });
+    }
+
+    // Training Menu - Progress button
+    const trainingProgressBtn = document.getElementById('trainingProgressBtn');
+    if (trainingProgressBtn) {
+        trainingProgressBtn.addEventListener('click', () => {
+            trainingUI.showProgress();
+        });
+    }
+
+    // Training Menu - Settings button
+    const trainingSettingsBtn = document.getElementById('trainingSettingsBtn');
+    if (trainingSettingsBtn) {
+        trainingSettingsBtn.addEventListener('click', () => {
+            trainingUI.showSettings();
+        });
+    }
+
+    // Training Settings - Back button
+    const trainingSettingsBackBtn = document.getElementById('trainingSettingsBackBtn');
+    if (trainingSettingsBackBtn) {
+        trainingSettingsBackBtn.addEventListener('click', () => {
+            trainingUI.hideSettings();
+        });
+    }
+
+    // Training Settings - Priority Boost slider
+    const priorityBoostSlider = document.getElementById('settingPriorityBoost');
+    if (priorityBoostSlider) {
+        priorityBoostSlider.addEventListener('input', (e) => {
+            trainingUI.updateSetting('priorityBoost', e.target.value);
+        });
+    }
+
+    // Training Settings - Unlock Threshold slider
+    const unlockThresholdSlider = document.getElementById('settingUnlockThreshold');
+    if (unlockThresholdSlider) {
+        unlockThresholdSlider.addEventListener('input', (e) => {
+            trainingUI.updateSetting('unlockThreshold', parseFloat(e.target.value) / 100);
+        });
+    }
+
+    // Training Settings - Unlock Window slider
+    const unlockWindowSlider = document.getElementById('settingUnlockWindow');
+    if (unlockWindowSlider) {
+        unlockWindowSlider.addEventListener('input', (e) => {
+            trainingUI.updateSetting('unlockWindow', e.target.value);
+        });
+    }
+
+    // Training Settings - Reset button
+    const resetTrainingDataBtn = document.getElementById('resetTrainingDataBtn');
+    if (resetTrainingDataBtn) {
+        resetTrainingDataBtn.addEventListener('click', () => {
+            trainingUI.resetTrainingData();
+        });
+    }
+
+    // Training Progress - Back button
+    const trainingProgressBackBtn = document.getElementById('trainingProgressBackBtn');
+    if (trainingProgressBackBtn) {
+        trainingProgressBackBtn.addEventListener('click', () => {
+            trainingUI.hideProgress();
+        });
+    }
+
+    // Rating UI - Rating buttons
+    const ratingButtons = document.querySelectorAll('.rating-btn');
+    ratingButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const rating = btn.getAttribute('data-rating');
+            trainingUI.handleRating(rating);
+        });
+    });
+
+    // Rating UI - Exit button
+    const trainingRatingExitBtn = document.getElementById('trainingRatingExitBtn');
+    if (trainingRatingExitBtn) {
+        trainingRatingExitBtn.addEventListener('click', () => {
+            trainingUI.exitTrainingMode();
+        });
+    }
 }

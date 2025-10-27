@@ -89,6 +89,11 @@ class EarTrainerApp {
             card.addEventListener('click', () => {
                 const exerciseType = card.dataset.exercise;
 
+                // Skip cards without data-exercise attribute (e.g., training mode button)
+                if (!exerciseType) {
+                    return;
+                }
+
                 // Check if exercise is compatible with current usage mode
                 if (!appSettings.isExerciseCompatible(exerciseType)) {
                     const usageMode = appSettings.getCurrentUsageModeConfig();

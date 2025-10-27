@@ -21,6 +21,28 @@
 const INTERVAL_SYSTEM_EXERCISES = Object.freeze({
     // ===== UNISON =====
     unison: [
+
+        {
+            name: "Glissando",
+            randomizeDirection: true,
+            hideRootIndicator: true,
+            steps: [
+                {
+                    command: "Sing",
+                    instruction: "a steady low note towards the bottom of your range",
+                    instructionDown: "a steady high note towards the top of your range",
+                    audioState: "none",
+                    userAction: "sing-root"
+                },
+                {
+                    command: "Glide",
+                    instruction: "steadily raising the pitch to higher notes to the top of your range",
+                    instructionDown: "steadily lowering the pitch to lower notes to the bottom of your range",
+                    audioState: "none",
+                    userAction: "glissando-up"
+                }
+            ]
+        },
         {
             name: "Unison Match Up",
             steps: [
@@ -39,7 +61,7 @@ const INTERVAL_SYSTEM_EXERCISES = Object.freeze({
                 {
                     command: "Use glissando",
                     instruction: "to slowly your pitch up to match the note. If you pass it, try and find it and narrow in using your ears.",
-                    audioState: "none",
+                    audioState: "root",
                     userAction: "sing-root"
                 },
             ]
@@ -63,33 +85,13 @@ const INTERVAL_SYSTEM_EXERCISES = Object.freeze({
                 {
                     command: "Use glissando",
                     instruction: "to slowly your pitch down to match the note. If you pass it, try and find it and narrow in using your ears.",
-                    audioState: "none",
+                    audioState: "root",
                     userAction: "sing-root"
                 },
             ]
 
         },
-        {
-            name: "Glissando",
-            randomizeDirection: true,
-            hideRootIndicator: true,
-            steps: [
-                {
-                    command: "Sing",
-                    instruction: "a steady low note towards the bottom of your range",
-                    instructionDown: "a steady high note towards the top of your range",
-                    audioState: "none",
-                    userAction: "sing-root"
-                },
-                {
-                    command: "Glide",
-                    instruction: "steadily raising the pitch to higher notes to the top of your range",
-                    instructionDown: "steadily lowering the pitch to lower notes to the bottom of your range",
-                    audioState: "none",
-                    userAction: "glissando-up"
-                }
-            ]
-        }
+
     ],
 
     // ===== INTERVALS (Minor 2nd through Octave) =====

@@ -6100,7 +6100,8 @@ footer {
 .carousel-step-flow {
     display: block;
     position: relative;
-    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.2s ease-in, visibility 0s;
@@ -6137,7 +6138,7 @@ footer {
 .flow-command::after {
     content: '';
     position: absolute;
-    right: -12px;
+    right: -11.5px;
     top: 0;
     width: 0;
     height: 0;
@@ -6218,7 +6219,7 @@ footer {
     height: 0;
     border-top: var(--action-triangle-size, 20px) solid transparent;
     border-bottom: var(--action-triangle-size, 20px) solid transparent;
-    border-left: 15px solid rgba(0, 255, 255, 0.65); /* Lighter and more transparent to match button appearance */
+    border-left: 15px solid rgb(31, 168, 251); /* Blended color: cyan over purple background */
     transform: translateX(100%); /* Push it outside the button */
     filter: drop-shadow(4px 2px 6px rgba(0, 255, 255, 0.25)); /* Match button glow */
     z-index: 1;
@@ -6231,7 +6232,7 @@ footer {
 }
 
 .flow-action-button:hover::after {
-    border-left-color: rgba(0, 255, 255, 0.85); /* Brighten exit triangle on hover to match */
+    border-left-color: rgb(31, 206, 253); /* Blended hover color: brighter cyan over purple */
     filter: drop-shadow(6px 3px 10px rgba(0, 255, 255, 0.5)); /* Brighter glow on hover */
 }
 

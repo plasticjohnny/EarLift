@@ -739,12 +739,102 @@ class IntervalSystemExercise {
         this.renderCurrentStep();
     }
 
+    getStepIconType(step) {
+        // Helper function to determine what icon a step should show
+        const { userAction } = step;
+        if (userAction === 'listen') {
+            return 'ear';
+        } else if (['match-root', 'match-interval', 'sing-root', 'sing-interval'].includes(userAction)) {
+            const faceDirection = ['match-interval', 'sing-interval'].includes(userAction) ? 'right' : 'left';
+            return `face-${faceDirection}`;
+        }
+        return 'none';
+    }
+
     navigateToNext() {
         // Navigate to next step (with wrapping)
         const currentExercise = this.exercises[this.currentExerciseIndex];
         const totalSteps = currentExercise.steps.length;
+
+        // Get current and next step
+        const oldStep = currentExercise.steps[this.currentStepIndex];
         this.currentStepIndex = (this.currentStepIndex + 1) % totalSteps;
-        this.renderCurrentStep();
+        const newStep = currentExercise.steps[this.currentStepIndex];
+
+        // Check if icons need to change
+        const oldIconType = this.getStepIconType(oldStep);
+        const newIconType = this.getStepIconType(newStep);
+        const iconsChanging = oldIconType !== newIconType;
+
+        // Stage 1: Immediately hide all buttons and fade out text
+        if (this.actionButton) {
+            this.actionButton.style.opacity = '0';
+        }
+        if (this.commandElement) {
+            this.commandElement.style.opacity = '0';
+        }
+        if (this.instructionElement) {
+            this.instructionElement.classList.add('text-fade-out');
+        }
+
+        // Stage 1: Immediately update icons if they're changing
+        if (iconsChanging && this.middleIconsContainer) {
+            this.renderStepIcons(newStep);
+        }
+
+        // Stage 2: Update Command button text and show with animation when old text is fully faded (200ms)
+        setTimeout(() => {
+            if (this.commandElement) {
+                this.commandElement.textContent = newStep.command;
+                this.commandElement.style.opacity = '1';
+                this.commandElement.classList.add('spotlight-animation');
+
+                // Recalculate text-indent to account for new Command button width
+                requestAnimationFrame(() => {
+                    this.updateTriangleSizes();
+                });
+            }
+        }, 200);
+
+        // Stage 3: Update remaining content (300ms delay)
+        setTimeout(() => {
+            // Update text content (will fade in)
+            if (this.instructionElement) {
+                // Remove fade-out, add fade-in
+                this.instructionElement.classList.remove('text-fade-out');
+                this.instructionElement.textContent = newStep.instruction;
+                this.instructionElement.classList.add('text-fade-in');
+            }
+
+            // Update action button text and show it again
+            if (this.actionButton) {
+                const isLastStep = this.currentStepIndex === totalSteps - 1;
+                if (isLastStep) {
+                    this.actionButton.textContent = 'Finish';
+                } else {
+                    const nextStep = currentExercise.steps[this.currentStepIndex + 1];
+                    this.actionButton.textContent = `then ${nextStep.command.toLowerCase()}`;
+                }
+                this.actionButton.style.opacity = '1';
+            }
+
+            // Update other step elements
+            this.updateGlissandoPulse();
+            this.applyAudioState(newStep.audioState);
+
+            // Recalculate triangle sizes to ensure proper spacing
+            this.updateTriangleSizes();
+        }, 300);
+
+        // Cleanup: Remove all animation classes (1600ms total)
+        setTimeout(() => {
+            if (this.instructionElement) {
+                this.instructionElement.classList.remove('text-fade-out', 'text-fade-in');
+            }
+            if (this.commandElement) {
+                this.commandElement.classList.remove('spotlight-animation');
+            }
+        }, 1600);
     }
 
     async toggleRoot() {

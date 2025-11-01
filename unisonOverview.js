@@ -113,7 +113,7 @@ class UnisonOverview {
                     container: this.interferencePanel,
                     canvas: this.interferenceCanvas,
                     audioController: this.audioController,
-                    alwaysShowWaves: true,
+                    alwaysShowWaves: false,
                     selectors: {
                         exit: null,
                         playBoth: null,
@@ -140,9 +140,9 @@ class UnisonOverview {
                     this.interferenceViz.settings.useBoundary = true;
                     this.interferenceViz.settings.useFoggyEdge = false;
                     // Scale boundary radius based on canvas height (the limiting dimension)
-                    // Speakers at 1/3 from edges, radius should be 0.8 * (1/3 of width)
+                    // Speakers at 1/4 from edges (25%), radius increased by 50% (1.5x) for larger overlap
                     const canvasWidth = this.interferenceCanvas?.width || 1200;
-                    this.interferenceViz.settings.boundaryRadius = Math.round(canvasWidth * (1/3) * 0.8);
+                    this.interferenceViz.settings.boundaryRadius = Math.round(canvasWidth * (1/3) * 0.8 * 1.5);
                     this.interferenceViz.settings.gravityWell = true;
                     this.interferenceViz.settings.gravityStrength = 170;
                     this.interferenceViz.settings.gravityWellCount = 5;
@@ -270,25 +270,35 @@ class UnisonOverview {
     }
 
     handleTone1Change(freq) {
+        // Don't handle if we're programmatically updating controls
+        if (this.updatingControls) return;
+
         this.tone1Freq = freq;
         this.syncTone1Controls(freq);
         this.updateVisualizations();
     }
 
     handleTone2Change(freq) {
+        // Don't handle if we're programmatically updating controls
+        if (this.updatingControls) return;
+
         this.tone2Freq = freq;
         this.syncTone2Controls(freq);
         this.updateVisualizations();
     }
 
     syncTone1Controls(freq) {
+        this.updatingControls = true;
         if (this.tone1Slider) this.tone1Slider.value = freq;
         if (this.tone1Input) this.tone1Input.value = Math.round(freq * 100) / 100;
+        this.updatingControls = false;
     }
 
     syncTone2Controls(freq) {
+        this.updatingControls = true;
         if (this.tone2Slider) this.tone2Slider.value = freq;
         if (this.tone2Input) this.tone2Input.value = Math.round(freq * 100) / 100;
+        this.updatingControls = false;
     }
 
     syncAllControls() {
@@ -385,6 +395,17 @@ class UnisonOverview {
         }
     }
 
+    updateVisualizations() {
+        // Update frequencies in visualizations without restarting audio
+        if (this.interferenceViz && typeof this.interferenceViz.setFrequencies === 'function') {
+            this.interferenceViz.setFrequencies(this.tone1Freq, this.tone2Freq, { updateAudio: false });
+        }
+
+        if (this.waveViz && typeof this.waveViz.setFrequencies === 'function') {
+            this.waveViz.setFrequencies(this.tone1Freq, this.tone2Freq, { updateAudio: false });
+        }
+    }
+
     updateVisibility() {
         // Get selected visualization from radio buttons
         const selectedViz = this.container.querySelector('[data-viz-select]:checked')?.dataset?.vizSelect || 'none';
@@ -422,9 +443,9 @@ class UnisonOverview {
     updateInterferenceBoundary() {
         if (!this.interferenceViz || !this.interferenceCanvas) return;
 
-        // Speakers at 1/3 from edges, radius should be 0.8 * (1/3 of width)
+        // Speakers at 1/4 from edges (25%), radius increased by 50% (1.5x) for larger overlap
         const canvasWidth = this.interferenceCanvas.width || 1200;
-        const newBoundaryRadius = Math.round(canvasWidth * (1/3) * 0.8);
+        const newBoundaryRadius = Math.round(canvasWidth * (1/3) * 0.8 * 1.5);
 
         if (this.interferenceViz.settings) {
             this.interferenceViz.settings.boundaryRadius = newBoundaryRadius;
@@ -433,6 +454,11 @@ class UnisonOverview {
 
     handleExit() {
         this.destroy();
+
+        // Clear exercise from URL
+        if (window.mainApp) {
+            window.mainApp.clearExerciseFromURL();
+        }
 
         // Show the main app container
         const appContainer = document.getElementById('appContainer');
@@ -609,13 +635,18 @@ class UnisonOverview {
         const nextBtn = resolve('[data-tutorial="next"]');
 
         if (typeof TutorialController === 'function' && typeof UNISON_OVERVIEW_TUTORIAL !== 'undefined') {
-            this.tutorialController = new TutorialController(this, UNISON_OVERVIEW_TUTORIAL);
+            this.tutorialController = new TutorialController(this, UNISON_OVERVIEW_TUTORIAL, 'unisonOverview');
 
             if (prevBtn) {
                 prevBtn.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation(); // Stop event from bubbling to global click handler
                     e.stopImmediatePropagation(); // Stop other handlers on same element
+
+                    // Stop all tones before advancing to prevent unwanted audio
+                    if (this.audioController) {
+                        this.audioController.stopBoth();
+                    }
 
                     // Add visual flash effect
                     prevBtn.style.transition = 'filter 0.08s ease, transform 0.08s ease';
@@ -636,6 +667,17 @@ class UnisonOverview {
                     e.preventDefault();
                     e.stopPropagation(); // Stop event from bubbling to global click handler
                     e.stopImmediatePropagation(); // Stop other handlers on same element
+
+                    // Only stop tones if next step explicitly requests it or has no audio config
+                    const currentStepIndex = this.tutorialController.currentStepIndex;
+                    const nextStepIndex = currentStepIndex + 1;
+                    const nextStep = this.tutorialController.steps[nextStepIndex];
+                    const nextAction = nextStep?.audio?.action;
+
+                    // Stop tones only if action is "stop" or there's no audio config
+                    if (this.audioController && (nextAction === 'stop' || !nextStep?.audio)) {
+                        this.audioController.stopBoth();
+                    }
 
                     // Add visual flash effect
                     nextBtn.style.transition = 'filter 0.08s ease, transform 0.08s ease';
@@ -690,6 +732,120 @@ class UnisonOverview {
 
         this.isPlaying = false;
         this.updatePlayButtonState();
+    }
+
+    // Setup Glissando Slider (for tutorial mode)
+    setupGlissandoSlider(config = {}) {
+        const slider = this.container.querySelector('[data-glissando-slider="frequency"]');
+        if (!slider) {
+            console.warn('UnisonOverview: Glissando slider not found');
+            return;
+        }
+
+        // Get config values with defaults
+        const targetFreq = config.targetFrequency || 440;
+        const minFreq = parseFloat(slider.min) || 220;
+        const maxFreq = parseFloat(slider.max) || 880;
+        const initialFreq = config.initialFrequency || targetFreq;
+
+        // Set slider to initial frequency
+        slider.value = initialFreq;
+
+        // Set up button event listeners (if not already set up)
+        if (!this.glissandoButtonsInitialized) {
+            const buttons = [
+                { selector: '[data-glissando-slider="jump-up-big"]', direction: 1, size: 'big' },
+                { selector: '[data-glissando-slider="jump-up-medium"]', direction: 1, size: 'medium' },
+                { selector: '[data-glissando-slider="jump-up-small"]', direction: 1, size: 'small' },
+                { selector: '[data-glissando-slider="jump-down-big"]', direction: -1, size: 'big' },
+                { selector: '[data-glissando-slider="jump-down-medium"]', direction: -1, size: 'medium' },
+                { selector: '[data-glissando-slider="jump-down-small"]', direction: -1, size: 'small' }
+            ];
+
+            buttons.forEach(({ selector, direction, size }) => {
+                const button = this.container.querySelector(selector);
+                if (button) {
+                    button.addEventListener('click', () => {
+                        console.log(`UnisonOverview: Glissando button clicked: ${selector}`);
+                        // Remove focus to prevent stuck appearance
+                        button.blur();
+                        // Call callback if set (for tutorial mode)
+                        if (this.sliderButtonCallback) {
+                            this.sliderButtonCallback(direction, size);
+                        }
+                    });
+                }
+            });
+
+            this.glissandoButtonsInitialized = true;
+        }
+
+        // Render hash marks if provided
+        if (config.hashMarks && config.hashMarks.length > 0) {
+            this.renderGlissandoHashMarks(config.hashMarks, minFreq, maxFreq);
+        }
+
+        // Show target label if requested
+        if (config.showTargetLabel) {
+            this.showGlissandoTargetLabel(targetFreq);
+        }
+    }
+
+    // Set callback for slider button clicks (used by tutorial controller)
+    setSliderButtonCallback(callback) {
+        this.sliderButtonCallback = callback;
+    }
+
+    // Clear slider button callback
+    clearSliderButtonCallback() {
+        this.sliderButtonCallback = null;
+    }
+
+    // Render hash marks on the glissando slider
+    renderGlissandoHashMarks(frequencies, minFreq, maxFreq) {
+        const sliderWrapper = this.container.querySelector('.glissando-slider-wrapper');
+        if (!sliderWrapper) return;
+
+        // Remove existing hash marks
+        let hashContainer = sliderWrapper.querySelector('.glissando-hash-marks');
+        if (!hashContainer) {
+            hashContainer = document.createElement('div');
+            hashContainer.className = 'glissando-hash-marks';
+            sliderWrapper.appendChild(hashContainer);
+        } else {
+            hashContainer.innerHTML = '';
+        }
+
+        const range = maxFreq - minFreq;
+        const sliderWidth = window.innerWidth <= 768 ? 300 : 400;
+
+        frequencies.forEach(freq => {
+            if (freq < minFreq || freq > maxFreq) return;
+
+            const percentage = (freq - minFreq) / range;
+            const position = percentage * sliderWidth;
+
+            const mark = document.createElement('div');
+            mark.className = 'glissando-hash-mark';
+            mark.style.left = `${position}px`;
+            hashContainer.appendChild(mark);
+        });
+    }
+
+    // Show target frequency label
+    showGlissandoTargetLabel(targetFreq) {
+        let label = this.container.querySelector('.glissando-target-label');
+        if (!label) {
+            const sliderSection = this.container.querySelector('.glissando-slider-section');
+            if (!sliderSection) return;
+
+            label = document.createElement('div');
+            label.className = 'glissando-target-label';
+            sliderSection.appendChild(label);
+        }
+
+        label.textContent = `Target: ${Math.round(targetFreq)} Hz`;
+        label.style.display = 'block';
     }
 }
 

@@ -19,8 +19,6 @@ class ToneGenerator {
     }
 
     async playTone(frequency, volume = 0.3) {
-        console.log(`ToneGenerator.v2.playTone called: ${frequency}Hz, volume: ${volume}`);
-
         await this.ensureAudioContext();
 
         const audioContext = window.audioManager.getAudioContext();

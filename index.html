@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="description" content="ToneDeath - Conquer tone deafness with ear training exercises">
-    <meta name="theme-color" content="#2D5016">
+    <meta name="description" content="EarLift Method - Train your musical ear with fun, fitness-inspired ear training exercises">
+    <meta name="theme-color" content="#9C26EB">
 
     <!-- Prevent caching -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -16,9 +16,9 @@
     <!-- PWA Meta Tags -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="ToneDeath">
+    <meta name="apple-mobile-web-app-title" content="EarLift Method">
 
-    <title>ToneDeath - Ear Training App</title>
+    <title>EarLift Method Method - Ear Training App</title>
 
     <!-- Manifest -->
     <link rel="manifest" href="manifest.json">
@@ -29,12 +29,293 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="styles.css?v=8">
+
+    <!-- Beat Frequency Feeling Styles -->
+    <style>
+        /* Beat Frequency Feeling Exercise Styles */
+        .bff-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .bff-modal-content {
+            background: #1a1a1a;
+            padding: 2.5rem;
+            border-radius: 16px;
+            max-width: 550px;
+            color: white;
+            border: 2px solid #333;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .bff-modal-content h2 {
+            margin-top: 0;
+            color: #60a5fa;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .bff-modal-content p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .bff-modal-content ul {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0;
+        }
+
+        .bff-modal-content ul li {
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            background: #2a2a2a;
+            border-radius: 8px;
+            border-left: 4px solid #60a5fa;
+            font-size: 1rem;
+        }
+
+        .bff-mic-test-area {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: #252525;
+            border-radius: 12px;
+        }
+
+        .bff-mic-feedback {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #1a1a1a;
+            border-radius: 8px;
+            border: 2px solid #2ecc71;
+        }
+
+        .bff-volume-meter {
+            font-size: 1.1rem;
+            margin: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .bff-volume-bar {
+            flex: 1;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bff-volume-fill {
+            height: 100%;
+            background: linear-gradient(to right, #2ecc71, #f39c12, #e74c3c);
+            transition: width 0.1s ease;
+            width: 0%;
+        }
+
+        .bff-pitch-display {
+            font-size: 1.3rem;
+            margin: 0.8rem 0;
+            font-weight: bold;
+            color: #60a5fa;
+        }
+
+        .bff-mic-status {
+            font-size: 1.1rem;
+            color: #2ecc71;
+            font-weight: bold;
+            margin-top: 0.8rem;
+            display: none;
+        }
+
+        .bff-mic-status.show {
+            display: block;
+        }
+
+        .bff-main-container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .bff-range-prompt {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 2rem 0;
+            color: #60a5fa;
+            min-height: 3rem;
+        }
+
+        .bff-root-indicator {
+            margin: 2rem auto;
+            padding: 2rem;
+            background: #2a2a2a;
+            border-radius: 20px;
+            border: 3px solid #555;
+            font-size: 2rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            max-width: 400px;
+        }
+
+        .bff-root-indicator.detecting {
+            background: #1e3a5f;
+            border-color: #3498db;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+        }
+
+        .bff-root-indicator.stable {
+            background: #1e5f3a;
+            border-color: #2ecc71;
+            box-shadow: 0 0 30px rgba(46, 204, 113, 0.7);
+            animation: stable-pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes stable-pulse {
+            0%, 100% {
+                box-shadow: 0 0 30px rgba(46, 204, 113, 0.7);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 0 50px rgba(46, 204, 113, 1);
+                transform: scale(1.05);
+            }
+        }
+
+        .bff-phase-status {
+            font-size: 1.3rem;
+            color: #aaa;
+            margin: 1.5rem 0;
+            min-height: 2rem;
+        }
+
+        .bff-demo-display {
+            margin: 3rem auto;
+            padding: 2rem;
+            background: #252525;
+            border-radius: 16px;
+            max-width: 600px;
+        }
+
+        .bff-offset-display {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #f39c12;
+            margin-bottom: 0.5rem;
+        }
+
+        .bff-beat-freq {
+            font-size: 1.8rem;
+            color: #e74c3c;
+            margin: 1rem 0;
+            font-weight: bold;
+        }
+
+        .bff-offset-description {
+            font-size: 1.3rem;
+            color: #60a5fa;
+            margin-top: 1rem;
+            font-style: italic;
+        }
+
+        .bff-progress-bar {
+            margin: 2rem auto;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .bff-progress-track {
+            height: 30px;
+            background: #333;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bff-progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, #e74c3c, #f39c12, #2ecc71);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .bff-progress-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        .bff-button {
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 0.5rem;
+        }
+
+        .bff-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .bff-button:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .bff-button:not(:disabled):active {
+            transform: translateY(0);
+        }
+
+        .bff-button-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .bff-button-test {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+
+        .bff-button-next {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            font-size: 1.5rem;
+            padding: 1.5rem 3rem;
+        }
+
+        .bff-button-exit {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+        }
+
+        .bff-controls {
+            margin-top: 2rem;
+        }
+    </style>
 </head>
 <body>
     <!-- Setup Flow -->
     <div id="setupContainer" class="container" style="display: none;">
         <header>
-            <h1>ToneDeath</h1>
+            <h1>EarLift Method</h1>
             <p class="subtitle">Welcome! Let's set up your vocal range</p>
             <button id="audioSettingsBtn" class="settings-btn" aria-label="Audio Settings">⚙️</button>
         </header>
@@ -213,82 +494,170 @@
     <!-- Main App -->
     <div id="appContainer" class="container" style="display: none;">
         <header>
-            <h1>ToneDeath</h1>
-            <p class="subtitle">Conquer tone deafness</p>
+            <div class="logo-container">
+                <img src="images/EarLiftIcon.png" alt="EarLift Method Logo" class="main-logo">
+                <div class="brand-text">
+                    <h1>EarLift Method</h1>
+                    <p class="subtitle">Train your musical ear</p>
+                </div>
+            </div>
             <button id="audioSettingsBtnMain" class="settings-btn" aria-label="Audio Settings">⚙️</button>
         </header>
 
         <main>
             <section class="card">
-                <h2>Choose an Exercise</h2>
+                <h2>Choose Your Workout</h2>
 
-                <!-- Training Mode Section -->
-                <div class="exercise-category training-category">
+                <!-- Workout Mode Section -->
+                <div class="exercise-category training-category" id="trainingModeSection">
                     <div class="category-header">
-                        <h3 class="category-title">🎯 Training Mode</h3>
-                        <button class="category-toggle" aria-label="Toggle Training Mode section">−</button>
+                        <h3 class="category-title">🎯 Workout Mode</h3>
                     </div>
                     <p class="category-description">Spaced repetition practice system - Learn intervals systematically!</p>
-                    <div class="exercise-grid">
-                        <button id="trainingModeBtn" class="exercise-card training-card">
-                            <div class="exercise-icon">🎯</div>
-                            <h3>Start Training</h3>
-                            <p>Adaptive spaced repetition practice</p>
+                    <div class="training-main-section">
+                        <button id="trainingModeBtn" class="training-main-btn">
+                            <img src="images/EarLifting.png" alt="Train Now" class="training-icon">
+                            <h3>Train Now!</h3>
                         </button>
+                        <div class="training-secondary-btns">
+                            <button id="progressBtn" class="training-secondary-btn">📊 Progress</button>
+                            <button id="trainingSettingsBtn" class="training-secondary-btn">⚙️ Training Settings</button>
+                        </div>
+                    </div>
+                    <!-- Lock Overlay for FTUE -->
+                    <div class="training-mode-lock-overlay" style="display: none;">
+                        <div class="lock-content">
+                            <div class="lock-icon">🔒</div>
+                            <h3>Complete the Tutorial First</h3>
+                            <p>Finish all three tutorial exercises to unlock Training Mode</p>
+                        </div>
                     </div>
                 </div>
-
-                <!-- Tutorial System Section -->
-                <div class="exercise-category">
-                    <div class="category-header">
-                        <h3 class="category-title">🎓 Tutorial System</h3>
-                        <button class="category-toggle" aria-label="Toggle Tutorial System section">−</button>
-                    </div>
-                    <p class="category-description">Foundational vocal control exercises</p>
-                    <div class="exercise-grid">
-                        <button class="exercise-card" data-exercise="tutorialSystemExercise">
-                            <div class="exercise-icon">🎓</div>
-                            <h3>Tutorial System</h3>
-                            <p>Build fundamental vocal control skills</p>
-                        </button>
-                    </div>
-                </div>
-
                 <!-- Tutorial Section -->
-                <div class="exercise-category">
+                <div class="exercise-category" id="tutorialSection">
                     <div class="category-header">
-                        <h3 class="category-title">📚 Tutorial</h3>
-                        <button class="category-toggle" aria-label="Toggle Tutorial section">−</button>
+                        <h3 class="category-title">📚 Foundational Information</h3>
+                        <button class="category-toggle" id="tutorialCategoryToggle" aria-label="Toggle Tutorial section">−</button>
                     </div>
                     <p class="category-description">Start here! Guided exercises to learn the basics</p>
+
+                    <!-- FTUE Progress Bar -->
+                    <div class="ftue-progress-container">
+                        <div class="ftue-progress-label">Tutorial Progress</div>
+                        <div class="ftue-progress-bar">
+                            <div class="ftue-progress-fill" id="ftueProgressFill" style="width: 0%"></div>
+                            <div class="ftue-progress-text" id="ftueProgressText">0 / 3</div>
+                        </div>
+                    </div>
+
                     <div class="exercise-grid">
-                        <button class="exercise-card" data-exercise="earTrainingOverview">
+                        <!-- Tutorial 1: Ear Training Overview -->
+                        <button class="exercise-card" data-exercise="earTrainingOverview" data-tutorial-card="earTrainingOverview">
                             <div class="exercise-icon">📖</div>
                             <h3>Ear Training Overview</h3>
                             <p>Learn the fundamentals of ear training</p>
+                            <div class="tutorial-lock-overlay" style="display: none;">
+                                <div class="lock-icon">🔒</div>
+                                <div class="lock-text">Complete previous tutorial first</div>
+                            </div>
                         </button>
-                        <button class="exercise-card" data-exercise="intervalOverview">
-                            <div class="exercise-icon">⚡</div>
-                            <h3>Pitch Overview</h3>
-                            <p>Interactive tutorial on frequency, pitch, and intervals</p>
+
+                        <!-- Tutorial 2: Unison Overview -->
+                        <button class="exercise-card" data-exercise="unisonOverview" data-tutorial-card="unisonOverview">
+                            <div class="exercise-icon">🌊</div>
+                            <h3>Unison Overview</h3>
+                            <p>Learn about pitch, frequency, and matching tones</p>
+                            <div class="tutorial-lock-overlay" style="display: none;">
+                                <div class="lock-icon">🔒</div>
+                                <div class="lock-text">Complete Ear Training Overview first</div>
+                            </div>
+                        </button>
+
+                        <!-- Tutorial 3: Glissando Overview -->
+                        <button class="exercise-card" data-exercise="glissandoOverview" data-tutorial-card="glissandoOverview">
+                            <div class="exercise-icon">🎵</div>
+                            <h3>Glissando Overview</h3>
+                            <p>Learn to slide smoothly through your vocal range</p>
+                            <div class="tutorial-lock-overlay" style="display: none;">
+                                <div class="lock-icon">🔒</div>
+                                <div class="lock-text">Complete Unison Overview first</div>
+                            </div>
+                        </button>
+
+                        <!-- Tutorial 4: Interval Overview -->
+                        <button class="exercise-card" data-exercise="intervalOverview" data-tutorial-card="intervalOverview">
+                            <div class="exercise-icon">🎼</div>
+                            <h3>Interval Overview</h3>
+                            <p>Learn about musical intervals and their relationships</p>
+                            <div class="tutorial-lock-overlay" style="display: none;">
+                                <div class="lock-icon">🔒</div>
+                                <div class="lock-text">Complete Glissando Overview first</div>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Unlock All Button -->
+                    <div class="ftue-unlock-all-container">
+                        <button id="ftueUnlockAllBtn" class="ftue-unlock-all-btn">
+                            🔓 Unlock All Tutorials
+                        </button>
+                        <p class="unlock-all-hint">Skip the tutorial progression (for experienced users)</p>
+                    </div>
+                </div>
+
+                <!-- Tools -->
+                <div class="exercise-category collapsed">
+                    <div class="category-header">
+                        <h3 class="category-title">🛠️ Tools</h3>
+                        <button class="category-toggle" aria-label="Toggle Tools section">+</button>
+                    </div>
+                    <div class="exercise-grid">
+                        <button class="exercise-card" data-exercise="glissando">
+                            <div class="exercise-icon">🌊</div>
+                            <h3>Glissando</h3>
+                            <p>Slide your voice smoothly through it's range</p>
+                        </button>
+
+                        <button class="exercise-card" data-exercise="diagnostics">
+                            <div class="exercise-icon">🔬</div>
+                            <h3>Mic Diagnostics</h3>
+                            <p>Test and debug pitch detection</p>
+                        </button>
+                        <button class="exercise-card" data-exercise="interferenceVisualization">
+                            <div class="exercise-icon">◈</div>
+                            <h3>Interference Visualization</h3>
+                            <p>Visualize harmonic interference patterns and intervals</p>
+                        </button>
+                        <button class="exercise-card" data-exercise="waveVisualization">
+                            <div class="exercise-icon">🪗</div>
+                            <h3>Wave Visualization</h3>
+                            <p>Retro waveform blend with interval color spectrum</p>
+                        </button>
+                        <button class="exercise-card" data-exercise="beatFrequencyFeeling">
+                            <div class="exercise-icon">〰️</div>
+                            <h3>Beat Frequency Feeling</h3>
+                            <p>Experience beat frequencies as you sing along with a gliding tone</p>
                         </button>
                     </div>
                 </div>
 
-                <!-- Unison Exercises -->
-                <div class="exercise-category">
+                <!-- Ala Carte Exercises -->
+                <div class="exercise-category collapsed">
                     <div class="category-header">
-                        <h3 class="category-title">🎯 Unison Exercises</h3>
-                        <button class="category-toggle" aria-label="Toggle Unison Exercises section">−</button>
+                        <h3 class="category-title">🎵 Ala Carte Exercises</h3>
+                        <button class="category-toggle" aria-label="Toggle Ala Carte Exercises section">+</button>
                     </div>
-                    <p class="category-description">Match single pitches with precision</p>
+                    <p class="category-description">Individual interval and scale exercises</p>
                     <div class="exercise-grid">
-                        <button class="exercise-card" data-exercise="unisonOverview">
-                            <div class="exercise-icon">🌊</div>
-                            <h3>Unison Overview</h3>
-                            <p>Learn about pitch, frequency, and matching tones</p>
-                        </button>
-
+                        <div class="ala-carte-warning">
+                            <p><strong>⚠️ Advanced Exploration Area</strong></p>
+                            <p>These exercises are for specific practice, exploration, and testing. Some exercises may be experimental or incomplete. Use the Workout Mode above for structured learning.</p>
+                        </div>
+                        <!-- Unison Exercises -->
+                        <div class="sub-category">
+                        <h4 class="sub-category-title">🎯 Unison</h4>
+                        <p class="category-description">Match single pitches with precision</p>
+                        <div class="exercise-grid">
                         <button class="exercise-card" data-exercise="pitch">
                             <div class="exercise-icon">🎤</div>
                             <h3>Unison Explore</h3>
@@ -319,17 +688,14 @@
                             <h3>Unison System</h3>
                             <p>Guided singing exercises for unison practice</p>
                         </button>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Octave Exercises -->
-                <div class="exercise-category">
-                    <div class="category-header">
-                        <h3 class="category-title">🎵 Octave Exercises</h3>
-                        <button class="category-toggle" aria-label="Toggle Octave Exercises section">−</button>
-                    </div>
-                    <p class="category-description">Master octave relationships and jumps</p>
-                    <div class="exercise-grid">
+                    <!-- Octave -->
+                    <div class="sub-category">
+                        <h4 class="sub-category-title">🎵 Octave</h4>
+                        <p class="category-description">Master octave relationships and jumps</p>
+                        <div class="exercise-grid">
                         <button class="exercise-card" data-exercise="octaveOverview">
                             <div class="exercise-icon">🌊</div>
                             <h3>Octave Overview</h3>
@@ -359,17 +725,14 @@
                             <h3>Octave System</h3>
                             <p>Guided singing exercises for octave mastery</p>
                         </button>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Whole-Step Interval Exercises -->
-                <div class="exercise-category">
-                    <div class="category-header">
-                        <h3 class="category-title">🎵 Major Second (Whole-Steps)</h3>
-                        <button class="category-toggle" aria-label="Toggle Major Second section">−</button>
-                    </div>
-                    <p class="category-description">Hear and understand whole-step (2 semi-tones) relationships</p>
-                    <div class="exercise-grid">
+                    <!-- Major Second -->
+                    <div class="sub-category">
+                        <h4 class="sub-category-title">🎵 Major Second (Whole-Step)</h4>
+                        <p class="category-description">Hear and understand whole-step (2 semi-tones) relationships</p>
+                        <div class="exercise-grid">
                         <button class="exercise-card" data-exercise="majorSecondOverview">
                             <div class="exercise-icon">🌊</div>
                             <h3>Major Second Overview</h3>
@@ -399,17 +762,14 @@
                             <h3>Major Second System</h3>
                             <p>Guided singing exercises for major second mastery</p>
                         </button>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Half-Step Interval Exercises -->
-                <div class="exercise-category">
-                    <div class="category-header">
-                        <h3 class="category-title">🎼 Minor Second (Half-Steps)</h3>
-                        <button class="category-toggle" aria-label="Toggle Minor Second section">−</button>
-                    </div>
-                    <p class="category-description">Hear and understand half-step (semi-tone) relationships</p>
-                    <div class="exercise-grid">
+                    <!-- Minor Second -->
+                    <div class="sub-category">
+                        <h4 class="sub-category-title">🎼 Minor Second (Half-Step)</h4>
+                        <p class="category-description">Hear and understand half-step (semi-tone) relationships</p>
+                        <div class="exercise-grid">
                         <button class="exercise-card" data-exercise="minorSecondOverview">
                             <div class="exercise-icon">🌊</div>
                             <h3>Minor Second Overview</h3>
@@ -439,17 +799,14 @@
                             <h3>Minor Second System</h3>
                             <p>Guided singing exercises for minor second mastery</p>
                         </button>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Major Third Interval Exercises -->
-                <div class="exercise-category">
-                    <div class="category-header">
-                        <h3 class="category-title">🎶 Major Third</h3>
-                        <button class="category-toggle" aria-label="Toggle Major Third section">−</button>
-                    </div>
-                    <p class="category-description">Hear and understand major third (4 semi-tones) relationships</p>
-                    <div class="exercise-grid">
+                    <!-- Major Third -->
+                    <div class="sub-category">
+                        <h4 class="sub-category-title">🎶 Major Third</h4>
+                        <p class="category-description">Hear and understand major third (4 semi-tones) relationships</p>
+                        <div class="exercise-grid">
                         <button class="exercise-card" data-exercise="majorThirdOverview">
                             <div class="exercise-icon">🌊</div>
                             <h3>Major Third Overview</h3>
@@ -479,17 +836,14 @@
                             <h3>Major Third System</h3>
                             <p>Guided singing exercises for major third mastery</p>
                         </button>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Perfect Fourth Interval Exercises -->
-                <div class="exercise-category">
-                    <div class="category-header">
-                        <h3 class="category-title">🎶 Perfect Fourth</h3>
-                        <button class="category-toggle" aria-label="Toggle Perfect Fourth section">−</button>
-                    </div>
-                    <p class="category-description">Hear and understand perfect fourth (5 semi-tones) relationships</p>
-                    <div class="exercise-grid">
+                    <!-- Perfect Fourth -->
+                    <div class="sub-category">
+                        <h4 class="sub-category-title">🎶 Perfect Fourth</h4>
+                        <p class="category-description">Hear and understand perfect fourth (5 semi-tones) relationships</p>
+                        <div class="exercise-grid">
                         <button class="exercise-card" data-exercise="fourthOverview">
                             <div class="exercise-icon">🌊</div>
                             <h3>Perfect Fourth Overview</h3>
@@ -519,17 +873,14 @@
                             <h3>Perfect Fourth System</h3>
                             <p>Guided singing exercises for perfect fourth mastery</p>
                         </button>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Perfect Fifth Interval Exercises -->
-                <div class="exercise-category">
-                    <div class="category-header">
-                        <h3 class="category-title">🎶 Perfect Fifth</h3>
-                        <button class="category-toggle" aria-label="Toggle Perfect Fifth section">−</button>
-                    </div>
-                    <p class="category-description">Hear and understand perfect fifth (7 semi-tones) relationships</p>
-                    <div class="exercise-grid">
+                    <!-- Perfect Fifth -->
+                    <div class="sub-category">
+                        <h4 class="sub-category-title">🎶 Perfect Fifth</h4>
+                        <p class="category-description">Hear and understand perfect fifth (7 semi-tones) relationships</p>
+                        <div class="exercise-grid">
                         <button class="exercise-card" data-exercise="fifthOverview">
                             <div class="exercise-icon">🌊</div>
                             <h3>Perfect Fifth Overview</h3>
@@ -559,17 +910,14 @@
                             <h3>Perfect Fifth System</h3>
                             <p>Guided singing exercises for perfect fifth mastery</p>
                         </button>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Major Sixth Interval Exercises -->
-                <div class="exercise-category">
-                    <div class="category-header">
-                        <h3 class="category-title">🎶 Major Sixth</h3>
-                        <button class="category-toggle" aria-label="Toggle Major Sixth section">−</button>
-                    </div>
-                    <p class="category-description">Hear and understand major sixth (9 semi-tones) relationships</p>
-                    <div class="exercise-grid">
+                    <!-- Major Sixth -->
+                    <div class="sub-category">
+                        <h4 class="sub-category-title">🎶 Major Sixth</h4>
+                        <p class="category-description">Hear and understand major sixth (9 semi-tones) relationships</p>
+                        <div class="exercise-grid">
                         <button class="exercise-card" data-exercise="majorSixthOverview">
                             <div class="exercise-icon">🌊</div>
                             <h3>Major Sixth Overview</h3>
@@ -599,17 +947,14 @@
                             <h3>Major Sixth System</h3>
                             <p>Guided singing exercises for major sixth mastery</p>
                         </button>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Major Seventh Interval Exercises -->
-                <div class="exercise-category">
-                    <div class="category-header">
-                        <h3 class="category-title">🎶 Major Seventh</h3>
-                        <button class="category-toggle" aria-label="Toggle Major Seventh section">−</button>
-                    </div>
-                    <p class="category-description">Hear and understand major seventh (11 semi-tones) relationships</p>
-                    <div class="exercise-grid">
+                    <!-- Major Seventh -->
+                    <div class="sub-category">
+                        <h4 class="sub-category-title">🎶 Major Seventh</h4>
+                        <p class="category-description">Hear and understand major seventh (11 semi-tones) relationships</p>
+                        <div class="exercise-grid">
                         <button class="exercise-card" data-exercise="majorSeventhOverview">
                             <div class="exercise-icon">🌊</div>
                             <h3>Major Seventh Overview</h3>
@@ -639,17 +984,14 @@
                             <h3>Major Seventh System</h3>
                             <p>Guided singing exercises for major seventh mastery</p>
                         </button>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Scale Exercises -->
-                <div class="exercise-category">
-                    <div class="category-header">
-                        <h3 class="category-title">🎹 Scale Exercises</h3>
-                        <button class="category-toggle" aria-label="Toggle Scale Exercises section">−</button>
-                    </div>
-                    <p class="category-description">Practice singing scales and melodic patterns</p>
-                    <div class="exercise-grid">
+                    <!-- Scale Exercises -->
+                    <div class="sub-category">
+                        <h4 class="sub-category-title">🎹 Scales</h4>
+                        <p class="category-description">Practice singing scales and melodic patterns</p>
+                        <div class="exercise-grid">
                         <button class="exercise-card" data-exercise="scale">
                             <div class="exercise-icon">🎹</div>
                             <h3>Scale Match Up</h3>
@@ -672,37 +1014,8 @@
                             <h3>Scale Darts</h3>
                             <p>Hit the target scale degree - only the root is played</p>
                         </button>
+                        </div>
                     </div>
-                </div>
-
-                <!-- Other Exercises -->
-                <div class="exercise-category">
-                    <div class="category-header">
-                        <h3 class="category-title">🎵 Other Exercises</h3>
-                        <button class="category-toggle" aria-label="Toggle Other Exercises section">−</button>
-                    </div>
-                    <div class="exercise-grid">
-                        <button class="exercise-card" data-exercise="glissando">
-                            <div class="exercise-icon">🌊</div>
-                            <h3>Glissando</h3>
-                            <p>Slide your voice smoothly through it's range</p>
-                        </button>
-
-                        <button class="exercise-card" data-exercise="diagnostics">
-                            <div class="exercise-icon">🔬</div>
-                            <h3>Mic Diagnostics</h3>
-                            <p>Test and debug pitch detection</p>
-                        </button>
-                        <button class="exercise-card" data-exercise="interferenceVisualization">
-                            <div class="exercise-icon">◈</div>
-                            <h3>Interference Visualization</h3>
-                            <p>Visualize harmonic interference patterns and intervals</p>
-                        </button>
-                        <button class="exercise-card" data-exercise="waveVisualization">
-                            <div class="exercise-icon">🪗</div>
-                            <h3>Wave Visualization</h3>
-                            <p>Retro waveform blend with interval color spectrum</p>
-                        </button>
                     </div>
                 </div>
             </section>
@@ -735,7 +1048,7 @@
         </main>
 
         <footer>
-            <p>&copy; 2025 ToneDeath.app</p>
+            <p>&copy; 2025 EarLift.app</p>
         </footer>
     </div>
 
@@ -760,17 +1073,17 @@
     <!-- iOS Install Instructions Modal -->
     <div id="iosInstallModal" class="modal" style="display: none;">
         <div class="modal-content">
-            <h2>Install ToneDeath</h2>
+            <h2>Install EarLift</h2>
             <button id="closeInstallModal" class="exit-btn" aria-label="Close">✕</button>
 
             <div style="padding: 20px; text-align: left;">
-                <p style="margin-bottom: 20px; color: var(--neon-cyan);">For the best experience and proper Bluetooth audio support, install ToneDeath to your home screen:</p>
+                <p style="margin-bottom: 20px; color: var(--neon-cyan);">For the best experience and proper Bluetooth audio support, install EarLift to your home screen:</p>
 
                 <ol style="line-height: 2; color: var(--text-primary); margin-left: 20px;">
                     <li>Tap the <strong style="color: var(--neon-pink);">Share button</strong> <span style="font-size: 1.2em;">⎋</span> in Safari</li>
                     <li>Scroll down and tap <strong style="color: var(--neon-pink);">"Add to Home Screen"</strong></li>
                     <li>Tap <strong style="color: var(--neon-pink);">"Add"</strong> in the top right</li>
-                    <li>Open ToneDeath from your home screen</li>
+                    <li>Open EarLift from your home screen</li>
                 </ol>
 
                 <p style="margin-top: 20px; font-size: 0.875rem; color: var(--text-secondary);">Note: iOS requires PWAs to be installed for full Bluetooth speaker support.</p>
@@ -785,7 +1098,7 @@
         <header>
             <button id="systemExerciseMenuBack" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle" id="systemExerciseMenuTitle">System Exercises</p>
             </div>
             <button id="audioSettingsBtnSystemMenu" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -793,7 +1106,7 @@
 
         <main>
             <section class="card">
-                <h2 id="systemExerciseMenuIntervalName">Choose an Exercise</h2>
+                <h2 id="systemExerciseMenuIntervalName">Choose Your Workout</h2>
                 <p class="category-description" id="systemExerciseMenuDescription">Select a guided singing exercise to practice</p>
 
                 <div class="exercise-grid" id="systemExerciseMenuGrid">
@@ -808,7 +1121,7 @@
         <header>
             <button data-system-exercise="exit" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle" data-system-exercise="title">System Exercise</p>
                 <p class="exercise-label" data-system-exercise="exercise-label">Exercise Name</p>
             </div>
@@ -820,7 +1133,7 @@
                 <!-- Visual Indicators -->
                 <div class="system-exercise-indicators">
                     <div class="tone-indicator" data-system-exercise="root-indicator">
-                        <div class="indicator-label">Root</div>
+                        <div class="indicator-label"><strong>Root</strong></div>
                         <div class="indicator-animation">
                             <div class="solfege-label" data-system-exercise="root-solfege">Do</div>
                             <div class="indicator-wave"></div>
@@ -835,17 +1148,95 @@
                         </div>
                     </div>
                     <div class="tone-indicator" data-system-exercise="interval-indicator">
-                        <div class="indicator-label">Interval</div>
+                        <div class="indicator-label">
+                            <span data-system-exercise="interval-label-text">Interval</span>
+                        </div>
                         <div class="indicator-animation">
                             <div class="solfege-label" data-system-exercise="interval-solfege">Mi</div>
                             <div class="indicator-wave"></div>
                             <div class="indicator-wave"></div>
                             <div class="indicator-wave"></div>
+                            <button class="interval-play-pause-btn" data-system-exercise="interval-play-pause" style="display: none;" aria-label="Play/Pause Matching Note">
+                                <svg class="play-icon" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8 5L26 16L8 27V5Z" fill="currentColor"/>
+                                </svg>
+                                <svg class="pause-icon" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
+                                    <rect x="8" y="6" width="5" height="20" fill="currentColor"/>
+                                    <rect x="19" y="6" width="5" height="20" fill="currentColor"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <!-- Instructional arrow for Slider Glissando (shown initially, hidden after first play) -->
+                        <div class="slider-glissando-instruction" data-system-exercise="slider-instruction" style="display: none;">
+                            <div class="instruction-arrow">←</div>
+                            <div class="instruction-text">Play tone then match</div>
                         </div>
                     </div>
                     <div class="glissando-indicator" data-system-exercise="glissando-indicator" style="display: none;">
                         <div class="glissando-head" role="img" aria-label="Singer"></div>
                         <div class="glissando-notes" role="img" aria-label="Glissando notes"></div>
+                    </div>
+                </div>
+
+                <!-- Glissando Slider Controls (shown for Slider Glissando exercise) -->
+                <div data-system-exercise="glissando-slider-controls" class="glissando-slider-section" style="display: none;">
+                    <div class="glissando-slider-container">
+                        <!-- Diagonal Slider (Rotated -15deg) -->
+                        <div class="glissando-slider-wrapper">
+                            <input type="range" data-glissando-slider="frequency" min="220" max="880" value="440" class="glissando-slider-diagonal">
+                        </div>
+
+                        <!-- Buttons Below Slider (Spread Along, Rotated -15deg) -->
+                        <div class="glissando-buttons-container">
+                            <!-- Down Buttons (Left Side) -->
+                            <button data-glissando-slider="jump-down-big" class="glissando-jump-btn glissando-btn-big glissando-btn-down" aria-label="Fast Continuous Down">
+                                <svg width="32" height="24" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <!-- Two triangles pointing left -->
+                                    <path d="M2 12L10 6V9H18V15H10V18L2 12Z" fill="currentColor"/>
+                                    <path d="M14 12L22 6V9H30V15H22V18L14 12Z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                            <button data-glissando-slider="jump-down-medium" class="glissando-jump-btn glissando-btn-medium glissando-btn-down" aria-label="Slow Continuous Down">
+                                <svg width="24" height="20" viewBox="0 0 24 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <!-- Medium single triangle pointing left -->
+                                    <path d="M6 10L16 5V8H22V12H16V15L6 10Z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                            <button data-glissando-slider="jump-down-small" class="glissando-jump-btn glissando-btn-small glissando-btn-down" aria-label="Small Step Down">
+                                <svg width="16" height="18" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <!-- Triangle pointing left -->
+                                    <path d="M4 10L12 5V8H14V12H12V15L4 10Z" fill="currentColor"/>
+                                    <!-- Tall thin vertical line centered at triangle point -->
+                                    <rect x="2" y="7" width="1.5" height="6" fill="currentColor"/>
+                                </svg>
+                            </button>
+
+                            <!-- Up Buttons (Right Side) -->
+                            <button data-glissando-slider="jump-up-small" class="glissando-jump-btn glissando-btn-small glissando-btn-up" aria-label="Small Step Up">
+                                <svg width="16" height="18" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <!-- Triangle pointing right -->
+                                    <path d="M12 10L4 5V8H2V12H4V15L12 10Z" fill="currentColor"/>
+                                    <!-- Tall thin vertical line centered at triangle point -->
+                                    <rect x="12.5" y="7" width="1.5" height="6" fill="currentColor"/>
+                                </svg>
+                            </button>
+                            <button data-glissando-slider="jump-up-medium" class="glissando-jump-btn glissando-btn-medium glissando-btn-up" aria-label="Slow Continuous Up">
+                                <svg width="24" height="20" viewBox="0 0 24 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <!-- Medium single triangle pointing right -->
+                                    <path d="M18 10L8 5V8H2V12H8V15L18 10Z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                            <button data-glissando-slider="jump-up-big" class="glissando-jump-btn glissando-btn-big glissando-btn-up" aria-label="Fast Continuous Up">
+                                <svg width="32" height="24" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <!-- Two triangles pointing right -->
+                                    <path d="M30 12L22 6V9H14V15H22V18L30 12Z" fill="currentColor"/>
+                                    <path d="M18 12L10 6V9H2V15H10V18L18 12Z" fill="currentColor"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Next Button (shown after user adjusts slider) -->
+                        <button data-glissando-slider="next" class="btn-action-primary" style="display: none;">Next</button>
                     </div>
                 </div>
 
@@ -865,6 +1256,24 @@
                             <!-- Action button at end of instruction -->
                             <button class="flow-action-button btn-action-primary" data-system-exercise="action">
                                 then Match It
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Simplified Unison Rating UI (shown instead of carousel for unison) -->
+                    <div class="unison-rating-container" data-system-exercise="unison-rating" style="display: none;">
+                        <div class="unison-rating-buttons">
+                            <button class="unison-rating-btn" data-rating="easy">
+                                <div class="rating-label" data-label-default="Matched Quick" data-label-slider="Found it Easy">Matched Quick</div>
+                            </button>
+                            <button class="unison-rating-btn" data-rating="medium">
+                                <div class="rating-label" data-label-default="Took a Bit" data-label-slider="Struggled to Find">Took a Bit</div>
+                            </button>
+                            <button class="unison-rating-btn" data-rating="hard">
+                                <div class="rating-label" data-label-default="Struggled" data-label-slider="Struggled to Hear">Struggled</div>
+                            </button>
+                            <button class="unison-rating-btn" data-rating="failed">
+                                <div class="rating-label" data-label-default="Did not complete" data-label-slider="Didn't do it">Did not complete</div>
                             </button>
                         </div>
                     </div>
@@ -976,7 +1385,7 @@
         <header>
             <button id="exitGlissandoExercise" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Glissando</p>
             </div>
             <button id="audioSettingsBtnGlissando" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -1030,7 +1439,7 @@
         <header>
             <button id="exitExercise" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Unison Explore</p>
             </div>
             <button id="audioSettingsBtnExercise" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -1083,7 +1492,7 @@
         <header>
             <button id="exitPitchHold" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Car Pitch Hold</p>
             </div>
             <button id="audioSettingsBtnPitchHold" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -1165,7 +1574,7 @@
         <header>
             <button id="exitOctaveExercise" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Octave Match</p>
             </div>
             <button id="audioSettingsBtnOctave" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -1231,7 +1640,7 @@
         <header>
             <button id="exitScaleExercise" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Scale Match</p>
             </div>
             <button id="audioSettingsBtnScale" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -1379,7 +1788,7 @@
         <header>
             <button id="toneSlideExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Tone Slide</p>
             </div>
             <button id="audioSettingsBtnToneSlide" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -1439,7 +1848,7 @@
         <header>
             <button id="exitToneDarts" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Tone Darts</p>
             </div>
             <button id="audioSettingsBtnDarts" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -1491,7 +1900,7 @@
         <header>
             <button id="unisonDartsExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Unison Darts</p>
             </div>
             <button id="audioSettingsBtnUnisonDarts" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -1543,7 +1952,7 @@
         <header>
             <button id="halfStepDartsExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Half-Step Darts</p>
             </div>
             <button id="audioSettingsBtnHalfStepDarts" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -1595,7 +2004,7 @@
         <header>
             <button id="wholeStepDartsExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Whole-Step Darts</p>
             </div>
             <button id="audioSettingsBtnWholeStepDarts" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -1647,7 +2056,7 @@
         <header>
             <button id="octaveDartsExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Octave Darts</p>
             </div>
             <button id="audioSettingsBtnOctaveDarts" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -1809,7 +2218,7 @@
         <header>
             <button id="halfStepFeelRootExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Half-Step Explore</p>
             </div>
             <button id="audioSettingsBtnHalfStepFeelRoot" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -1878,7 +2287,7 @@
         <header>
             <button id="octaveFeelRootExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Octave Explore</p>
             </div>
             <button id="audioSettingsBtnOctaveFeelRoot" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -1947,7 +2356,7 @@
         <header>
             <button id="wholeStepFeelRootExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Whole-Step Explore</p>
             </div>
             <button id="audioSettingsBtnWholeStepFeelRoot" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -2016,7 +2425,7 @@
         <header>
             <button id="halfStepSlideExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Half-Step Slide</p>
             </div>
             <button id="audioSettingsBtnHalfStepSlide" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -2083,7 +2492,7 @@
         <header>
             <button id="wholeStepSlideExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Whole-Step Slide</p>
             </div>
             <button id="audioSettingsBtnWholeStepSlide" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -2150,7 +2559,7 @@
         <header>
             <button id="octaveSlideExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Octave Slide</p>
             </div>
             <button id="audioSettingsBtnOctaveSlide" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -2217,7 +2626,7 @@
         <header>
             <button id="majorThirdFeelRootExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Major Third Explore</p>
             </div>
             <button id="audioSettingsBtnMajorThirdFeelRoot" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -2286,7 +2695,7 @@
         <header>
             <button id="majorThirdSlideExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Major Third Slide</p>
             </div>
             <button id="audioSettingsBtnMajorThirdSlide" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -2353,7 +2762,7 @@
         <header>
             <button id="majorThirdDartsExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Major Third Darts</p>
             </div>
             <button id="audioSettingsBtnMajorThirdDarts" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -2405,7 +2814,7 @@
         <header>
             <button id="perfectFourthFeelRootExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Perfect Fourth Explore</p>
             </div>
             <button id="audioSettingsBtnPerfectFourthFeelRoot" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -2474,7 +2883,7 @@
         <header>
             <button id="perfectFourthSlideExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Perfect Fourth Slide</p>
             </div>
             <button id="audioSettingsBtnPerfectFourthSlide" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -2541,7 +2950,7 @@
         <header>
             <button id="perfectFourthDartsExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Perfect Fourth Darts</p>
             </div>
             <button id="audioSettingsBtnPerfectFourthDarts" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -2593,7 +3002,7 @@
         <header>
             <button id="perfectFifthFeelRootExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Perfect Fifth Explore</p>
             </div>
             <button id="audioSettingsBtnPerfectFifthFeelRoot" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -2662,7 +3071,7 @@
         <header>
             <button id="perfectFifthSlideExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Perfect Fifth Slide</p>
             </div>
             <button id="audioSettingsBtnPerfectFifthSlide" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -2729,7 +3138,7 @@
         <header>
             <button id="perfectFifthDartsExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Perfect Fifth Darts</p>
             </div>
             <button id="audioSettingsBtnPerfectFifthDarts" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -2781,7 +3190,7 @@
         <header>
             <button id="majorSixthFeelRootExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Major Sixth Explore</p>
             </div>
             <button id="audioSettingsBtnMajorSixthFeelRoot" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -2850,7 +3259,7 @@
         <header>
             <button id="majorSixthSlideExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Major Sixth Slide</p>
             </div>
             <button id="audioSettingsBtnMajorSixthSlide" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -2917,7 +3326,7 @@
         <header>
             <button id="majorSixthDartsExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Major Sixth Darts</p>
             </div>
             <button id="audioSettingsBtnMajorSixthDarts" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -2969,7 +3378,7 @@
         <header>
             <button id="majorSeventhFeelRootExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Major Seventh Explore</p>
             </div>
             <button id="audioSettingsBtnMajorSeventhFeelRoot" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -3038,7 +3447,7 @@
         <header>
             <button id="majorSeventhSlideExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Major Seventh Slide</p>
             </div>
             <button id="audioSettingsBtnMajorSeventhSlide" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -3105,7 +3514,7 @@
         <header>
             <button id="majorSeventhDartsExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Major Seventh Darts</p>
             </div>
             <button id="audioSettingsBtnMajorSeventhDarts" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -3158,7 +3567,7 @@
         <header>
             <button id="interferenceVizExitBtn" class="back-btn" aria-label="Back" data-interference="exit">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Interference Visualization</p>
             </div>
         </header>
@@ -3335,7 +3744,7 @@
         <header>
             <button id="waveVizExitBtn" data-wave-viz="exit" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Wave Visualization</p>
             </div>
         </header>
@@ -3435,8 +3844,91 @@
         </main>
     </div>
 
+    <!-- Beat Frequency Feeling Exercise -->
+    <div id="beatFrequencyFeeling" class="container exercise-container" style="display: none;">
+
+        <!-- Setup Modal (Phase 0) -->
+        <div data-bff="setup-modal" class="bff-modal">
+            <div class="bff-modal-content">
+                <h2>Setup Required</h2>
+                <p><strong>Important: Use ONE headphone with a microphone</strong></p>
+                <ul>
+                    <li>You need to hear the app's reference tone clearly</li>
+                    <li>You need to hear your own voice naturally (one ear open)</li>
+                    <li>The app needs to hear your voice through the microphone</li>
+                </ul>
+
+                <div class="bff-mic-test-area">
+                    <button data-bff="test-mic-btn" class="bff-button bff-button-test">Test Microphone</button>
+
+                    <div data-bff="mic-feedback" class="bff-mic-feedback hidden">
+                        <div class="bff-volume-meter">
+                            <span>Volume:</span>
+                            <div class="bff-volume-bar">
+                                <div data-bff="volume-fill" class="bff-volume-fill"></div>
+                            </div>
+                        </div>
+                        <div class="bff-pitch-display">
+                            Pitch: <span data-bff="test-pitch">Sing a note...</span>
+                        </div>
+                        <div data-bff="mic-status" class="bff-mic-status">✓ Microphone working!</div>
+                    </div>
+                </div>
+
+                <button data-bff="start-exercise-btn" class="bff-button bff-button-primary" disabled>Start Exercise</button>
+            </div>
+        </div>
+
+        <!-- Main Exercise UI -->
+        <div data-bff="main-container" class="bff-main-container hidden">
+
+            <!-- Range Prompt -->
+            <div data-bff="range-prompt" class="bff-range-prompt">
+                Sing and hold a comfortable low note
+            </div>
+
+            <!-- Root Note Indicator -->
+            <div data-bff="root-indicator" class="bff-root-indicator">
+                <div data-bff="root-note">Not singing</div>
+            </div>
+
+            <!-- Phase Status -->
+            <div data-bff="phase-status" class="bff-phase-status">
+                Hold your pitch steady...
+            </div>
+
+            <!-- Beat Frequency Display (Phase 2) -->
+            <div data-bff="demo-display" class="bff-demo-display hidden">
+                <div data-bff="offset-display" class="bff-offset-display">+100 cents</div>
+                <div data-bff="beat-freq" class="bff-beat-freq">0.0 Hz apart</div>
+                <div data-bff="offset-description" class="bff-offset-description">One piano key higher</div>
+
+                <!-- Glissando Progress Bar -->
+                <div class="bff-progress-bar">
+                    <div class="bff-progress-track">
+                        <div data-bff="glissando-progress" class="bff-progress-fill"></div>
+                    </div>
+                    <div class="bff-progress-labels">
+                        <span>+100¢</span>
+                        <span>0¢</span>
+                        <span>-100¢</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="bff-controls">
+                <!-- Next Button (Phase 3) -->
+                <button data-bff="next-btn" class="bff-button bff-button-next hidden">Try Another Note</button>
+
+                <!-- Exit -->
+                <button data-bff="exit-btn" class="bff-button bff-button-exit">Exit</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Ear Training Overview Tutorial -->
-    <div id="earTrainingOverviewExercise" class="container exercise-container" style="display: none;">
+    <div id="earTrainingOverviewExercise" class="container exercise-container overview-exercise" style="display: none;">
         <header>
             <button id="earTrainingOverviewExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
@@ -3472,7 +3964,7 @@
         <header>
             <button id="overviewExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Overview</p>
             </div>
             <button id="audioSettingsBtnOverview" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -3544,11 +4036,11 @@
     </div>
 
     <!-- Interval Overview Exercise (Tutorial: Frequency, Pitch, Intervals) -->
-    <div id="intervalOverviewExercise" class="container exercise-container" style="display: none;">
+    <div id="intervalOverviewExercise" class="container exercise-container overview-exercise" style="display: none;">
         <header>
             <button data-claude="exit" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Pitch Overview</p>
             </div>
             <button id="audioSettingsBtnIntervalOverview" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -3561,7 +4053,7 @@
                         Loading tutorial...
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; gap: 15px;">
-                        <button data-tutorial="prev" class="btn-control tutorial-nav-btn tutorial-prev-btn" style="min-width: 120px; padding: 12px 24px; background: linear-gradient(135deg, rgba(100,100,120,0.3), rgba(80,80,100,0.3)); border: 2px solid rgba(255,255,255,0.4); box-shadow: 0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2); border-radius: 6px; font-weight: 600; letter-spacing: 0.5px; transition: all 0.15s ease;">← Previous</button>
+                        <button data-tutorial="prev" class="btn-control tutorial-nav-btn tutorial-prev-btn" style="min-width: 120px; padding: 12px 24px; background: linear-gradient(135deg, rgba(0,255,136,0.4), rgba(0,200,100,0.4)); border: 2px solid rgba(0,255,136,0.6); box-shadow: 0 4px 12px rgba(0,255,136,0.3), inset 0 1px 0 rgba(255,255,255,0.2); border-radius: 6px; font-weight: 600; letter-spacing: 0.5px; transition: all 0.15s ease;">← Previous</button>
                         <span data-tutorial="progress" style="color: rgba(255,255,255,0.8); font-weight: 500; font-size: 0.95rem;">1 / 15</span>
                         <button data-tutorial="next" class="btn-control tutorial-nav-btn tutorial-next-btn" style="min-width: 120px; padding: 12px 24px; background: linear-gradient(135deg, rgba(0,255,136,0.4), rgba(0,200,100,0.4)); border: 2px solid rgba(0,255,136,0.6); box-shadow: 0 4px 12px rgba(0,255,136,0.3), inset 0 1px 0 rgba(255,255,255,0.2); border-radius: 6px; font-weight: 600; letter-spacing: 0.5px; transition: all 0.15s ease;">Next →</button>
                     </div>
@@ -3665,11 +4157,11 @@
     </div>
 
     <!-- Unison Overview Exercise (Tutorial: Pitch, Frequency, Unison) -->
-    <div id="unisonOverviewExercise" class="container exercise-container" style="display: none;">
+    <div id="unisonOverviewExercise" class="container exercise-container overview-exercise" style="display: none;">
         <header>
             <button data-unison="exit" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Unison Overview</p>
             </div>
             <button id="audioSettingsBtnUnisonOverview" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -3681,22 +4173,82 @@
                     <div data-tutorial="text" style="color: rgba(255,255,255,0.9); line-height: 1.6; font-size: 1.1rem;">
                         Loading tutorial...
                     </div>
+
+                    <!-- Slider Glissando (tutorial mode) -->
+                    <div data-tutorial-target="sliderGlissandoControls" data-system-exercise="glissando-slider-controls" class="glissando-slider-section tutorial-hidden" style="margin-top: 20px; margin-bottom: 20px;">
+                        <div class="glissando-slider-container">
+                            <!-- Diagonal Slider (Rotated -15deg) -->
+                            <div class="glissando-slider-wrapper">
+                                <input type="range" data-glissando-slider="frequency" min="220" max="880" value="440" class="glissando-slider-diagonal">
+                            </div>
+
+                            <!-- Buttons Below Slider (Spread Along, Rotated -15deg) -->
+                            <div class="glissando-buttons-container">
+                                <!-- Down Buttons (Left Side) -->
+                                <button data-glissando-slider="jump-down-big" class="glissando-jump-btn glissando-btn-big glissando-btn-down" aria-label="Fast Continuous Down">
+                                    <svg width="32" height="24" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <!-- Two triangles pointing left -->
+                                        <path d="M2 12L10 6V9H18V15H10V18L2 12Z" fill="currentColor"/>
+                                        <path d="M14 12L22 6V9H30V15H22V18L14 12Z" fill="currentColor"/>
+                                    </svg>
+                                </button>
+                                <button data-glissando-slider="jump-down-medium" class="glissando-jump-btn glissando-btn-medium glissando-btn-down" aria-label="Slow Continuous Down">
+                                    <svg width="24" height="20" viewBox="0 0 24 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <!-- Medium single triangle pointing left -->
+                                        <path d="M6 10L16 5V8H22V12H16V15L6 10Z" fill="currentColor"/>
+                                    </svg>
+                                </button>
+                                <button data-glissando-slider="jump-down-small" class="glissando-jump-btn glissando-btn-small glissando-btn-down" aria-label="Small Step Down">
+                                    <svg width="16" height="18" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <!-- Triangle pointing left -->
+                                        <path d="M4 10L12 5V8H14V12H12V15L4 10Z" fill="currentColor"/>
+                                        <!-- Tall thin vertical line centered at triangle point -->
+                                        <rect x="2" y="7" width="1.5" height="6" fill="currentColor"/>
+                                    </svg>
+                                </button>
+
+                                <!-- Up Buttons (Right Side) -->
+                                <button data-glissando-slider="jump-up-small" class="glissando-jump-btn glissando-btn-small glissando-btn-up" aria-label="Small Step Up">
+                                    <svg width="16" height="18" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <!-- Triangle pointing right -->
+                                        <path d="M12 10L4 5V8H2V12H4V15L12 10Z" fill="currentColor"/>
+                                        <!-- Tall thin vertical line centered at triangle point -->
+                                        <rect x="12.5" y="7" width="1.5" height="6" fill="currentColor"/>
+                                    </svg>
+                                </button>
+                                <button data-glissando-slider="jump-up-medium" class="glissando-jump-btn glissando-btn-medium glissando-btn-up" aria-label="Slow Continuous Up">
+                                    <svg width="24" height="20" viewBox="0 0 24 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <!-- Medium single triangle pointing right -->
+                                        <path d="M18 10L8 5V8H2V12H8V15L18 10Z" fill="currentColor"/>
+                                    </svg>
+                                </button>
+                                <button data-glissando-slider="jump-up-big" class="glissando-jump-btn glissando-btn-big glissando-btn-up" aria-label="Fast Continuous Up">
+                                    <svg width="32" height="24" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <!-- Two triangles pointing right -->
+                                        <path d="M30 12L22 6V9H14V15H22V18L30 12Z" fill="currentColor"/>
+                                        <path d="M18 12L10 6V9H2V15H10V18L18 12Z" fill="currentColor"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; gap: 15px;">
-                        <button data-tutorial="prev" class="btn-control tutorial-nav-btn tutorial-prev-btn" style="min-width: 120px; padding: 12px 24px; background: linear-gradient(135deg, rgba(100,100,120,0.3), rgba(80,80,100,0.3)); border: 2px solid rgba(255,255,255,0.4); box-shadow: 0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2); border-radius: 6px; font-weight: 600; letter-spacing: 0.5px; transition: all 0.15s ease;">← Previous</button>
+                        <button data-tutorial="prev" class="btn-control tutorial-nav-btn tutorial-prev-btn" style="min-width: 120px; padding: 12px 24px; background: linear-gradient(135deg, rgba(0,255,136,0.4), rgba(0,200,100,0.4)); border: 2px solid rgba(0,255,136,0.6); box-shadow: 0 4px 12px rgba(0,255,136,0.3), inset 0 1px 0 rgba(255,255,255,0.2); border-radius: 6px; font-weight: 600; letter-spacing: 0.5px; transition: all 0.15s ease;">← Previous</button>
                         <span data-tutorial="progress" style="color: rgba(255,255,255,0.8); font-weight: 500; font-size: 0.95rem;">1 / 15</span>
                         <button data-tutorial="next" class="btn-control tutorial-nav-btn tutorial-next-btn" style="min-width: 120px; padding: 12px 24px; background: linear-gradient(135deg, rgba(0,255,136,0.4), rgba(0,200,100,0.4)); border: 2px solid rgba(0,255,136,0.6); box-shadow: 0 4px 12px rgba(0,255,136,0.3), inset 0 1px 0 rgba(255,255,255,0.2); border-radius: 6px; font-weight: 600; letter-spacing: 0.5px; transition: all 0.15s ease;">Next →</button>
                     </div>
                 </div>
 
                 <!-- Visualizations (tucked under text box) -->
-                <div data-unison-panel="interference" style="margin-top: -10px; margin-bottom: 15px; display: none; position: relative;">
-                    <canvas data-unison="interference-canvas" style="width: 100%; max-width: 100%; height: 350px; display: block; background: #000; border-radius: 4px;"></canvas>
+                <div data-unison-panel="interference" style="margin-top: -10px; margin-bottom: 15px; display: none; position: relative; height: 198px;">
+                    <canvas data-unison="interference-canvas" style="width: 100%; max-width: 100%; height: 198px; display: block; background: #000; border-radius: 4px;"></canvas>
                     <div data-unison="interference-hz-labels" style="margin-top: 8px; text-align: center; color: rgba(255,255,255,0.6); font-size: 0.9rem;"></div>
                 </div>
 
                 <div data-unison-panel="wave" style="margin-top: -10px; margin-bottom: 15px; display: none;">
-                    <canvas data-unison="wave-canvas" style="width: 100%; max-width: 100%; height: 350px; display: block; background: #000; border-radius: 4px;"></canvas>
-                    <div data-unison="wave-settings-panel" style="margin-top: 10px; text-align: center; display: none;">
+                    <canvas data-unison="wave-canvas" style="width: 100%; max-width: 100%; height: 440px; display: block; background: #000; border-radius: 4px;"></canvas>
+                    <div data-unison="wave-settings-panel" data-tutorial-target="waveSettingsPanel" style="margin-top: 10px; text-align: center; display: none;">
                         <label style="color: rgba(255,255,255,0.9); margin-right: 15px; cursor: pointer;">
                             <input type="radio" name="unisonWaveMode" data-unison="wave-mode" value="sideBySide" checked>
                             Side-by-Side
@@ -3745,6 +4297,7 @@
                     </div>
                 </div>
 
+
                 <!-- Advanced Controls (tutorial-controlled) -->
                 <div data-tutorial-target="advancedControls" class="tutorial-hidden" style="margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 8px;">
                     <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
@@ -3785,12 +4338,39 @@
         </main>
     </div>
 
+    <!-- Glissando Overview Exercise (Tutorial: Smooth Pitch Sliding) -->
+    <div id="glissandoOverviewExercise" class="container exercise-container overview-exercise" style="display: none;">
+        <header>
+            <button data-glissando-overview="exit" class="back-btn" aria-label="Back">← Back</button>
+            <div class="header-center">
+                <h1>EarLift Method</h1>
+                <p class="subtitle">Glissando Overview</p>
+            </div>
+            <button id="audioSettingsBtnGlissandoOverview" class="settings-btn" aria-label="Audio Settings">⚙️</button>
+        </header>
+        <main>
+            <section class="card">
+                <!-- Tutorial Instructions -->
+                <div style="margin-bottom: 0; padding: 20px; background: rgba(0,255,136,0.1); border-radius: 8px;">
+                    <div data-tutorial="text" style="color: rgba(255,255,255,0.9); line-height: 1.6; font-size: 1.1rem;">
+                        Loading tutorial...
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; gap: 15px;">
+                        <button data-tutorial="prev" class="btn-control tutorial-nav-btn tutorial-prev-btn" style="min-width: 120px; padding: 12px 24px; background: linear-gradient(135deg, rgba(0,255,136,0.4), rgba(0,200,100,0.4)); border: 2px solid rgba(0,255,136,0.6); box-shadow: 0 4px 12px rgba(0,255,136,0.3), inset 0 1px 0 rgba(255,255,255,0.2); border-radius: 6px; font-weight: 600; letter-spacing: 0.5px; transition: all 0.15s ease;">← Previous</button>
+                        <span data-tutorial="progress" style="color: rgba(255,255,255,0.8); font-weight: 500; font-size: 0.95rem;">1 / 11</span>
+                        <button data-tutorial="next" class="btn-control tutorial-nav-btn tutorial-next-btn" style="min-width: 120px; padding: 12px 24px; background: linear-gradient(135deg, rgba(0,255,136,0.4), rgba(0,200,100,0.4)); border: 2px solid rgba(0,255,136,0.6); box-shadow: 0 4px 12px rgba(0,255,136,0.3), inset 0 1px 0 rgba(255,255,255,0.2); border-radius: 6px; font-weight: 600; letter-spacing: 0.5px; transition: all 0.15s ease;">Next →</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
     <!-- General Interval Overview Exercise -->
-    <div id="generalIntervalOverviewExercise" class="container exercise-container" style="display: none;">
+    <div id="generalIntervalOverviewExercise" class="container exercise-container overview-exercise" style="display: none;">
         <header>
             <button data-interval="exit" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1 data-interval="title">ToneDeath</h1>
+                <h1 data-interval="title">EarLift</h1>
                 <p data-interval="subtitle" class="subtitle">Interval Overview</p>
             </div>
             <button id="audioSettingsBtnGeneralIntervalOverview" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -3887,7 +4467,7 @@
         <header>
             <button id="scaleDartsExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Scale Darts</p>
             </div>
             <button id="audioSettingsBtnScaleDarts" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -3932,13 +4512,13 @@
         </main>
     </div>
 
-    <!-- Training Mode Main Menu -->
+    <!-- Workout Mode Main Menu -->
     <div id="trainingMenu" class="container training-container" style="display: none;">
         <header>
             <button id="trainingExitBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
-                <p class="subtitle">Training Mode</p>
+                <h1>EarLift Method<span id="currentProfileDisplay" style="display: none;"> - <span id="currentProfileName">Default</span></span></h1>
+                <p class="subtitle">Workout Mode</p>
             </div>
             <button id="audioSettingsBtnTraining" class="settings-btn" aria-label="Audio Settings">⚙️</button>
         </header>
@@ -3966,7 +4546,7 @@
                     <p>View your performance and unlocked intervals</p>
                 </button>
 
-                <button id="trainingSettingsBtn" class="training-menu-btn">
+                <button id="trainingMenuSettingsBtn" class="training-menu-btn">
                     <div class="training-btn-icon">⚙️</div>
                     <h3>Settings</h3>
                     <p>Adjust training parameters and force unlocks</p>
@@ -3980,7 +4560,7 @@
         <header>
             <button id="trainingSettingsBackBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Training Settings</p>
             </div>
             <button id="audioSettingsBtnTrainingSettings" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -4024,6 +4604,14 @@
                     </label>
                     <p class="setting-description">Include foundational vocal exercises in training (starts with glissando before intervals)</p>
                 </div>
+
+                <div class="setting-item">
+                    <label for="settingSliderGlissandoVisualization">
+                        <input type="checkbox" id="settingSliderGlissandoVisualization" checked>
+                        Show visualization during Slider Glissando
+                    </label>
+                    <p class="setting-description">Display wave visualization in Slider Glissando exercises (helps see when tones match)</p>
+                </div>
             </section>
 
             <section class="card">
@@ -4037,6 +4625,56 @@
             <section class="card">
                 <button id="resetTrainingDataBtn" class="btn-danger">Reset All Training Data</button>
             </section>
+
+            <section class="card">
+                <h3>Profile Management</h3>
+                <p class="setting-description">Manage multiple user profiles with separate training data and vocal ranges</p>
+
+                <div class="setting-item">
+                    <label for="enableProfileSystem">
+                        <input type="checkbox" id="enableProfileSystem">
+                        Enable Profile System
+                    </label>
+                    <p class="setting-description">Allow multiple users to have separate training data (for testing or family use)</p>
+                </div>
+
+                <div id="profileManagementSection" style="display: none;">
+                    <div class="setting-item">
+                        <label>Auto-Load Preference</label>
+                        <div class="setting-control" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+                            <label style="display: flex; align-items: center; gap: 10px; font-weight: normal;">
+                                <input type="radio" name="autoLoadPreference" value="last" id="autoLoadLast" checked>
+                                Auto-Load Last Profile
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 10px; font-weight: normal;">
+                                <input type="radio" name="autoLoadPreference" value="default" id="autoLoadDefault">
+                                Auto-Load Default Profile
+                            </label>
+                        </div>
+                        <p class="setting-description">Choose which profile to load when starting the app</p>
+                    </div>
+
+                    <div class="setting-item">
+                        <label>Current Profile: <strong id="currentProfileNameSetting">Default</strong></label>
+                    </div>
+
+                    <div class="setting-item">
+                        <label for="newProfileName">Add New Profile</label>
+                        <div class="setting-control">
+                            <input type="text" id="newProfileName" placeholder="Profile name" maxlength="20" style="flex: 1; padding: 8px; background: var(--brutalist-concrete); border: 2px solid var(--brutalist-gray); color: var(--text-primary);">
+                            <button id="addProfileBtn" class="btn-secondary" style="padding: 8px 16px;">Add Profile</button>
+                        </div>
+                        <p class="setting-description">Create a new profile with fresh training data</p>
+                    </div>
+
+                    <div class="setting-item">
+                        <label>Manage Profiles</label>
+                        <div id="profileListContainer" class="profile-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -4045,7 +4683,7 @@
         <header>
             <button id="trainingProgressBackBtn" class="back-btn" aria-label="Back">← Back</button>
             <div class="header-center">
-                <h1>ToneDeath</h1>
+                <h1>EarLift Method</h1>
                 <p class="subtitle">Training Progress</p>
             </div>
             <button id="audioSettingsBtnTrainingProgress" class="settings-btn" aria-label="Audio Settings">⚙️</button>
@@ -4081,7 +4719,7 @@
                 </button>
                 <button class="rating-btn rating-failed" data-rating="failed">
                     <span class="rating-emoji">❌</span>
-                    <span class="rating-label">Couldn't do it</span>
+                    <span class="rating-label">Did not complete</span>
                 </button>
             </div>
 
@@ -4099,8 +4737,31 @@
         </div>
     </div>
 
+    <!-- Profile Switcher Dialog (overlay) -->
+    <div id="profileSwitcherModal" class="profile-switcher-overlay" style="display: none;">
+        <div class="profile-switcher-dialog">
+            <div class="dialog-header">
+                <h2>Switch Profile</h2>
+                <button id="closeProfileSwitcher" class="dialog-close-btn">✕</button>
+            </div>
+            <div id="profileSwitcherList" class="profile-switcher-list">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
     <!-- Audio System -->
     <script src="audioManager.js"></script>
+
+    <!-- FTUE Celebration Modal -->
+    <div id="ftueCelebrationModal" class="ftue-celebration-modal" style="display: none;">
+        <div class="celebration-backdrop"></div>
+        <div class="celebration-content">
+            <h2 class="celebration-title" id="celebrationTitle">🎉 Congratulations!</h2>
+            <p class="celebration-message" id="celebrationMessage">You've completed a milestone!</p>
+            <button class="celebration-close-btn btn-primary" id="celebrationCloseBtn">Continue</button>
+        </div>
+    </div>
 
     <!-- Pitchy library (for alternative pitch detection) - bundled locally -->
     <script src="pitchy.bundle.js?v=1759963744"></script>
@@ -4110,7 +4771,7 @@
     <script src="pitchDetector.pitchy.js?v=1759963744"></script>
     <script src="pitchDetectorConfig.js?v=1759963744"></script>
 
-    <script src="toneGenerator.v2.js"></script>
+    <script src="toneGenerator.v2.js?v=2"></script>
     <script src="settings.js"></script>
     <script src="tipsAndTricks.js"></script>
     <script src="debugMode.js"></script>
@@ -4129,39 +4790,95 @@
     <script src="intervalDartsExercise.js"></script>
     <script src="scaleDartsExercise.js"></script>
     <script src="earTrainingOverview.js"></script>
-    <script src="overviewExercise.js"></script>
     <!-- Interference Visualization Modules -->
     <script src="lib/consonanceColorSystem.js?v=1"></script>
     <script src="lib/speakerOverlayRenderer.js?v=6"></script>
     <script src="lib/dualToneAudioController.js?v=1"></script>
     <script src="lib/harmonicRendererSettings.js?v=3"></script>
     <script src="waveVisualization.js?v=1"></script>
+    <script src="beatFrequencyFeeling.js"></script>
     <script src="interferenceVisualization.js?v=24"></script>
     <script src="intervalOverviewTutorial.js?v=1"></script>
     <script src="unisonOverviewTutorial.js?v=1"></script>
+    <script src="glissandoOverviewTutorial.js?v=1"></script>
+    <script src="unisonTutorialSlider.js?v=2"></script>
     <script src="tutorialController.js?v=1"></script>
     <script src="intervalOverview.js?v=2"></script>
     <script src="unisonOverview.js?v=1"></script>
+    <script src="glissandoOverview.js?v=1"></script>
     <script src="intervalConfigs.js?v=1"></script>
     <script src="intervalOverviewTutorialTemplate.js?v=1"></script>
     <script src="generalIntervalOverview.js?v=1"></script>
     <script src="intervalSystemExerciseConfigs.js?v=1"></script>
     <script src="intervalSystemExercise.js?v=1"></script>
     <!-- Training System -->
+    <script src="profileManager.js"></script>
     <script src="trainingData.js"></script>
     <script src="trainingSystem.js"></script>
     <script src="trainingUI.js"></script>
+    <!-- FTUE System -->
+    <script src="ftueManager.js"></script>
+    <script src="ftueSounds.js"></script>
+    <script src="ftueAnimations.js"></script>
+    <!-- Helper Definitions System -->
+    <script src="helperDefinitions.js"></script>
+    <script src="helperDefinitionModal.js"></script>
     <script src="app.js"></script>
     <script>
         // Global button click sound
         const buttonClickGenerator = new ToneGenerator();
 
+        /**
+         * Check if any exercise audio is currently playing
+         * @returns {boolean} True if any audio is playing
+         */
+        function isAnyAudioPlaying() {
+            // Check interval/unison/glissando overview exercises
+            const exercises = [
+                window.intervalOverviewInstance,
+                window.unisonOverviewInstance,
+                window.glissandoOverviewInstance,
+                window.generalIntervalOverviewInstance
+            ];
+
+            for (const exercise of exercises) {
+                if (exercise?.audioController?.isAnyPlaying?.()) {
+                    return true;
+                }
+            }
+
+            // Check beat frequency feeling exercise
+            if (window.beatFrequencyFeelingInstance?.toneGenerator?.isPlaying) {
+                return true;
+            }
+
+            return false;
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             // Add click sound to all buttons
             document.addEventListener('click', (e) => {
                 const button = e.target.closest('button');
-                console.log('[Global Click Handler] Received click event, button:', button?.textContent || 'none');
                 if (button && !button.disabled) {
+                    // Check if any tones are currently playing for tutorial buttons
+                    const isTutorialButton = button.classList.contains('tutorial-nav-btn') ||
+                                            button.classList.contains('tutorial-inline-btn') ||
+                                            button.hasAttribute('data-tutorial-action');
+
+                    if (isTutorialButton) {
+                        // Add visual flash effect
+                        button.style.transition = 'filter 0.08s ease, transform 0.08s ease';
+                        button.style.filter = 'brightness(2.0)';
+                        button.style.transform = 'scale(1.05)';
+                        setTimeout(() => {
+                            button.style.filter = 'brightness(1)';
+                            button.style.transform = 'scale(1)';
+                        }, 80);
+
+                        // Tutorial buttons don't make sounds
+                        return;
+                    }
+
                     // Skip sound for buttons with no-sound class
                     if (button.classList.contains('no-sound')) {
                         // Add visual flash effect
@@ -4175,29 +4892,9 @@
                         return;
                     }
 
-                    // Check if we're in the interval overview or unison overview
-                    const intervalOverviewExercise = document.getElementById('intervalOverviewExercise');
-                    const unisonOverviewExercise = document.getElementById('unisonOverviewExercise');
-
-                    // Handle Interval Overview (Pitch Overview) - suppress all sounds
-                    if (intervalOverviewExercise && intervalOverviewExercise.style.display !== 'none') {
-                        console.log('[Button Click] In Pitch Overview - suppressing sound for button:', button.textContent);
-                        // Add visual flash effect
-                        button.style.transition = 'filter 0.08s ease, transform 0.08s ease';
-                        button.style.filter = 'brightness(2.0)';
-                        button.style.transform = 'scale(1.05)';
-                        setTimeout(() => {
-                            button.style.filter = 'brightness(1)';
-                            button.style.transform = 'scale(1)';
-                        }, 80);
-                        return;
-                    }
-
-                    console.log('[Button Click] NOT in Pitch Overview, display:', intervalOverviewExercise?.style.display);
-
-                    // Handle Unison Overview - suppress all sounds
-                    if (unisonOverviewExercise && unisonOverviewExercise.style.display !== 'none') {
-                        // Add visual flash effect
+                    // Suppress sounds for all buttons in overview exercises
+                    if (button.closest('.overview-exercise')) {
+                        // Add visual flash effect only
                         button.style.transition = 'filter 0.08s ease, transform 0.08s ease';
                         button.style.filter = 'brightness(2.0)';
                         button.style.transform = 'scale(1.05)';

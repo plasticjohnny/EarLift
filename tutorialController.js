@@ -6,9 +6,10 @@
  */
 
 class TutorialController {
-    constructor(intervalOverviewInstance, tutorialData) {
+    constructor(intervalOverviewInstance, tutorialData, tutorialName = null) {
         this.exercise = intervalOverviewInstance;
         this.steps = tutorialData;
+        this.tutorialName = tutorialName; // For FTUE tracking
         this.currentStepIndex = 0;
         this.isActive = false;
 
@@ -24,12 +25,22 @@ class TutorialController {
 
         // Track action counts for steps that require multiple actions
         this.actionCounts = {};
+
+        // Initialize tutorial slider if available (only for Interval Overview, not Unison Overview)
+        // Unison Overview uses the exercise's setupGlissandoSlider method instead
+        const sliderContainer = intervalOverviewInstance.container?.querySelector('[data-tutorial-target="sliderGlissandoControls"]');
+        if (sliderContainer && typeof UnisonTutorialSlider !== 'undefined' && tutorialName !== 'unisonOverview') {
+            this.tutorialSlider = new UnisonTutorialSlider(sliderContainer);
+            console.log('[TutorialController] Tutorial slider initialized');
+        } else {
+            this.tutorialSlider = null;
+        }
     }
 
-    start() {
+    async start() {
         this.isActive = true;
         this.saveOriginalStates();
-        this.goToStep(0);
+        await this.goToStep(0);
         this.showTutorialUI();
     }
 
@@ -39,7 +50,7 @@ class TutorialController {
         this.hideTutorialUI();
     }
 
-    goToStep(stepIndex, isBackNavigation = false) {
+    async goToStep(stepIndex, isBackNavigation = false) {
         if (stepIndex < 0 || stepIndex >= this.steps.length) {
             return;
         }
@@ -53,6 +64,7 @@ class TutorialController {
         this.actionCounts = {};
         this.uniqueFrequencies = new Set();
         this.unisonReached = false;
+        this.targetReached = false; // Reset target reached flag
 
         this.currentStepIndex = stepIndex;
         const step = this.steps[stepIndex];
@@ -62,8 +74,17 @@ class TutorialController {
         this.applyUIState(step.ui);
         this.applyVizState(step.viz);
         this.applyWaveModeState(step.waveMode);
-        this.applyAudioState(step.audio);
+        await this.applyAudioState(step.audio);
+        this.handleCustomInteraction(step.customInteraction);
         this.setupWaitForAction(step.waitForAction);
+        this.applyButtonDisabling(step);
+
+        // Handle slider glissando configuration
+        await this.applySliderConfig(step.sliderConfig);
+
+        // Set up slider button callback for glissando steps
+        this.setupSliderButtonCallback(step);
+
         this.updateTutorialNavigation();
     }
 
@@ -77,11 +98,13 @@ class TutorialController {
 
     prev() {
         if (this.currentStepIndex > 0) {
-            // Pop the last state from history when going back
-            if (this.stateHistory.length > 0) {
-                this.stateHistory.pop();
-            }
-            this.goToStep(this.currentStepIndex - 1, true);
+            const targetStepIndex = this.currentStepIndex - 1;
+
+            // Truncate history to only include states up to (but not including) target step
+            // This ensures all forward state is discarded
+            this.stateHistory = this.stateHistory.slice(0, targetStepIndex);
+
+            this.goToStep(targetStepIndex, true);
         }
     }
 
@@ -158,6 +181,17 @@ class TutorialController {
 
     finish() {
         this.stop();
+
+        // Trigger FTUE completion if this is an FTUE tutorial
+        if (this.tutorialName && window.ftueManager) {
+            console.log(`[TutorialController] Tutorial ${this.tutorialName} completed, notifying FTUE system`);
+
+            // Check if this tutorial completion should trigger FTUE unlock
+            if (window.handleTutorialCompletion) {
+                window.handleTutorialCompletion(this.tutorialName);
+            }
+        }
+
         // Return to main menu
         if (this.exercise && typeof this.exercise.handleExit === 'function') {
             this.exercise.handleExit();
@@ -196,6 +230,11 @@ class TutorialController {
             el.style.opacity = '';
             el.style.pointerEvents = '';
         });
+
+        // Clean up slider if active
+        if (this.tutorialSlider) {
+            this.tutorialSlider.cleanup();
+        }
     }
 
     applyTextState(text) {
@@ -204,7 +243,13 @@ class TutorialController {
             // Add fade-in animation class
             textEl.classList.add('tutorial-text-fade-in');
 
-            textEl.innerHTML = text;
+            // Process text for helper definitions
+            let processedText = text;
+            if (window.helperDefinitionsManager) {
+                processedText = window.helperDefinitionsManager.processTextForHelperTerms(text);
+            }
+
+            textEl.innerHTML = processedText;
 
             // Set up inline button listeners
             this.setupInlineButtons();
@@ -413,6 +458,9 @@ class TutorialController {
             case 'overlay-waves':
                 this.overlayWaves();
                 break;
+            case 'overlay-waves-unison':
+                this.overlayWavesUnison();
+                break;
             case 'show-interference':
                 this.showInterferencePattern();
                 break;
@@ -436,6 +484,16 @@ class TutorialController {
                 break;
             case 'play-random-interval':
                 this.playRandomInterval();
+                break;
+            case 'move-closer-pitch':
+            case 'continue-bringing-together':
+            case 'move-even-closer':
+            case 'bring-closer-still':
+            case 'reach-perfect-unison':
+                this.handleBeatFrequencyGlissando(action);
+                break;
+            case 'repeat-beat-frequency':
+                this.handleRepeatBeatFrequency();
                 break;
             default:
                 console.warn('Unknown tutorial action:', action);
@@ -492,7 +550,8 @@ class TutorialController {
 
     stepDownToUnison() {
         // Decrease tone2 frequency by 1 Hz
-        const targetFreq = this.exercise.tone1Freq || 440;
+        const step = this.steps[this.currentStepIndex];
+        const targetFreq = step.stepDownTarget || this.exercise.tone1Freq || 440;
         const minFreq = 400; // Allow going below unison for exploration
 
         if (this.exercise.tone2Freq > minFreq) {
@@ -502,6 +561,9 @@ class TutorialController {
 
             this.updateBeatFrequencyFeedback();
 
+            // Flash the frequency display to show what's changing
+            this.flashFrequencyDisplay();
+
             // Flash the interference panel to draw attention
             this.flashElement('[data-unison-panel="interference"]');
 
@@ -514,22 +576,30 @@ class TutorialController {
                 }
             }
 
-            // Check if we've reached unison (but don't disable buttons)
-            if (this.exercise.tone2Freq <= targetFreq && !this.unisonReached) {
-                // Mark that unison has been reached (only once)
-                this.unisonReached = true;
+            // Check if we've reached the target
+            if (this.exercise.tone2Freq <= targetFreq && !this.targetReached) {
+                this.targetReached = true;
 
-                // Reveal the completion text
-                this.revealText('stepped-down');
+                // Reveal dynamic text if unison was reached
+                if (targetFreq === (this.exercise.tone1Freq || 440)) {
+                    this.revealText('reached-unison');
+                }
 
-                // Complete the inline action
-                this.completeInlineAction('step-down-to-unison-inline');
+                // Complete the appropriate inline action
+                if (step.waitForAction === 'reached-unison-from-441') {
+                    this.completeInlineAction('reached-unison-from-441');
+                } else if (step.waitForAction === 'step-down-to-unison-inline') {
+                    this.revealText('stepped-down');
+                    this.completeInlineAction('step-down-to-unison-inline');
+                }
             }
         }
     }
 
     stepUpTone2() {
         // Increase tone2 frequency by 1 Hz
+        const step = this.steps[this.currentStepIndex];
+        const targetFreq = step.stepUpTarget || 500;
         const maxFreq = 500; // Allow exploration up to 500 Hz
 
         if (this.exercise.tone2Freq < maxFreq) {
@@ -539,6 +609,9 @@ class TutorialController {
 
             this.updateBeatFrequencyFeedback();
 
+            // Flash the frequency display to show what's changing
+            this.flashFrequencyDisplay();
+
             // Flash the interference panel to draw attention
             this.flashElement('[data-unison-panel="interference"]');
 
@@ -550,6 +623,16 @@ class TutorialController {
                     this.exercise.audioController.updatePlayingFrequencies();
                 }
             }
+
+            // Check if we've reached the target
+            if (this.exercise.tone2Freq >= targetFreq && !this.targetReached) {
+                this.targetReached = true;
+
+                // Complete the appropriate inline action
+                if (step.waitForAction === 'reached-452') {
+                    this.completeInlineAction('reached-452');
+                }
+            }
         }
     }
 
@@ -557,10 +640,13 @@ class TutorialController {
         const textEl = this.exercise.container.querySelector('[data-tutorial="text"]');
         if (!textEl) return;
 
-        // Update Hz display
-        const displayEl = textEl.querySelector('[data-tutorial-tone2-display="step-down"]');
-        if (displayEl) {
-            displayEl.textContent = `${Math.round(this.exercise.tone2Freq)} Hz`;
+        // Update Hz display - check all possible display modes
+        const displayModes = ['step-down', 'step-up', 'free-play'];
+        for (const mode of displayModes) {
+            const displayEl = textEl.querySelector(`[data-tutorial-tone2-display="${mode}"]`);
+            if (displayEl) {
+                displayEl.textContent = `${Math.round(this.exercise.tone2Freq)} Hz`;
+            }
         }
 
         // Update feedback text based on frequency
@@ -647,10 +733,19 @@ class TutorialController {
             controlsDivider.classList.remove('tutorial-hidden');
         }
 
-        // Play both tones
+        // Add second tone without restarting the first tone's visual
         if (this.exercise.audioController) {
             this.exercise.audioController.setFrequencies(this.exercise.tone1Freq, this.exercise.tone2Freq);
-            this.exercise.audioController.playBoth();
+
+            // Check if tone1 is already playing
+            const state = this.exercise.audioController.getState();
+            if (state.isPlayingTone1) {
+                // Tone1 is already playing, only add tone2 without resetting timing
+                this.exercise.audioController.playTone2(false); // false = don't reset timing
+            } else {
+                // Tone1 not playing, start both
+                this.exercise.audioController.playBoth();
+            }
 
             // Update UI
             const playRoot = this.exercise.container.querySelector('[data-simple="play-root"]');
@@ -725,10 +820,28 @@ class TutorialController {
     }
 
     playUnison() {
-        // Play both tones at the same frequency (unison)
+        // Switch to interference visualization to show unison pattern
+        const interferenceRadio = this.exercise.container.querySelector('[data-viz-select="interference"]');
+        if (interferenceRadio) {
+            interferenceRadio.checked = true;
+            if (this.exercise.updateVisibility) {
+                this.exercise.updateVisibility();
+            }
+        }
+
+        // Add second tone without restarting the root tone's visual
         if (this.exercise.audioController) {
             this.exercise.audioController.setFrequencies(this.exercise.tone1Freq, this.exercise.tone2Freq);
-            this.exercise.audioController.playBoth();
+
+            // Check if tone1 is already playing
+            const state = this.exercise.audioController.getState();
+            if (state.isPlayingTone1) {
+                // Tone1 is already playing, only add tone2 without resetting timing
+                this.exercise.audioController.playTone2(false); // false = don't reset timing
+            } else {
+                // Tone1 not playing, start both
+                this.exercise.audioController.playBoth();
+            }
 
             // Update UI
             const playRoot = this.exercise.container.querySelector('[data-simple="play-root"]');
@@ -743,8 +856,35 @@ class TutorialController {
 
         this.updateNoSoundMode();
 
-        // Disable the button after clicking
-        this.disableInlineButton('play-unison');
+        // Update text: remove "Right now..." sentence and replace button with new text
+        const textEl = this.exercise.container.querySelector('[data-tutorial="text"]');
+        if (textEl) {
+            // Remove the "Right now, you're hearing just the root note at 440 Hz." text
+            let htmlContent = textEl.innerHTML;
+            htmlContent = htmlContent.replace(/Right now, you're hearing just the root note at 440 Hz\./g, '');
+
+            // Find and remove the button and its container div
+            const button = textEl.querySelector('[data-tutorial-action="play-unison"]');
+            if (button) {
+                // Remove the entire button container div
+                const buttonContainer = button.closest('div[style*="text-align: center"]');
+                if (buttonContainer) {
+                    // Replace button container with new text paragraph
+                    const newText = document.createElement('p');
+                    newText.style.marginTop = '16px';
+                    newText.style.textAlign = 'center';
+                    newText.style.fontWeight = '500';
+                    newText.innerHTML = "Now you're hearing two of the same notes played at the same time.";
+                    buttonContainer.parentNode.replaceChild(newText, buttonContainer);
+                } else {
+                    // Fallback: just remove the button
+                    button.remove();
+                }
+            }
+        }
+
+        // Update text to reflect that unison is now playing (reveal any dynamic text)
+        this.revealText('unison-played');
 
         // Trigger the wait action completion
         this.completeInlineAction('play-unison-inline');
@@ -866,7 +1006,8 @@ class TutorialController {
         // Update dynamic text if current step has it
         this.updateDynamicText();
 
-        // Track action count for steps that require multiple plays (reuse step variable from above)
+        // Track action count for steps that require multiple plays
+        const step = this.steps[this.currentStepIndex];
         if (step && step.waitForAction === 'play-random-3x') {
             // Track unique frequencies played
             if (!this.uniqueFrequencies) {
@@ -880,6 +1021,25 @@ class TutorialController {
 
             if (uniqueCount >= 3) {
                 this.completeInlineAction('play-random-3x');
+            }
+        }
+
+        // Track action count for steps that require 4 plays (Unison Overview Step 2)
+        if (step && step.waitForAction === 'play-random-4x') {
+            // Track unique frequencies played
+            if (!this.uniqueFrequencies) {
+                this.uniqueFrequencies = new Set();
+            }
+
+            this.uniqueFrequencies.add(randomFreq);
+            const uniqueCount = this.uniqueFrequencies.size;
+
+            this.updateActionCounter('random-count-unison', Math.max(0, 4 - uniqueCount));
+
+            // Reveal completion message when done
+            if (uniqueCount >= 4) {
+                this.revealText('random-complete');
+                this.completeInlineAction('play-random-4x');
             }
         }
     }
@@ -1138,7 +1298,7 @@ class TutorialController {
         }
     }
 
-    applyAudioState(audioState) {
+    async applyAudioState(audioState) {
         if (!audioState || !this.exercise.audioController) return;
 
         const action = audioState.action;
@@ -1150,6 +1310,7 @@ class TutorialController {
                 this.exercise.audioController.stopBoth();
                 this.exercise.isPlaying = false;
                 this.exercise.updatePlayButtonState();
+                this.updateNoSoundMode();
                 break;
 
             case 'set':
@@ -1166,26 +1327,76 @@ class TutorialController {
 
             case 'play':
                 console.log('[Tutorial] PLAYING audio - tone1:', audioState.tone1, 'tone2:', audioState.tone2, 'which:', audioState.which);
+
+                // Get current audio state
+                const currentState = this.exercise.audioController.getState();
+                const currentTone1Freq = currentState.tone1Freq;
+                const currentTone2Freq = currentState.tone2Freq;
+                const currentlyPlayingTone1 = currentState.isPlayingTone1;
+                const currentlyPlayingTone2 = currentState.isPlayingTone2;
+
+                // Determine requested frequencies
+                const requestedTone1Freq = audioState.tone1 !== undefined ? audioState.tone1 : this.exercise.tone1Freq;
+                const requestedTone2Freq = audioState.tone2 !== undefined ? audioState.tone2 : this.exercise.tone2Freq;
+
+                // Determine what should be playing
+                const shouldPlayTone1 = audioState.which === 'tone1' || audioState.which === 'both';
+                const shouldPlayTone2 = audioState.which === 'tone2' || audioState.which === 'both';
+
+                // Check if restart is needed
+                const frequenciesChanged = currentTone1Freq !== requestedTone1Freq || currentTone2Freq !== requestedTone2Freq;
+                const whichChanged = (currentlyPlayingTone1 !== shouldPlayTone1) || (currentlyPlayingTone2 !== shouldPlayTone2);
+                const needsRestart = !this.exercise.isPlaying || frequenciesChanged || whichChanged;
+
+                console.log('[Tutorial] Restart check:', {
+                    isPlaying: this.exercise.isPlaying,
+                    frequenciesChanged,
+                    whichChanged,
+                    needsRestart
+                });
+
+                // Update stored frequencies
                 if (audioState.tone1 !== undefined) {
                     this.exercise.tone1Freq = audioState.tone1;
                 }
                 if (audioState.tone2 !== undefined) {
                     this.exercise.tone2Freq = audioState.tone2;
                 }
-                this.exercise.audioController.setFrequencies(this.exercise.tone1Freq, this.exercise.tone2Freq);
 
-                if (audioState.which === 'tone1') {
-                    this.exercise.audioController.playTone1();
-                } else if (audioState.which === 'tone2') {
-                    this.exercise.audioController.playTone2();
-                } else if (audioState.which === 'both') {
-                    this.exercise.audioController.playBoth();
+                // Resume audio context if suspended (needed for browser autoplay policy)
+                if (window.audioManager && window.audioManager.audioContext) {
+                    if (window.audioManager.audioContext.state === 'suspended') {
+                        try {
+                            await window.audioManager.audioContext.resume();
+                            console.log('[Tutorial] Audio context resumed successfully');
+                        } catch (err) {
+                            console.warn('[Tutorial] Failed to resume audio context:', err);
+                        }
+                    }
+                }
+
+                // Only stop and restart if something changed
+                if (needsRestart) {
+                    console.log('[Tutorial] Stopping and restarting audio (something changed)');
+                    this.exercise.audioController.stopBoth();
+                    this.exercise.audioController.setFrequencies(this.exercise.tone1Freq, this.exercise.tone2Freq);
+
+                    if (audioState.which === 'tone1') {
+                        this.exercise.audioController.playTone1();
+                    } else if (audioState.which === 'tone2') {
+                        this.exercise.audioController.playTone2();
+                    } else if (audioState.which === 'both') {
+                        this.exercise.audioController.playBoth();
+                    }
+                } else {
+                    console.log('[Tutorial] Audio already playing with correct state - continuing smoothly');
                 }
 
                 this.exercise.isPlaying = true;
                 this.exercise.syncAllControls();
                 this.exercise.updateVisualizations();
                 this.exercise.updatePlayButtonState();
+                this.updateNoSoundMode();
                 break;
 
             case 'keep':
@@ -1201,7 +1412,245 @@ class TutorialController {
                 }
                 this.exercise.syncAllControls();
                 this.exercise.updateVisualizations();
+                this.updateNoSoundMode();
                 break;
+
+            case 'animated-unison-entrance':
+                // Animated entrance with staggered pattern expansion and audio fade-in
+                console.log('[Tutorial] ANIMATED UNISON ENTRANCE - tone1:', audioState.tone1, 'tone2:', audioState.tone2);
+                await this.handleAnimatedUnisonEntrance(audioState);
+                break;
+
+            case 'glissando':
+                // Smooth frequency transition with reveal radius expansion
+                console.log('[Tutorial] GLISSANDO - tone1:', audioState.tone1, 'tone2:', audioState.tone2, 'duration:', audioState.duration);
+                await this.handleGlissando(audioState);
+                break;
+        }
+    }
+
+    async handleAnimatedUnisonEntrance(audioState) {
+        // Stop any existing audio
+        this.exercise.audioController.stopBoth();
+
+        // Set frequencies
+        const tone1Freq = audioState.tone1 || 440;
+        const tone2Freq = audioState.tone2 || 440;
+        this.exercise.tone1Freq = tone1Freq;
+        this.exercise.tone2Freq = tone2Freq;
+        this.exercise.audioController.setFrequencies(tone1Freq, tone2Freq);
+
+        // Resume audio context if suspended
+        if (window.audioManager?.audioContext?.state === 'suspended') {
+            await window.audioManager.audioContext.resume();
+        }
+
+        // Get the interference visualization state
+        const interferenceState = this.exercise.interferenceViz?.audioController?.getState();
+        if (!interferenceState) {
+            console.warn('[Tutorial] No interference visualization state available');
+            return;
+        }
+
+        // Phase 1: Start tone 1 with reveal radius expansion
+        // Set start time for reveal radius system
+        const audioController = this.exercise.audioController;
+        audioController.tone1StartTime = performance.now();
+        audioController.playTone1(false); // Don't reset timing, we already set it
+
+        // Mark as playing in exercise
+        this.exercise.isPlaying = true;
+        this.exercise.updatePlayButtonState();
+
+        // Phase 2: After delay, start tone 2
+        const delayTone2 = audioState.delayTone2 || 2000;
+        setTimeout(() => {
+            audioController.tone2StartTime = performance.now();
+            audioController.playTone2(false); // Don't reset timing
+
+            this.exercise.updatePlayButtonState();
+        }, delayTone2);
+
+        // Update UI
+        this.exercise.syncAllControls();
+        this.exercise.updateVisualizations();
+        this.updateNoSoundMode();
+    }
+
+    async handleGlissando(audioState) {
+        const audioController = this.exercise.audioController;
+        const duration = audioState.duration !== undefined ? audioState.duration : 2.5;
+
+        // Resume audio context if suspended
+        if (window.audioManager?.audioContext?.state === 'suspended') {
+            await window.audioManager.audioContext.resume();
+        }
+
+        // Determine which tones to glissando
+        const glissandoTone1 = audioState.tone1 !== undefined;
+        const glissandoTone2 = audioState.tone2 !== undefined;
+
+        // If not playing, start playing first
+        if (!audioController.isAnyPlaying()) {
+            console.log('[Tutorial] Starting tones before glissando');
+
+            // Set initial frequencies (use current if not specified)
+            const tone1Freq = audioState.tone1 || this.exercise.tone1Freq;
+            const tone2Freq = audioState.tone2 || this.exercise.tone2Freq;
+
+            audioController.setFrequencies(tone1Freq, tone2Freq);
+            audioController.playBoth();
+
+            this.exercise.isPlaying = true;
+            this.exercise.updatePlayButtonState();
+        } else {
+            // Glissando to new frequencies
+            console.log('[Tutorial] Glissando from current frequencies to:', {
+                tone1: audioState.tone1,
+                tone2: audioState.tone2,
+                duration
+            });
+
+            if (glissandoTone1 && glissandoTone2) {
+                audioController.glissandoBothToFrequencies(audioState.tone1, audioState.tone2, duration);
+            } else if (glissandoTone1) {
+                audioController.glissandoTone1ToFrequency(audioState.tone1, duration);
+            } else if (glissandoTone2) {
+                audioController.glissandoTone2ToFrequency(audioState.tone2, duration);
+            }
+
+            // Update exercise frequencies
+            if (audioState.tone1 !== undefined) {
+                this.exercise.tone1Freq = audioState.tone1;
+            }
+            if (audioState.tone2 !== undefined) {
+                this.exercise.tone2Freq = audioState.tone2;
+            }
+        }
+
+        // Update UI
+        this.exercise.syncAllControls();
+        this.exercise.updateVisualizations();
+        this.updateNoSoundMode();
+    }
+
+    async applySliderConfig(sliderConfig) {
+        if (!sliderConfig) return;
+
+        // Skip slider config if we're in the middle of a glissando animation
+        if (this.skipSliderReset) {
+            console.log('[TutorialController] Skipping slider reset during glissando');
+            return;
+        }
+
+        console.log('[TutorialController] Applying slider config:', sliderConfig);
+
+        // Use exercise's setupGlissandoSlider if available (for Unison Overview)
+        if (this.exercise.setupGlissandoSlider) {
+            this.exercise.setupGlissandoSlider(sliderConfig);
+            return;
+        }
+
+        // Otherwise use legacy tutorialSlider (for other tutorials)
+        if (this.tutorialSlider) {
+            await this.tutorialSlider.initialize(sliderConfig, (isComplete) => {
+                this.handleSliderCompletion(isComplete);
+            });
+        }
+    }
+
+    setupSliderButtonCallback(step) {
+        // Always clear any existing callback first
+        if (this.exercise.clearSliderButtonCallback) {
+            this.exercise.clearSliderButtonCallback();
+        }
+
+        // Only set up callback if step has a glissandoTarget
+        if (!step.glissandoTarget) {
+            console.log('[TutorialController] No glissandoTarget - slider buttons disabled');
+            return;
+        }
+
+        // Set up callback for slider buttons
+        if (this.exercise.setSliderButtonCallback) {
+            this.exercise.setSliderButtonCallback(async (direction, size) => {
+                console.log('[TutorialController] Slider button clicked:', { direction, size });
+
+                // Store the glissando target and current slider position before advancing
+                const glissandoTarget = step.glissandoTarget;
+                const slider = this.exercise.container.querySelector('[data-glissando-slider="frequency"]');
+                const startFreq = slider ? parseFloat(slider.value) : step.sliderConfig?.initialFrequency;
+
+                // Advance to next step immediately (text changes)
+                if (this.currentStepIndex < this.steps.length - 1) {
+                    // Temporarily prevent slider reset
+                    this.skipSliderReset = true;
+                    this.goToStep(this.currentStepIndex + 1, false);
+                    this.skipSliderReset = false;
+
+                    // Restore slider to starting position
+                    if (slider) {
+                        slider.value = startFreq;
+                    }
+                }
+
+                // Start the glissando animation (audio + slider)
+                await this.playForwardGlissando(glissandoTarget);
+            });
+        }
+    }
+
+    handleSliderCompletion(isComplete) {
+        // Enable/disable next button based on completion criteria
+        const nextBtn = this.exercise.container.querySelector('[data-tutorial="next"]');
+        if (!nextBtn) return;
+
+        if (isComplete) {
+            nextBtn.disabled = false;
+            nextBtn.style.opacity = '1';
+            nextBtn.style.cursor = 'pointer';
+            console.log('[TutorialController] Slider completion criteria met - Next button enabled');
+        } else {
+            nextBtn.disabled = true;
+            nextBtn.style.opacity = '0.5';
+            nextBtn.style.cursor = 'not-allowed';
+            console.log('[TutorialController] Slider completion criteria not met - Next button disabled');
+        }
+    }
+
+    applyButtonDisabling(step) {
+        if (!step) return;
+
+        const textEl = this.exercise.container.querySelector('[data-tutorial="text"]');
+        if (!textEl) return;
+
+        // Find step-down and step-up buttons
+        const stepDownBtn = textEl.querySelector('[data-tutorial-action="step-down-to-unison"]');
+        const stepUpBtn = textEl.querySelector('[data-tutorial-action="step-up-tone2"]');
+
+        // Enable all buttons by default
+        if (stepDownBtn) {
+            stepDownBtn.disabled = false;
+            stepDownBtn.style.opacity = '1';
+            stepDownBtn.style.cursor = 'pointer';
+        }
+        if (stepUpBtn) {
+            stepUpBtn.disabled = false;
+            stepUpBtn.style.opacity = '1';
+            stepUpBtn.style.cursor = 'pointer';
+        }
+
+        // Apply specific disabling based on step properties
+        if (step.disableUpButton && stepUpBtn) {
+            stepUpBtn.disabled = true;
+            stepUpBtn.style.opacity = '0.3';
+            stepUpBtn.style.cursor = 'not-allowed';
+        }
+
+        if (step.disableDownButton && stepDownBtn) {
+            stepDownBtn.disabled = true;
+            stepDownBtn.style.opacity = '0.3';
+            stepDownBtn.style.cursor = 'not-allowed';
         }
     }
 
@@ -1232,13 +1681,19 @@ class TutorialController {
             const isLastStep = this.currentStepIndex === this.steps.length - 1;
             nextBtn.textContent = isLastStep ? 'Finish' : 'Next →';
 
+            // Get current step
+            const currentStep = this.steps[this.currentStepIndex];
+
+            // Check if current step has disableNext flag
+            const hasDisableNext = currentStep && currentStep.disableNext === true;
+
             // Special case for step 1: enable if tone is playing OR if not waiting for action
             if (this.currentStepIndex === 0) {
                 const isTone1Playing = this.exercise.audioController?.isTone1Playing?.();
-                nextBtn.disabled = this.waitingForAction && !isTone1Playing;
+                nextBtn.disabled = (this.waitingForAction && !isTone1Playing) || hasDisableNext;
             } else {
-                // Disable Next button if waiting for user action
-                nextBtn.disabled = this.waitingForAction;
+                // Disable Next button if waiting for user action OR if disableNext is set
+                nextBtn.disabled = this.waitingForAction || hasDisableNext;
             }
 
             // Add no-sound class to Next button if any tones are playing
@@ -1265,6 +1720,23 @@ class TutorialController {
             setTimeout(() => {
                 element.classList.remove('tutorial-flash');
             }, 600);
+        }
+    }
+
+    flashFrequencyDisplay() {
+        const textEl = this.exercise.container.querySelector('[data-tutorial="text"]');
+        if (!textEl) return;
+
+        // Flash all possible frequency display modes
+        const displayModes = ['step-down', 'step-up', 'free-play'];
+        for (const mode of displayModes) {
+            const displayEl = textEl.querySelector(`[data-tutorial-tone2-display="${mode}"]`);
+            if (displayEl) {
+                displayEl.classList.add('tutorial-flash');
+                setTimeout(() => {
+                    displayEl.classList.remove('tutorial-flash');
+                }, 600);
+            }
         }
     }
 
@@ -1369,6 +1841,35 @@ class TutorialController {
         this.completeInlineAction('overlay-waves-inline');
     }
 
+    overlayWavesUnison() {
+        // Switch to overlay wave mode for unison exercise
+        const overlayRadio = this.exercise.container.querySelector('[data-unison="wave-mode"][value="overlay"]');
+        if (overlayRadio) {
+            overlayRadio.checked = true;
+            overlayRadio.dispatchEvent(new Event('change'));
+        }
+
+        // Also update via waveViz if available
+        const waveViz = this.exercise.waveViz;
+        if (waveViz && waveViz.setViewMode) {
+            waveViz.setViewMode('overlay');
+        }
+
+        // Remove button and replace with new text
+        const textEl = this.exercise.container.querySelector('[data-tutorial="text"]');
+        if (textEl) {
+            const button = textEl.querySelector('[data-tutorial-action="overlay-waves-unison"]');
+            if (button) {
+                // Replace button with new text
+                const newText = document.createElement('span');
+                newText.innerHTML = "When the same waves overlap it creates a slight amplification effect, but otherwise feels the same.";
+                button.parentNode.replaceChild(newText, button);
+            }
+        }
+
+        this.completeInlineAction('overlay-waves-unison-inline');
+    }
+
     showInterferencePattern() {
         // Switch to interference visualization
         const interferenceRadio = this.exercise.container.querySelector('[data-viz-select="interference"]');
@@ -1378,7 +1879,11 @@ class TutorialController {
         }
 
         this.disableInlineButton('show-interference');
-        this.completeInlineAction('show-interference-inline');
+
+        // Auto-advance to next step
+        setTimeout(() => {
+            this.next();
+        }, 100);
     }
 
     playInterval1() {
@@ -1628,5 +2133,407 @@ class TutorialController {
         } else {
             this.disableNoSoundMode();
         }
+    }
+
+    // ===========================
+    // Glissando Slider Custom Interaction
+    // ===========================
+
+    handleCustomInteraction(interactionType) {
+        if (!interactionType) return;
+
+        if (interactionType === 'glissando-slider') {
+            this.setupGlissandoSliderInteraction();
+        }
+    }
+
+    setupGlissandoSliderInteraction() {
+        // Initialize random starting frequency
+        const targetFreq = 440;
+        const minFreq = targetFreq / 2;  // 220 Hz (one octave below)
+        const maxFreq = targetFreq * 2;  // 880 Hz (one octave above)
+
+        // Calculate the middle 25% range where target can be
+        const rangeSize = maxFreq - minFreq;
+        const middleStart = minFreq + rangeSize * 0.375;  // 37.5% from bottom
+        const middleEnd = minFreq + rangeSize * 0.625;    // 62.5% from bottom
+
+        // Random starting position within valid range (avoiding the target middle 25%)
+        let startingFreq;
+        if (Math.random() < 0.5) {
+            // Start in lower range (below middle 25%)
+            startingFreq = minFreq + Math.random() * (middleStart - minFreq);
+        } else {
+            // Start in upper range (above middle 25%)
+            startingFreq = middleEnd + Math.random() * (maxFreq - middleEnd);
+        }
+
+        // Set tone2 to starting frequency
+        this.exercise.tone2Freq = startingFreq;
+        this.exercise.syncAllControls();
+        this.exercise.updateVisualizations();
+
+        // Update slider position
+        const slider = this.exercise.container.querySelector('[data-glissando-slider="frequency"]');
+        if (slider) {
+            slider.value = startingFreq;
+        }
+
+        // Set up button event listeners
+        const buttons = [
+            { selector: '[data-glissando-slider="jump-up-big"]', direction: 1, size: 'big' },
+            { selector: '[data-glissando-slider="jump-up-small"]', direction: 1, size: 'small' },
+            { selector: '[data-glissando-slider="jump-down-big"]', direction: -1, size: 'big' },
+            { selector: '[data-glissando-slider="jump-down-small"]', direction: -1, size: 'small' }
+        ];
+
+        buttons.forEach(({ selector, direction, size }) => {
+            const button = this.exercise.container.querySelector(selector);
+            if (button) {
+                button.addEventListener('click', () => {
+                    this.handleGlissandoJump(direction, size);
+                });
+            }
+        });
+
+        // Set up slider event listener for manual adjustment
+        if (slider) {
+            slider.addEventListener('input', (e) => {
+                this.handleGlissandoSliderChange(parseFloat(e.target.value));
+            });
+        }
+    }
+
+    handleGlissandoJump(direction, size) {
+        const currentFreq = this.exercise.tone2Freq;
+        const targetFreq = 440;
+        const jumpAmount = this.calculateGlissandoJumpAmount(size, currentFreq, targetFreq);
+        const newFreq = Math.max(220, Math.min(880, currentFreq + (direction * jumpAmount)));
+
+        // Disable all jump buttons during glissando
+        this.setGlissandoButtonsEnabled(false);
+
+        // Perform glissando to new frequency
+        this.performSliderGlissando(currentFreq, newFreq, () => {
+            // Re-enable buttons after glissando completes
+            this.setGlissandoButtonsEnabled(true);
+        });
+    }
+
+    calculateGlissandoJumpAmount(size, currentFreq, targetFreq) {
+        const distanceToTarget = Math.abs(currentFreq - targetFreq);
+
+        switch (size) {
+            case 'big':
+                // Random 6-10 semitones
+                const bigSemitones = 6 + Math.floor(Math.random() * 5);
+                return currentFreq * (Math.pow(2, bigSemitones / 12) - 1);
+
+            case 'medium':
+                // Random 1-3 semitones
+                const mediumSemitones = 1 + Math.floor(Math.random() * 3);
+                return currentFreq * (Math.pow(2, mediumSemitones / 12) - 1);
+
+            case 'small':
+                // Half-step down to 1 Hz, getting progressively smaller
+                const halfStep = currentFreq * (Math.pow(2, 1 / 12) - 1);
+                const minJump = 1;
+
+                // Scale based on distance to target (closer = smaller jumps)
+                if (distanceToTarget < 5) {
+                    return Math.max(minJump, distanceToTarget * 0.5);
+                } else if (distanceToTarget < 20) {
+                    return Math.max(minJump, halfStep * 0.3);
+                } else {
+                    return halfStep;
+                }
+
+            default:
+                return 0;
+        }
+    }
+
+    performSliderGlissando(startFreq, endFreq, onComplete) {
+        const frequencyDiff = Math.abs(endFreq - startFreq);
+
+        // Calculate duration: 5ms per Hz difference, min 200ms, max 2000ms
+        const baseDuration = Math.min(2000, Math.max(200, frequencyDiff * 5));
+
+        const startTime = Date.now();
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(1, elapsed / baseDuration);
+
+            // Ease-in-out curve for smooth glissando
+            const eased = progress < 0.5
+                ? 2 * progress * progress
+                : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+            const currentFreq = startFreq + (endFreq - startFreq) * eased;
+
+            // Update tone2 frequency
+            this.exercise.tone2Freq = currentFreq;
+            this.exercise.syncAllControls();
+            this.exercise.updateVisualizations();
+
+            // Update slider position
+            const slider = this.exercise.container.querySelector('[data-glissando-slider="frequency"]');
+            if (slider) {
+                slider.value = currentFreq;
+            }
+
+            // Update audio
+            if (this.exercise.audioController) {
+                this.exercise.audioController.setFrequencies(this.exercise.tone1Freq, currentFreq);
+                this.exercise.audioController.updatePlayingFrequencies();
+            }
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                // Final update
+                this.exercise.tone2Freq = endFreq;
+                this.exercise.syncAllControls();
+                this.exercise.updateVisualizations();
+
+                if (slider) {
+                    slider.value = endFreq;
+                }
+
+                if (this.exercise.audioController) {
+                    this.exercise.audioController.setFrequencies(this.exercise.tone1Freq, endFreq);
+                    this.exercise.audioController.updatePlayingFrequencies();
+                }
+
+                if (onComplete) {
+                    onComplete();
+                }
+            }
+        };
+
+        requestAnimationFrame(animate);
+    }
+
+    handleGlissandoSliderChange(frequency) {
+        // Update tone2 frequency
+        this.exercise.tone2Freq = frequency;
+        this.exercise.syncAllControls();
+        this.exercise.updateVisualizations();
+
+        // Update audio if playing
+        if (this.exercise.audioController) {
+            this.exercise.audioController.setFrequencies(this.exercise.tone1Freq, this.exercise.tone2Freq);
+            const state = this.exercise.audioController.getState();
+            if (state.isPlayingTone1 || state.isPlayingTone2) {
+                this.exercise.audioController.updatePlayingFrequencies();
+            }
+        }
+    }
+
+    /**
+     * Handle listen-glissando actions for beat frequency exploration steps
+     * @param {string} action - The action name (e.g., 'listen-glissando-12')
+     */
+    async handleListenGlissando(action) {
+        const currentStep = this.steps[this.currentStepIndex];
+        if (!currentStep || !currentStep.glissandoTarget) {
+            console.warn('[TutorialController] No glissandoTarget found for step');
+            return;
+        }
+
+        // Initialize glissando state tracking if needed
+        if (!this.glissandoStates) {
+            this.glissandoStates = {};
+        }
+
+        const stepKey = `step-${this.currentStepIndex}`;
+        const hasPlayed = this.glissandoStates[stepKey] || false;
+
+        const textEl = this.exercise.container.querySelector('[data-tutorial="text"]');
+        const button = textEl?.querySelector(`[data-tutorial-action="${action}"]`);
+
+        if (!hasPlayed) {
+            // First play: Forward glissando
+            await this.playForwardGlissando(currentStep.glissandoTarget);
+
+            // Update button text to "Listen again"
+            if (button) {
+                button.textContent = 'Listen again';
+                button.classList.remove('tutorial-btn-pulse');
+            }
+
+            // Enable Next button
+            const nextBtn = this.exercise.container.querySelector('[data-tutorial="next"]');
+            if (nextBtn) {
+                nextBtn.disabled = false;
+                nextBtn.style.opacity = '1';
+                nextBtn.style.cursor = 'pointer';
+            }
+
+            // Mark as played
+            this.glissandoStates[stepKey] = true;
+        } else {
+            // Subsequent plays: Reverse then forward
+            this.playReverseAndForwardGlissando(currentStep);
+        }
+    }
+
+    /**
+     * Handle beat frequency glissando actions (new simplified version)
+     */
+    async handleBeatFrequencyGlissando(action) {
+        const currentStep = this.steps[this.currentStepIndex];
+        if (!currentStep || !currentStep.glissandoTarget) {
+            console.warn('[TutorialController] No glissandoTarget found for step');
+            return;
+        }
+
+        // Disable the button during glissando
+        const textEl = this.exercise.container.querySelector('[data-tutorial="text"]');
+        const button = textEl?.querySelector(`[data-tutorial-action="${action}"]`);
+        if (button) {
+            button.disabled = true;
+        }
+
+        // Play the glissando
+        await this.playForwardGlissando(currentStep.glissandoTarget);
+
+        // Complete the inline action to enable next
+        this.completeInlineAction(`${action}-inline`);
+    }
+
+    /**
+     * Handle repeat beat frequency action - jump back to step 11 (index 10)
+     */
+    handleRepeatBeatFrequency() {
+        console.log('[TutorialController] Repeating beat frequency demo from step 11');
+        // Jump to step 11 (index 10 - the first beat frequency step)
+        this.goToStep(10);
+    }
+
+    /**
+     * Play forward glissando
+     * @param {Object} glissandoTarget - Target config with tone1, tone2, duration
+     */
+    async playForwardGlissando(glissandoTarget) {
+        const audioController = this.exercise.audioController;
+        const { tone1, tone2, duration } = glissandoTarget;
+
+        console.log('[Tutorial] Playing forward glissando:', { tone1, tone2, duration });
+
+        // Get current step to access starting frequency
+        const currentStep = this.steps[this.currentStepIndex];
+        const startTone2 = currentStep.audio?.tone2 || currentStep.sliderConfig?.initialFrequency || tone2;
+
+        // Check if tones are already playing
+        const isPlaying = audioController.isAnyPlaying();
+
+        if (!isPlaying) {
+            // Get starting frequencies from current step's audio config
+            const startTone1 = currentStep.audio?.tone1 || tone1;
+
+            console.log('[Tutorial] Starting tones before glissando:', { startTone1, startTone2 });
+
+            // Start tones at starting frequency
+            audioController.setFrequencies(startTone1, startTone2);
+            audioController.playBoth();
+
+            // Update exercise state
+            this.exercise.isPlaying = true;
+            this.exercise.updatePlayButtonState();
+            this.updateNoSoundMode();
+
+            // Wait briefly for tones to stabilize before glissando
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        // Now do the glissando
+        audioController.glissandoBothToFrequencies(tone1, tone2, duration);
+
+        // Animate slider during glissando
+        this.animateSlider(startTone2, tone2, duration);
+
+        // Update exercise frequencies AFTER the glissando completes
+        // so the UI doesn't jump ahead of the audio
+        setTimeout(() => {
+            this.exercise.tone1Freq = tone1;
+            this.exercise.tone2Freq = tone2;
+            this.exercise.syncAllControls();
+            this.exercise.updateVisualizations();
+        }, duration * 1000);
+    }
+
+    /**
+     * Animate slider position during glissando
+     * @param {number} startFreq - Starting frequency
+     * @param {number} endFreq - Ending frequency
+     * @param {number} duration - Duration in seconds
+     */
+    animateSlider(startFreq, endFreq, duration) {
+        const slider = this.exercise.container.querySelector('[data-glissando-slider="frequency"]');
+        if (!slider) return;
+
+        const startTime = Date.now();
+        const durationMs = duration * 1000;
+
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(1, elapsed / durationMs);
+
+            // Linear interpolation for smooth animation
+            const currentFreq = startFreq + (endFreq - startFreq) * progress;
+
+            // Update slider position
+            slider.value = currentFreq;
+
+            // Continue animation if not complete
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            }
+        };
+
+        requestAnimationFrame(animate);
+    }
+
+    /**
+     * Play reverse glissando then forward glissando
+     * @param {Object} currentStep - Current step object
+     */
+    async playReverseAndForwardGlissando(currentStep) {
+        const audioController = this.exercise.audioController;
+        const { glissandoTarget, audio } = currentStep;
+
+        if (!audio || !glissandoTarget) return;
+
+        const startTone1 = audio.tone1;
+        const startTone2 = audio.tone2;
+        const endTone1 = glissandoTarget.tone1;
+        const endTone2 = glissandoTarget.tone2;
+        const duration = glissandoTarget.duration;
+
+        console.log('[Tutorial] Playing reverse + forward glissando');
+
+        // Phase 1: Reverse to start
+        audioController.glissandoBothToFrequencies(startTone1, startTone2, duration);
+        this.exercise.tone1Freq = startTone1;
+        this.exercise.tone2Freq = startTone2;
+        this.exercise.syncAllControls();
+        this.exercise.updateVisualizations();
+
+        // Phase 2: Wait for reverse to complete, then forward
+        setTimeout(() => {
+            audioController.glissandoBothToFrequencies(endTone1, endTone2, duration);
+            this.exercise.tone1Freq = endTone1;
+            this.exercise.tone2Freq = endTone2;
+            this.exercise.syncAllControls();
+            this.exercise.updateVisualizations();
+        }, duration * 1000 + 100); // Duration in ms + small buffer
+    }
+
+    setGlissandoButtonsEnabled(enabled) {
+        const buttons = this.exercise.container.querySelectorAll('.glissando-jump-btn');
+        buttons.forEach(button => {
+            button.disabled = !enabled;
+        });
     }
 }

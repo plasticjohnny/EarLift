@@ -9,48 +9,175 @@
  */
 
 const UNISON_OVERVIEW_TUTORIAL_STEPS = [
-    // ===== PHASE 1: Introduction to Unison (Steps 1-2) =====
+    // ===== PHASE 0: Introduction (Steps 1-4 adapted from Interval Overview) =====
+
+    // Step 1: Play Tone introduction (adapted from Interval Overview Step 1)
     {
-        text: "Welcome to the Unison Overview! When two notes are at the <strong>exact same frequency</strong>, they create what's called <strong>unison</strong>. Right now, you're hearing just the root note at 440 Hz.<br><br><div style='margin-top: 16px; text-align: center;'><button class='tutorial-inline-btn tutorial-btn-pulse' data-tutorial-action='play-unison' style='font-size: 18px; font-weight: bold; padding: 12px 24px;'>▶ Play Unison</button></div>",
+        text: "Musical tones have <strong>frequencies</strong>. Let's listen to one. <button class='tutorial-inline-btn tutorial-btn-pulse' data-tutorial-action='play-tone'>Play Tone</button><div data-tutorial-reveal='tone-played' style='display:none; margin-top: 12px; visibility: hidden;'>A <strong>waveform</strong> is a common way to visualize tones. This shows the frequency oscillating.</div>",
         ui: {
             simplifiedControls: { visible: false },
             rootDisplay: { visible: false },
             intervalDisplay: { visible: false },
             intervalArrows: { visible: false },
             intervalChromatic: { visible: false },
-            vizSelection: { visible: true, enabled: false },
+            vizSelection: { visible: false },
             advancedControls: { visible: false },
-            controlsDivider: { visible: false }
+            controlsDivider: { visible: false },
+            waveSettingsPanel: { visible: false },
+            sliderGlissandoControls: { visible: false }
         },
-        viz: "interference",
+        viz: "none",
         audio: {
             action: "set",
             tone1: 440,
             tone2: 440
         },
-        waitForAction: "play-unison-inline"
+        waitForAction: "play-tone-inline",
+        dynamicText: true
     },
+
+    // Step 2: Frequency/waveform explanation (adapted from Interval Overview Step 2)
     {
-        text: "Notice how the interference pattern creates a perfect, symmetric bloom. You're hearing unison at 440 Hz. The two tones align perfectly, creating a stable, unified sound.",
+        text: "Try clicking <button class='tutorial-inline-btn' data-tutorial-action='play-random'>Play Random Tone <span data-tutorial-counter='random-count-unison'>(4)</span></button> a few times — notice how <strong>higher frequencies</strong> create tightly packed waves, while <strong>lower frequencies</strong> create spread out waves.<div data-tutorial-reveal='random-complete' style='display:none; margin-top: 12px; visibility: hidden;'>Feel free to look at different tones, and hit next when ready.</div>",
         ui: {
             simplifiedControls: { visible: false },
-            rootDisplay: { visible: false },
+            rootDisplay: { visible: true, enabled: true },
             intervalDisplay: { visible: false },
             intervalArrows: { visible: false },
             intervalChromatic: { visible: false },
             vizSelection: { visible: true, enabled: false },
             advancedControls: { visible: false },
-            controlsDivider: { visible: false }
+            controlsDivider: { visible: false },
+            waveSettingsPanel: { visible: false },
+            sliderGlissandoControls: { visible: false }
+        },
+        viz: "wave",
+        audio: {
+            action: "keep"
+        },
+        dynamicText: true,
+        waitForAction: "play-random-4x"
+    },
+
+    // Step 3: Play Second Tone (adapted from Interval Overview Step 3)
+    {
+        text: "Let's play a second tone — the same as the first! <button class='tutorial-inline-btn' data-tutorial-action='play-second-tone'>Play Second Tone</button><div data-tutorial-reveal='same-freq-shown' style='display:none; margin-top: 12px; visibility: hidden;'>Notice how both waves move at the same speed? That's because they're the same frequency!</div>",
+        ui: {
+            simplifiedControls: { visible: false },
+            rootDisplay: { visible: true, enabled: true },
+            intervalDisplay: { visible: false },
+            intervalArrows: { visible: false },
+            intervalChromatic: { visible: false },
+            vizSelection: { visible: true, enabled: false },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false },
+            waveSettingsPanel: { visible: false },
+            sliderGlissandoControls: { visible: false }
+        },
+        viz: "wave",
+        audio: {
+            action: "set",
+            tone1: 440,
+            tone2: 440
+        },
+        waitForAction: "play-second-tone-inline"
+    },
+
+    // Step 4: Overlay Waves (NEW)
+    {
+        text: "Let's overlay the waves. <button class='tutorial-inline-btn tutorial-btn-pulse' data-tutorial-action='overlay-waves-unison'>Overlay Waves</button>",
+        ui: {
+            simplifiedControls: { visible: false },
+            rootDisplay: { visible: true, enabled: true },
+            intervalDisplay: { visible: false },
+            intervalArrows: { visible: false },
+            intervalChromatic: { visible: false },
+            vizSelection: { visible: true, enabled: false },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false },
+            waveSettingsPanel: { visible: false },
+            sliderGlissandoControls: { visible: false }
+        },
+        viz: "wave",
+        waveMode: "sideBySide",
+        audio: {
+            action: "keep"
+        },
+        waitForAction: "overlay-waves-unison-inline"
+    },
+
+    // Step 5: Interference Pattern introduction (adapted from Interval Overview Step 7)
+    {
+        text: "Let's view the <strong>Interference Pattern</strong>. <button class='tutorial-inline-btn' data-tutorial-action='show-interference'>Show Interference Pattern</button>",
+        ui: {
+            simplifiedControls: { visible: false },
+            rootDisplay: { visible: true, enabled: true },
+            intervalDisplay: { visible: true, enabled: false },
+            intervalArrows: { visible: false },
+            intervalChromatic: { visible: false },
+            vizSelection: { visible: true, enabled: false },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false },
+            waveSettingsPanel: { visible: false },
+            sliderGlissandoControls: { visible: false }
+        },
+        viz: "wave",
+        waveMode: "overlay",
+        audio: {
+            action: "play",
+            which: "both",
+            tone1: 440,
+            tone2: 440
+        },
+        disableNext: true
+    },
+
+    // ===== PHASE 1: Introduction to Unison (Steps 5-7) =====
+    {
+        text: "Sound waves from above — like ripples in water.",
+        ui: {
+            simplifiedControls: { visible: false },
+            rootDisplay: { visible: true, enabled: true },
+            intervalDisplay: { visible: true, enabled: false },
+            intervalArrows: { visible: false },
+            intervalChromatic: { visible: false },
+            vizSelection: { visible: true, enabled: false },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false },
+            waveSettingsPanel: { visible: false },
+            sliderGlissandoControls: { visible: false }
         },
         viz: "interference",
         audio: {
             action: "keep"
         }
     },
-
-    // ===== PHASE 2: Comparing to Non-Unison (Steps 3-5) =====
     {
-        text: "Now you're hearing a note that's <strong>NOT</strong> in unison. This is a <strong style='color: rgba(100, 200, 255, 1);'>perfect fifth (Sol)</strong> — a beautiful interval. Watch how the pattern changes.",
+        text: "When two notes are at the <strong>exact same frequency</strong>, that's <strong>unison</strong>. Notice the perfect, symmetric pattern.",
+        ui: {
+            simplifiedControls: { visible: false },
+            rootDisplay: { visible: true, enabled: true },
+            intervalDisplay: { visible: true, enabled: false },
+            intervalArrows: { visible: false },
+            intervalChromatic: { visible: false },
+            vizSelection: { visible: true, enabled: false },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false },
+            waveSettingsPanel: { visible: false },
+            sliderGlissandoControls: { visible: false }
+        },
+        viz: "interference",
+        audio: {
+            action: "animated-unison-entrance",
+            tone1: 440,
+            tone2: 440,
+            delayTone2: 2000  // Start tone2 2 seconds after tone1
+        }
+    },
+
+    // ===== PHASE 2: Comparing to Non-Unison (Steps 8-10) =====
+    {
+        text: "A note that's <strong>NOT</strong> in unison. Watch the pattern change.",
         ui: {
             simplifiedControls: { visible: false },
             rootDisplay: { visible: false },
@@ -59,7 +186,9 @@ const UNISON_OVERVIEW_TUTORIAL_STEPS = [
             intervalChromatic: { visible: false },
             vizSelection: { visible: true, enabled: false },
             advancedControls: { visible: false },
-            controlsDivider: { visible: false }
+            controlsDivider: { visible: false },
+            waveSettingsPanel: { visible: false },
+            sliderGlissandoControls: { visible: false }
         },
         viz: "interference",
         audio: {
@@ -70,7 +199,7 @@ const UNISON_OVERVIEW_TUTORIAL_STEPS = [
         }
     },
     {
-        text: "See how the pattern is more complex? The two frequencies don't match, so the interference pattern shows their interaction. Now you're hearing a <strong style='color: rgba(100, 200, 255, 1);'>major third (Mi)</strong>.",
+        text: "More complex pattern — the frequencies don't match.",
         ui: {
             simplifiedControls: { visible: false },
             rootDisplay: { visible: false },
@@ -79,7 +208,9 @@ const UNISON_OVERVIEW_TUTORIAL_STEPS = [
             intervalChromatic: { visible: false },
             vizSelection: { visible: true, enabled: false },
             advancedControls: { visible: false },
-            controlsDivider: { visible: false }
+            controlsDivider: { visible: false },
+            waveSettingsPanel: { visible: false },
+            sliderGlissandoControls: { visible: false }
         },
         viz: "interference",
         audio: {
@@ -90,7 +221,7 @@ const UNISON_OVERVIEW_TUTORIAL_STEPS = [
         }
     },
     {
-        text: "Now you're back to <strong style='color: rgba(100, 200, 255, 1);'>unison (Do)</strong>. Notice the difference? When two tones are at the exact same frequency, the pattern becomes perfectly unified — no complexity, just pure alignment.",
+        text: "Back to <strong>unison</strong>. Same frequency = perfectly unified pattern.",
         ui: {
             simplifiedControls: { visible: false },
             rootDisplay: { visible: false },
@@ -99,7 +230,9 @@ const UNISON_OVERVIEW_TUTORIAL_STEPS = [
             intervalChromatic: { visible: false },
             vizSelection: { visible: true, enabled: false },
             advancedControls: { visible: false },
-            controlsDivider: { visible: false }
+            controlsDivider: { visible: false },
+            waveSettingsPanel: { visible: false },
+            sliderGlissandoControls: { visible: false }
         },
         viz: "interference",
         audio: {
@@ -110,9 +243,11 @@ const UNISON_OVERVIEW_TUTORIAL_STEPS = [
         }
     },
 
-    // ===== PHASE 3: Beat Frequency Introduction (Steps 6-7) =====
+    // ===== PHASE 3: Beat Frequency Exploration (Steps 11-17) =====
+
+    // Step 11: Starting at major sixth - move down to 460 Hz
     {
-        text: "When two tones are <strong>close but not quite</strong> at unison, they create a <strong>beat frequency</strong> — a pulsing sound. The closer they are, the slower the pulse. You're hearing it right now at 452 Hz.",
+        text: "This interval is the same as about <strong>nine piano keys</strong>. <strong>Listen:</strong> Clear interval → wavering turbulence.",
         ui: {
             simplifiedControls: { visible: false },
             rootDisplay: { visible: false },
@@ -121,18 +256,32 @@ const UNISON_OVERVIEW_TUTORIAL_STEPS = [
             intervalChromatic: { visible: false },
             vizSelection: { visible: true, enabled: false },
             advancedControls: { visible: false },
-            controlsDivider: { visible: false }
+            controlsDivider: { visible: false },
+            waveSettingsPanel: { visible: false },
+            sliderGlissandoControls: { visible: true }
         },
         viz: "interference",
         audio: {
             action: "play",
             which: "both",
             tone1: 440,
-            tone2: 452
+            tone2: 740
+        },
+        sliderConfig: {
+            targetFrequency: 440,
+            hashMarks: [740, 460, 450, 442, 441, 440],
+            initialFrequency: 740
+        },
+        glissandoTarget: {
+            tone1: 440,
+            tone2: 460,
+            duration: 15.0  // 280 Hz difference - major sixth down to minor second
         }
     },
+
+    // Step 12: Continue bringing them together (460 → 450)
     {
-        text: "<div data-tutorial-feedback='beat-freq'>Hear that pulsing? That's a 12 Hz difference creating 12 beats per second. Use these buttons to explore the beat frequency around 440 Hz. Notice how it changes as you get closer to unison.</div><div style='margin-top: 16px; display: flex; gap: 12px; justify-content: center; align-items: center;'><button class='tutorial-inline-btn tutorial-btn-pulse' data-tutorial-action='step-down-to-unison' style='font-size: 22px; font-weight: bold; padding: 8px 16px;'>▼ (-1 Hz)</button><span style='color: rgba(0, 255, 136, 0.9); font-size: 20px; font-weight: bold; min-width: 80px; text-align: center;' data-tutorial-tone2-display='step-down'>452 Hz</span><button class='tutorial-inline-btn' data-tutorial-action='step-up-tone2' style='font-size: 22px; font-weight: bold; padding: 8px 16px;'>▲ (+1 Hz)</button></div><div data-tutorial-reveal='stepped-down' style='display:none; margin-top: 16px; visibility: hidden;'>Perfect! Notice how the pulses disappeared completely when you reached unison!</div>",
+        text: "<strong>Almost there</strong>. <strong>Listen:</strong> Wavering intensifies.",
         ui: {
             simplifiedControls: { visible: false },
             rootDisplay: { visible: false },
@@ -141,39 +290,29 @@ const UNISON_OVERVIEW_TUTORIAL_STEPS = [
             intervalChromatic: { visible: false },
             vizSelection: { visible: true, enabled: false },
             advancedControls: { visible: false },
-            controlsDivider: { visible: false }
+            controlsDivider: { visible: false },
+            waveSettingsPanel: { visible: false },
+            sliderGlissandoControls: { visible: true }
         },
         viz: "interference",
         audio: {
             action: "keep"
         },
-        waitForAction: "step-down-to-unison-inline",
-        dynamicText: true,
-        stepDownMode: true
-    },
-
-    // ===== PHASE 4: Using Beat Frequency to Find Unison (Steps 8-9) =====
-    {
-        text: "This pulsing is your <strong>secret weapon</strong> for finding unison. The slower the pulse, the closer you are. When the pulse disappears, you've found it! Now let's practice.",
-        ui: {
-            simplifiedControls: { visible: false },
-            rootDisplay: { visible: false },
-            intervalDisplay: { visible: false },
-            intervalArrows: { visible: false },
-            intervalChromatic: { visible: false },
-            vizSelection: { visible: true, enabled: false },
-            advancedControls: { visible: false },
-            controlsDivider: { visible: false }
+        sliderConfig: {
+            targetFrequency: 440,
+            hashMarks: [740, 460, 450, 442, 441, 440],
+            initialFrequency: 460
         },
-        viz: "interference",
-        audio: {
-            action: "set",
+        glissandoTarget: {
             tone1: 440,
-            tone2: 440
+            tone2: 450,
+            duration: 8.0  // 10 Hz difference
         }
     },
+
+    // Step 13: Move even closer (450 → 442) - Critical 2 Hz beat
     {
-        text: "You're hearing two tones. One is somewhere within 75% of an octave of the other. Use this slider to find the unison — listen for the beat frequency to slow down and disappear! <div style='margin-top: 16px;'><div style='display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 12px; color: rgba(255, 255, 255, 0.6);'><span>277 Hz</span><span>698 Hz</span></div><input type='range' data-tutorial-slider='unison-finder' class='tutorial-color-slider' style='width: 100%;' min='277' max='698' value='550' step='1'><div style='text-align: center; margin-top: 12px; color: rgba(0, 255, 136, 0.8);' data-tutorial-feedback='unison-finder'>Move the slider to find the unison</div></div>",
+        text: "<strong>Very close</strong> — about 2/5 of a piano key away. <strong>Listen:</strong> Wavering → rhythmic pulsing.",
         ui: {
             simplifiedControls: { visible: false },
             rootDisplay: { visible: false },
@@ -182,21 +321,29 @@ const UNISON_OVERVIEW_TUTORIAL_STEPS = [
             intervalChromatic: { visible: false },
             vizSelection: { visible: true, enabled: false },
             advancedControls: { visible: false },
-            controlsDivider: { visible: false }
+            controlsDivider: { visible: false },
+            waveSettingsPanel: { visible: false },
+            sliderGlissandoControls: { visible: true }
         },
         viz: "interference",
         audio: {
-            action: "play",
-            which: "both",
-            tone1: 440,
-            tone2: 550
+            action: "keep"
         },
-        customInteraction: "unison-finder-slider"
+        sliderConfig: {
+            targetFrequency: 440,
+            hashMarks: [740, 460, 450, 442, 441, 440],
+            initialFrequency: 450
+        },
+        glissandoTarget: {
+            tone1: 440,
+            tone2: 442,
+            duration: 7.0  // 8 Hz difference
+        }
     },
 
-    // ===== PHASE 5: Practice Attempts (Steps 10-12) =====
+    // Step 14: Bring closer still (442 → 441) - Critical 1 Hz beat
     {
-        text: "Great! Let's try again with a different starting point. Use the beat frequency to guide you — when the pulsing stops, you've found unison. <div style='margin-top: 16px;'><div style='display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 12px; color: rgba(255, 255, 255, 0.6);'><span>277 Hz</span><span>698 Hz</span></div><input type='range' data-tutorial-slider='unison-finder-2' class='tutorial-color-slider' style='width: 100%;' min='277' max='698' value='330' step='1'><div style='text-align: center; margin-top: 12px; color: rgba(0, 255, 136, 0.8);' data-tutorial-feedback='unison-finder-2'>Listen for the beat frequency</div></div>",
+        text: "That pulsing is <strong>beat frequency</strong> — <strong>2 beats/sec</strong>. <strong>Listen:</strong> Beats slow from 2/sec → 1/sec.",
         ui: {
             simplifiedControls: { visible: false },
             rootDisplay: { visible: false },
@@ -205,42 +352,109 @@ const UNISON_OVERVIEW_TUTORIAL_STEPS = [
             intervalChromatic: { visible: false },
             vizSelection: { visible: true, enabled: false },
             advancedControls: { visible: false },
-            controlsDivider: { visible: false }
+            controlsDivider: { visible: false },
+            waveSettingsPanel: { visible: false },
+            sliderGlissandoControls: { visible: true }
         },
         viz: "interference",
         audio: {
-            action: "play",
-            which: "both",
+            action: "keep"
+        },
+        sliderConfig: {
+            targetFrequency: 440,
+            hashMarks: [740, 460, 450, 442, 441, 440],
+            initialFrequency: 442
+        },
+        glissandoTarget: {
             tone1: 440,
-            tone2: 330
-        },
-        customInteraction: "unison-finder-slider-2"
-    },
-    {
-        text: "Excellent! One more time. Remember: fast pulse = far away, slow pulse = getting close, no pulse = unison! <div style='margin-top: 16px;'><div style='display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 12px; color: rgba(255, 255, 255, 0.6);'><span>277 Hz</span><span>698 Hz</span></div><input type='range' data-tutorial-slider='unison-finder-3' class='tutorial-color-slider' style='width: 100%;' min='277' max='698' value='620' step='1'><div style='text-align: center; margin-top: 12px; color: rgba(0, 255, 136, 0.8);' data-tutorial-feedback='unison-finder-3'>Use your ears to find it</div></div>",
-        ui: {
-            simplifiedControls: { visible: false },
-            rootDisplay: { visible: false },
-            intervalDisplay: { visible: false },
-            intervalArrows: { visible: false },
-            intervalChromatic: { visible: false },
-            vizSelection: { visible: true, enabled: false },
-            advancedControls: { visible: false },
-            controlsDivider: { visible: false }
-        },
-        viz: "interference",
-        audio: {
-            action: "play",
-            which: "both",
-            tone1: 440,
-            tone2: 620
-        },
-        customInteraction: "unison-finder-slider-3"
+            tone2: 441,
+            duration: 2.7  // 2 Hz difference
+        }
     },
 
-    // ===== PHASE 6: Transition to Voice (Step 13) =====
+    // Step 15: Reach perfect unison (441 → 440)
     {
-        text: "Perfect! You've learned to use beat frequency to find unison. In the <strong>Feel the Unison</strong> exercise, you'll do exactly this — but using your <strong>voice</strong> instead of a slider.<br><br>We won't tell you when you've found it — <strong>you'll have to find it within yourself</strong>. Listen deeply for the beat frequency. When the pulsing disappears and the tones feel unified, you've achieved unison. Trust your ears!",
+        text: "<strong>1 beat/sec</strong>. <strong>Listen:</strong> Beat fades → perfect alignment.",
+        ui: {
+            simplifiedControls: { visible: false },
+            rootDisplay: { visible: false },
+            intervalDisplay: { visible: false },
+            intervalArrows: { visible: false },
+            intervalChromatic: { visible: false },
+            vizSelection: { visible: true, enabled: false },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false },
+            waveSettingsPanel: { visible: false },
+            sliderGlissandoControls: { visible: true }
+        },
+        viz: "interference",
+        audio: {
+            action: "keep"
+        },
+        sliderConfig: {
+            targetFrequency: 440,
+            hashMarks: [740, 460, 450, 442, 441, 440],
+            initialFrequency: 441
+        },
+        glissandoTarget: {
+            tone1: 440,
+            tone2: 440,
+            duration: 2.7  // 1 Hz difference
+        }
+    },
+
+    // Step 16: Perfect unison reflection
+    {
+        text: "<strong>Perfect unison!</strong> Beats gone. Notice the <strong>locked-in feeling</strong>? Perfectly symmetric.",
+        ui: {
+            simplifiedControls: { visible: false },
+            rootDisplay: { visible: false },
+            intervalDisplay: { visible: false },
+            intervalArrows: { visible: false },
+            intervalChromatic: { visible: false },
+            vizSelection: { visible: true, enabled: false },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false },
+            waveSettingsPanel: { visible: false },
+            sliderGlissandoControls: { visible: false }
+        },
+        viz: "interference",
+        audio: {
+            action: "keep"
+        }
+    },
+
+    // Step 17: Repeat option
+    {
+        text: "Journey complete: 9 piano keys → unison. Beat frequency guided you: fast wavering → slow beats → silence. <button class='tutorial-inline-btn tutorial-btn-pulse' data-tutorial-action='repeat-beat-frequency'>Repeat</button>",
+        ui: {
+            simplifiedControls: { visible: false },
+            rootDisplay: { visible: false },
+            intervalDisplay: { visible: false },
+            intervalArrows: { visible: false },
+            intervalChromatic: { visible: false },
+            vizSelection: { visible: true, enabled: false },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false },
+            waveSettingsPanel: { visible: false },
+            sliderGlissandoControls: { visible: true }
+        },
+        viz: "interference",
+        audio: {
+            action: "keep"
+        },
+        sliderConfig: {
+            targetFrequency: 440,
+            hashMarks: [740, 460, 450, 442, 441, 440],
+            initialFrequency: 440
+        },
+        waitForAction: "repeat-beat-frequency-inline"
+    },
+
+    // ===== PHASE 4: Transition to Voice (Steps 18-19) =====
+    // Step 18: Understanding Unison
+    {
+        text: "In the <strong>Feel the Unison</strong> exercise, you'll use your <strong>voice</strong> to match a tone.",
         ui: {
             simplifiedControls: { visible: false },
             rootDisplay: { visible: false },
@@ -249,11 +463,34 @@ const UNISON_OVERVIEW_TUTORIAL_STEPS = [
             intervalChromatic: { visible: false },
             vizSelection: { visible: false },
             advancedControls: { visible: false },
-            controlsDivider: { visible: false }
+            controlsDivider: { visible: false },
+            waveSettingsPanel: { visible: false },
+            sliderGlissandoControls: { visible: false }
         },
         viz: "none",
         audio: {
             action: "stop"
+        }
+    },
+
+    // Step 25: Trust Your Ears
+    {
+        text: "We won't tell you when you've found it. Listen for that <strong>locked-in feeling</strong>. Trust your ears!",
+        ui: {
+            simplifiedControls: { visible: false },
+            rootDisplay: { visible: false },
+            intervalDisplay: { visible: false },
+            intervalArrows: { visible: false },
+            intervalChromatic: { visible: false },
+            vizSelection: { visible: false },
+            advancedControls: { visible: false },
+            controlsDivider: { visible: false },
+            waveSettingsPanel: { visible: false },
+            sliderGlissandoControls: { visible: false }
+        },
+        viz: "none",
+        audio: {
+            action: "keep"
         }
     }
 ];

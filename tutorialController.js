@@ -1456,7 +1456,9 @@ class TutorialController {
                 // just update frequencies smoothly without restarting (prevents audio pops on Steps 7-9)
                 if (audioState.preventExpansion && this.exercise.isPlaying && !whichChanged && frequenciesChanged) {
                     console.log('[Tutorial] Smoothly updating frequencies without restart (preventExpansion mode)');
-                    this.exercise.audioController.setFrequencies(this.exercise.tone1Freq, this.exercise.tone2Freq);
+                    // Use setTone1Frequency/setTone2Frequency with updateIfPlaying=true to actually change the oscillators
+                    this.exercise.audioController.setTone1Frequency(this.exercise.tone1Freq, true);
+                    this.exercise.audioController.setTone2Frequency(this.exercise.tone2Freq, true);
                     this.exercise.syncAllControls();
                     this.exercise.updateVisualizations();
                     this.updateNoSoundMode();

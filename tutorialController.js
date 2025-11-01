@@ -1696,21 +1696,38 @@ class TutorialController {
                 if (isExplorationMode) {
                     // Exploration mode: calculate relative target based on button
                     const currentTone2 = this.exercise.tone2Freq;
-                    const stepSize = size === 'big' ? 100 : size === 'medium' ? 50 : 20;
-                    const newTone2 = currentTone2 + (direction * stepSize);
 
-                    // Clamp to reasonable range
-                    let clampedTone2 = Math.max(220, Math.min(880, newTone2));
+                    let clampedTone2;
 
-                    // Snap to nearest hash mark if hashMarks are defined
+                    // If hashMarks are defined, move to the next hash mark in the direction
                     if (step.sliderConfig?.hashMarks && step.sliderConfig.hashMarks.length > 0) {
                         const hashMarks = step.sliderConfig.hashMarks;
-                        // Find the nearest hash mark to the clamped frequency
-                        const nearest = hashMarks.reduce((prev, curr) =>
-                            Math.abs(curr - clampedTone2) < Math.abs(prev - clampedTone2) ? curr : prev
-                        );
-                        clampedTone2 = nearest;
-                        console.log('[TutorialController] Snapped to hash mark:', nearest);
+                        // Find current position in hash marks
+                        const currentIndex = hashMarks.findIndex(mark => Math.abs(mark - currentTone2) < 0.5);
+
+                        if (currentIndex !== -1) {
+                            // Move to next hash mark in the direction
+                            const nextIndex = currentIndex + (direction > 0 ? 1 : -1);
+                            if (nextIndex >= 0 && nextIndex < hashMarks.length) {
+                                clampedTone2 = hashMarks[nextIndex];
+                                console.log('[TutorialController] Moving to next hash mark:', clampedTone2);
+                            } else {
+                                // At boundary, stay at current position
+                                clampedTone2 = currentTone2;
+                                console.log('[TutorialController] At boundary, staying at:', clampedTone2);
+                            }
+                        } else {
+                            // Not at a hash mark, snap to nearest
+                            clampedTone2 = hashMarks.reduce((prev, curr) =>
+                                Math.abs(curr - currentTone2) < Math.abs(prev - currentTone2) ? curr : prev
+                            );
+                            console.log('[TutorialController] Snapping to nearest hash mark:', clampedTone2);
+                        }
+                    } else {
+                        // No hash marks: use button size
+                        const stepSize = size === 'big' ? 100 : size === 'medium' ? 50 : 20;
+                        const newTone2 = currentTone2 + (direction * stepSize);
+                        clampedTone2 = Math.max(220, Math.min(880, newTone2));
                     }
 
                     glissandoTarget = {
@@ -1730,7 +1747,7 @@ class TutorialController {
                 // Update text to show next step's text (without advancing step)
                 // But only if this step requires progression (has disableNext flag)
                 // For exploration steps, keep the current text
-                if (step.disableNext && this.currentStepIndex < this.steps.length - 1) {
+                if (step.disableNext && this.currentStepIndex < this.steps.length - 1 && !isExplorationMode) {
                     const nextStep = this.steps[this.currentStepIndex + 1];
                     if (nextStep && nextStep.text) {
                         this.applyTextState(nextStep.text);
@@ -1749,8 +1766,9 @@ class TutorialController {
                 }
 
                 // After glissando completes, advance to next step
-                // But only if the current step has disableNext (indicating required progression)
-                if (this.currentStepIndex < this.steps.length - 1 && step.disableNext) {
+                // But only if the current step has disableNext AND is NOT exploration mode
+                // Exploration mode steps should allow multiple button clicks without auto-advancing
+                if (this.currentStepIndex < this.steps.length - 1 && step.disableNext && !isExplorationMode) {
                     this.goToStep(this.currentStepIndex + 1, false);
                 }
 

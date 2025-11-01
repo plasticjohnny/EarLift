@@ -334,8 +334,8 @@ const UNISON_OVERVIEW_TUTORIAL_STEPS = [
             targetFrequency: 440,
             hashMarks: [740, 460, 450, 442, 441, 440],
             initialFrequency: 740,
-            enabledButtons: ['big-down', 'medium-down', 'small-down', 'small-up', 'medium-up', 'big-up'],
-            explorationMode: true
+            explorationMode: true,
+            requireUnison: true  // Enable directional button logic with distance-based enabling
         },
         dynamicTextRanges: [
             {

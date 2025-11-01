@@ -1897,25 +1897,33 @@ class TutorialController {
         } else if (!this.unisonReachedInStep) {
             // Not at unison yet - only enable buttons that move toward unison
             const enabledButtons = [];
+            const distance = Math.abs(currentFreq - targetFreq);
+            const hasEnabledButtonsConfig = sliderConfig.enabledButtons && sliderConfig.enabledButtons.length > 0;
 
-            if (currentFreq < targetFreq) {
-                // Need to go UP to reach unison
-                enabledButtons.push('small-up');
-                // Also allow the initially configured buttons if they move up
-                if (sliderConfig.enabledButtons.includes('medium-up')) {
-                    enabledButtons.push('medium-up');
+            if (hasEnabledButtonsConfig) {
+                // Use configured enabledButtons list, filtered by direction
+                if (currentFreq < targetFreq) {
+                    // Need to go UP - only enable up buttons from config
+                    if (sliderConfig.enabledButtons.includes('small-up')) enabledButtons.push('small-up');
+                    if (sliderConfig.enabledButtons.includes('medium-up')) enabledButtons.push('medium-up');
+                    if (sliderConfig.enabledButtons.includes('big-up')) enabledButtons.push('big-up');
+                } else if (currentFreq > targetFreq) {
+                    // Need to go DOWN - only enable down buttons from config
+                    if (sliderConfig.enabledButtons.includes('small-down')) enabledButtons.push('small-down');
+                    if (sliderConfig.enabledButtons.includes('medium-down')) enabledButtons.push('medium-down');
+                    if (sliderConfig.enabledButtons.includes('big-down')) enabledButtons.push('big-down');
                 }
-                if (sliderConfig.enabledButtons.includes('big-up')) {
+            } else {
+                // No enabledButtons config - use distance-based progressive enabling
+                if (currentFreq < targetFreq) {
+                    // Need to go UP to reach unison
+                    if (distance < 20) enabledButtons.push('small-up');
+                    if (distance < 50) enabledButtons.push('medium-up');
                     enabledButtons.push('big-up');
-                }
-            } else if (currentFreq > targetFreq) {
-                // Need to go DOWN to reach unison
-                enabledButtons.push('small-down');
-                // Also allow the initially configured buttons if they move down
-                if (sliderConfig.enabledButtons.includes('medium-down')) {
-                    enabledButtons.push('medium-down');
-                }
-                if (sliderConfig.enabledButtons.includes('big-down')) {
+                } else if (currentFreq > targetFreq) {
+                    // Need to go DOWN to reach unison
+                    if (distance < 20) enabledButtons.push('small-down');
+                    if (distance < 50) enabledButtons.push('medium-down');
                     enabledButtons.push('big-down');
                 }
             }

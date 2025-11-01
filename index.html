@@ -4944,12 +4944,16 @@
 
                     if (isTutorialButton) {
                         // Add visual flash effect
+                        // Check if button needs translateY centering (e.g., glissando buttons)
+                        const needsCentering = button.classList.contains('glissando-jump-btn');
+                        const baseTransform = needsCentering ? 'translateY(-50%) ' : '';
+
                         button.style.transition = 'filter 0.08s ease, transform 0.08s ease';
                         button.style.filter = 'brightness(2.0)';
-                        button.style.transform = 'scale(1.05)';
+                        button.style.transform = baseTransform + 'scale(1.05)';
                         setTimeout(() => {
                             button.style.filter = 'brightness(1)';
-                            button.style.transform = 'scale(1)';
+                            button.style.transform = baseTransform + 'scale(1)';
                         }, 80);
 
                         // Tutorial buttons don't make sounds
@@ -4959,12 +4963,16 @@
                     // Skip sound for buttons with no-sound class
                     if (button.classList.contains('no-sound')) {
                         // Add visual flash effect
+                        // Check if button needs translateY centering (e.g., glissando buttons)
+                        const needsCentering = button.classList.contains('glissando-jump-btn');
+                        const baseTransform = needsCentering ? 'translateY(-50%) ' : '';
+
                         button.style.transition = 'filter 0.08s ease, transform 0.08s ease';
                         button.style.filter = 'brightness(2.0)';
-                        button.style.transform = 'scale(1.05)';
+                        button.style.transform = baseTransform + 'scale(1.05)';
                         setTimeout(() => {
                             button.style.filter = 'brightness(1)';
-                            button.style.transform = 'scale(1)';
+                            button.style.transform = baseTransform + 'scale(1)';
                         }, 80);
                         return;
                     }
@@ -4972,12 +4980,16 @@
                     // Suppress sounds for all buttons in overview exercises
                     if (button.closest('.overview-exercise')) {
                         // Add visual flash effect only
+                        // Check if button needs translateY centering (e.g., glissando buttons)
+                        const needsCentering = button.classList.contains('glissando-jump-btn');
+                        const baseTransform = needsCentering ? 'translateY(-50%) ' : '';
+
                         button.style.transition = 'filter 0.08s ease, transform 0.08s ease';
                         button.style.filter = 'brightness(2.0)';
-                        button.style.transform = 'scale(1.05)';
+                        button.style.transform = baseTransform + 'scale(1.05)';
                         setTimeout(() => {
                             button.style.filter = 'brightness(1)';
-                            button.style.transform = 'scale(1)';
+                            button.style.transform = baseTransform + 'scale(1)';
                         }, 80);
                         return;
                     }

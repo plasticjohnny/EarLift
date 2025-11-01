@@ -1852,7 +1852,11 @@ class TutorialController {
                 button.classList.remove('active');
 
                 // Force repaint to clear :active pseudo-class
-                void button.offsetHeight;
+                // Removed: void button.offsetHeight - this was causing layout issues
+                button.classList.add('reset-state');
+                requestAnimationFrame(() => {
+                    button.classList.remove('reset-state');
+                });
             }
         });
     }
@@ -2775,6 +2779,10 @@ class TutorialController {
 
             // Update slider position
             slider.value = currentFreq;
+
+            // Update exercise frequencies and visualizations during animation
+            this.exercise.tone2Freq = currentFreq;
+            this.exercise.updateVisualizations();
 
             // Continue animation if not complete
             if (progress < 1) {

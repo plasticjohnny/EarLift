@@ -2708,12 +2708,13 @@ class TutorialController {
 
         console.log('[Tutorial] Playing forward glissando:', { tone1, tone2, duration });
 
-        // Get current step to access starting frequency
-        const currentStep = this.steps[this.currentStepIndex];
-        const startTone2 = currentStep.audio?.tone2 || currentStep.sliderConfig?.initialFrequency || tone2;
-
         // Check if tones are already playing
         const isPlaying = audioController.isAnyPlaying();
+
+        // Get current step to access starting frequency
+        const currentStep = this.steps[this.currentStepIndex];
+        // If already playing, start from current frequency; otherwise use step config
+        const startTone2 = isPlaying ? this.exercise.tone2Freq : (currentStep.audio?.tone2 || currentStep.sliderConfig?.initialFrequency || tone2);
 
         if (!isPlaying) {
             // Get starting frequencies from current step's audio config

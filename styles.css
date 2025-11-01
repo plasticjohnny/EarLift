@@ -5857,19 +5857,19 @@ footer {
 
 .glissando-btn-up.glissando-btn-small {
     right: 100px;
-    top: 50%;
+    top: 48%;  /* Match down buttons alignment */
     transform: translateY(-50%);
 }
 
 .glissando-btn-up.glissando-btn-medium {
     right: 45px;
-    top: 50%;
+    top: 48%;  /* Match down buttons alignment */
     transform: translateY(-50%);
 }
 
 .glissando-btn-up.glissando-btn-big {
     right: -20px;
-    top: 50%;
+    top: 48%;  /* Match down buttons alignment */
     transform: translateY(-50%);
 }
 

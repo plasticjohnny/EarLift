@@ -1,5 +1,5 @@
 // Network-first strategy - always fetch fresh content, no caching during development
-const CACHE_NAME = 'earlift-no-cache-v16';
+const CACHE_NAME = 'earlift-no-cache-v17';
 
 // Install event - skip caching
 self.addEventListener('install', (event) => {

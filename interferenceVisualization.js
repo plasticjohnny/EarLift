@@ -119,7 +119,8 @@ const INTERFERENCE_UNIFORM_DEFAULTS = Object.freeze({
     foggyEdgeStart: 0.7,
     rootFreq: 440,
     colorMode: 'consonance',
-    rootNote: null
+    rootNote: null,
+    autoVolumeSync: true  // Automatically sync audio volume with reveal radius expansion
 });
 
 const INTERFERENCE_DEBUG_FLAG = '__INTERFERENCE_DEBUG';
@@ -235,9 +236,9 @@ class InterferenceVisualization {
         this.rootTone = 1; // Which tone is root (1 or 2)
 
         // Speaker positions (percentage of canvas size)
-        this.tone1X = 0.3;
+        this.tone1X = 0.25;
         this.tone1Y = 0.5;
-        this.tone2X = 0.7;
+        this.tone2X = 0.75;
         this.tone2Y = 0.5;
 
         // Piano chromatic colors - C (Do) = Cyan (home/pleasurable)
@@ -1966,6 +1967,41 @@ class InterferenceVisualization {
             // Tone is fully stopped or never started
             this.tone2RevealRadiusMin = 0;
             this.tone2RevealRadiusMax = tone2RevealRadius === 0 ? 0 : 9999;
+        }
+
+        // Auto-sync audio volume with reveal radius expansion (if enabled)
+        if (this.settings.autoVolumeSync && this.audioController && !this.alwaysShowWaves) {
+            const maxDist = Math.sqrt(width * width + height * height);
+
+            // Calculate tone 1 volume based on expansion
+            let tone1Volume = 1.0; // Default full volume
+            if (typeof tone1RevealRadius === 'number' && tone1RevealRadius < maxDist) {
+                // Expanding - volume proportional to expansion (use square root for more natural curve)
+                const expansion = tone1RevealRadius / maxDist;
+                tone1Volume = Math.sqrt(expansion);
+            } else if (tone1RevealRadius && tone1RevealRadius.minRadius !== undefined) {
+                // Shrinking ring - calculate remaining visible area
+                const visibleRing = tone1RevealRadius.maxRadius - tone1RevealRadius.minRadius;
+                const expansion = visibleRing / maxDist;
+                tone1Volume = Math.sqrt(expansion);
+            }
+
+            // Calculate tone 2 volume based on expansion
+            let tone2Volume = 1.0; // Default full volume
+            if (typeof tone2RevealRadius === 'number' && tone2RevealRadius < maxDist) {
+                // Expanding - volume proportional to expansion (use square root for more natural curve)
+                const expansion = tone2RevealRadius / maxDist;
+                tone2Volume = Math.sqrt(expansion);
+            } else if (tone2RevealRadius && tone2RevealRadius.minRadius !== undefined) {
+                // Shrinking ring - calculate remaining visible area
+                const visibleRing = tone2RevealRadius.maxRadius - tone2RevealRadius.minRadius;
+                const expansion = visibleRing / maxDist;
+                tone2Volume = Math.sqrt(expansion);
+            }
+
+            // Apply volume to audio controller
+            this.audioController.setTone1Volume(tone1Volume);
+            this.audioController.setTone2Volume(tone2Volume);
         }
 
         // Calculate absolute positions

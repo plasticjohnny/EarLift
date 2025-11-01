@@ -47,54 +47,29 @@ const INTERVAL_SYSTEM_EXERCISES = Object.freeze({
     // ===== UNISON =====
     unison: [
         {
-            name: "Unison Match Up",
+            name: "Match the Tone",
             steps: [
                 {
-                    command: "Listen",
-                    instruction: "to the tone and how it feels inside of you",
+                    command: "Match",
+                    instruction: "the tone with your voice. Use glissando to hone in and find the exact match.",
                     audioState: "root",
-                    userAction: "listen"
-                },
-                {
-                    command: "Start singing",
-                    instruction: "a low note at the bottom of your range and use glissando until you match the note. ",
-                    audioState: "root",
-                    userAction: "match-root"
-                },
-                {
-                    command: "Listen to",
-                    instruction: "how it feels to sing in unison. Try and move your singing pitch up and down a bit to learn the feel.",
-                    audioState: "root",
-                    userAction: "match-root"
-                },
+                    userAction: "match-root",
+                    simplifiedRating: true
+                }
             ]
-
         },
         {
-            name: "Unison Match Down",
+            name: "Slider Glissando",
+            useGlissandoSlider: true,
             steps: [
                 {
                     command: "Listen",
-                    instruction: "to the tone and how it feels inside of you",
+                    instruction: "for the beat frequency (pulsing/wobbling sound). Use the slider controls to adjust your note. When the pulsing disappears completely, you've found unison!",
                     audioState: "root",
-                    userAction: "listen"
-                },
-                {
-                    command: "Start singing",
-                    instruction: "a high note at the top of your range and use glissando until you match the note. ",
-                    audioState: "root",
-                    userAction: "match-root"
-                },
-                {
-                    command: "Listen to",
-                    instruction: "how it feels to sing in unison. Try and move your singing pitch up and down a bit to better learn the feel.",
-                    audioState: "root",
-                    userAction: "match-root"
-                },
+                    userAction: "match-root-slider"
+                }
             ]
-
-        },
-
+        }
     ],
 
     // ===== INTERVALS (Minor 2nd through Octave) =====

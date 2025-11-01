@@ -1,7 +1,8 @@
 // Settings Manager for Ear Trainer App
 class Settings {
-    constructor() {
-        this.storageKey = 'earTrainerSettings';
+    constructor(profileName = 'Default') {
+        this.profileName = profileName;
+        this.storageKey = `earTrainerSettings_${profileName}`;
         this.settings = this.load();
     }
 
@@ -31,7 +32,8 @@ class Settings {
             microphoneGain: 4.0, // Default gain level (0.1 to 5.0) - 4.0 for quiet mics
             selectedMicrophone: null, // Device ID of preferred microphone
             debugControlsEnabled: true, // Show debug button and diagnostics exercise by default
-            usageMode: 'headphone-mic' // headphone-mic, speaker-mic, car-mode
+            usageMode: 'headphone-mic', // headphone-mic, speaker-mic, car-mode
+            sliderGlissandoVisualization: true // Show wave visualization during Slider Glissando exercises
         };
     }
 
@@ -383,7 +385,22 @@ class Settings {
 
         return true;
     }
+
+    // Get slider glissando visualization setting
+    getSliderGlissandoVisualization() {
+        if (this.settings.sliderGlissandoVisualization === undefined) {
+            this.settings.sliderGlissandoVisualization = true;
+            this.save();
+        }
+        return this.settings.sliderGlissandoVisualization;
+    }
+
+    // Set slider glissando visualization setting
+    setSliderGlissandoVisualization(enabled) {
+        this.settings.sliderGlissandoVisualization = Boolean(enabled);
+        return this.save();
+    }
 }
 
-// Global settings instance
-const appSettings = new Settings();
+// Global settings instance (initialized in app.js with profile support)
+let appSettings;

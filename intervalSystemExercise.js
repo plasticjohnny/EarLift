@@ -40,6 +40,15 @@ class IntervalSystemExercise {
         // Randomization support
         this.glissandoDirection = null; // 'up' or 'down'
 
+        // Continuous glissando state
+        this.continuousGlissando = {
+            active: false,
+            direction: null, // 'up' or 'down'
+            size: null, // 'big' or 'medium'
+            speed: null, // Hz per frame (1 for big, 0.5 for medium)
+            animationId: null
+        };
+
         this.initializeElements();
         this.attachEventListeners();
     }
@@ -65,6 +74,7 @@ class IntervalSystemExercise {
         // Control buttons
         this.skipExerciseBtn = this.container.querySelector('[data-system-exercise="skip-exercise"]');
         this.exitBtn = this.container.querySelector('[data-system-exercise="exit"]');
+        this.helpBtn = this.container.querySelector('[data-system-exercise="help"]');
 
         // Visual indicators
         this.rootIndicator = this.container.querySelector('[data-system-exercise="root-indicator"]');
@@ -74,6 +84,15 @@ class IntervalSystemExercise {
         this.middleIconsContainer = this.container.querySelector('[data-system-exercise="middle-icons"]');
         this.rootSolfegeLabel = this.container.querySelector('[data-system-exercise="root-solfege"]');
         this.intervalSolfegeLabel = this.container.querySelector('[data-system-exercise="interval-solfege"]');
+        this.intervalLabelText = this.container.querySelector('[data-system-exercise="interval-label-text"]');
+        this.intervalPlayPauseBtn = this.container.querySelector('[data-system-exercise="interval-play-pause"]');
+        this.playIcon = this.intervalPlayPauseBtn ? this.intervalPlayPauseBtn.querySelector('.play-icon') : null;
+        this.pauseIcon = this.intervalPlayPauseBtn ? this.intervalPlayPauseBtn.querySelector('.pause-icon') : null;
+        this.sliderInstruction = this.container.querySelector('[data-system-exercise="slider-instruction"]');
+
+        // Unison rating UI
+        this.unisonRatingContainer = this.container.querySelector('[data-system-exercise="unison-rating"]');
+        this.unisonRatingButtons = this.container.querySelectorAll('.unison-rating-btn');
     }
 
     attachEventListeners() {
@@ -106,6 +125,19 @@ class IntervalSystemExercise {
         if (this.exitBtn) {
             this.exitBtn.addEventListener('click', () => this.exit());
         }
+        if (this.helpBtn) {
+            this.helpBtn.addEventListener('click', () => this.showHelpModal());
+        }
+
+        // Unison rating buttons
+        if (this.unisonRatingButtons) {
+            this.unisonRatingButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const rating = e.currentTarget.dataset.rating;
+                    this.handleUnisonRating(rating);
+                });
+            });
+        }
 
         // Update card width and triangle sizes on window resize
         window.addEventListener('resize', () => {
@@ -125,6 +157,18 @@ class IntervalSystemExercise {
         // Show exercise screen
         document.getElementById('appContainer').style.display = 'none';
         this.container.style.display = 'block';
+
+        // Add full-screen class for unison exercises
+        if (this.isUnison) {
+            this.container.classList.add('unison-fullscreen');
+        } else {
+            this.container.classList.remove('unison-fullscreen');
+        }
+
+        // Show Match the Tone modal EVERY TIME for exerciseIndex 0
+        if (this.isUnison && this.currentExerciseIndex === 0) {
+            this.showMatchTheToneModal();
+        }
 
         // Reset step state (but preserve currentExerciseIndex set by caller)
         this.currentStepIndex = 0;
@@ -146,6 +190,13 @@ class IntervalSystemExercise {
             console.log('[SystemExercise] Using customRootFrequency:', this.customRootFrequency);
             this.rootFrequency = this.customRootFrequency;
 
+            // For Slider Glissando, round to whole Hz to enable exact matching
+            const currentExercise = this.exercises[this.currentExerciseIndex];
+            if (currentExercise?.useGlissandoSlider) {
+                this.rootFrequency = Math.round(this.rootFrequency);
+                console.log('[SystemExercise] Rounded custom root frequency for Slider Glissando:', this.rootFrequency);
+            }
+
             // Calculate interval frequency based on custom root
             if (this.isUnison || this.isTutorial) {
                 this.intervalFrequency = this.rootFrequency;
@@ -158,13 +209,33 @@ class IntervalSystemExercise {
             // Clear custom frequency so next repetition uses random
             this.customRootFrequency = null;
         } else {
-            // Generate root frequency within vocal range
-            const lowFreq = this.vocalRange.low.frequency;
-            const highFreq = this.vocalRange.high.frequency;
+            // Check if current exercise uses glissando slider (Slider Glissando)
+            const currentExercise = this.exercises[this.currentExerciseIndex];
+            const usesPianoRange = currentExercise?.useGlissandoSlider;
+
+            let lowFreq, highFreq;
+
+            if (usesPianoRange) {
+                // Slider Glissando: Use fixed piano range A3 to C6
+                lowFreq = 220.00;     // A3
+                highFreq = 1046.50;   // C6
+                console.log('[SystemExercise] Using fixed piano range for Slider Glissando:', lowFreq, '-', highFreq, 'Hz');
+            } else {
+                // Other exercises: Use vocal range
+                lowFreq = this.vocalRange.low.frequency;
+                highFreq = this.vocalRange.high.frequency;
+            }
 
             // For intervals, ensure both root and interval fit in range
             if (this.isUnison || this.isTutorial) {
                 this.rootFrequency = Math.random() * (highFreq - lowFreq) + lowFreq;
+
+                // For Slider Glissando, round to whole Hz to enable exact matching
+                if (currentExercise?.useGlissandoSlider) {
+                    this.rootFrequency = Math.round(this.rootFrequency);
+                    console.log('[SystemExercise] Rounded root frequency for Slider Glissando:', this.rootFrequency);
+                }
+
                 this.intervalFrequency = this.rootFrequency; // Same as root for unison/tutorial
             } else {
                 // Calculate interval frequency range
@@ -212,11 +283,56 @@ class IntervalSystemExercise {
             this.exerciseLabel.textContent = currentExercise.name;
         }
 
-        // Hide interval controls for unison
-        if (this.isUnison) {
+        // Show help button for Match the Tone and Slider Glissando exercises
+        if (this.helpBtn) {
+            if ((this.isUnison && currentExercise.name === "Match the Tone") || currentExercise.useGlissandoSlider) {
+                this.helpBtn.classList.add('visible');
+            } else {
+                this.helpBtn.classList.remove('visible');
+            }
+        }
+
+        // Hide interval controls for unison (except for Slider Glissando which needs both indicators)
+        if (this.isUnison && !currentExercise.useGlissandoSlider) {
             if (this.intervalIndicator) this.intervalIndicator.style.display = 'none';
+
+            // Hide middle icon container to center the root indicator
+            const middleIconContainer = this.container.querySelector('.middle-icon-container');
+            if (middleIconContainer) middleIconContainer.style.display = 'none';
+
             if (this.skipExerciseBtn) {
-                this.skipExerciseBtn.textContent = 'Next Note';
+                this.skipExerciseBtn.textContent = 'Skip';
+            }
+        }
+
+        // For Slider Glissando, ensure both indicators are visible
+        if (currentExercise.useGlissandoSlider) {
+            if (this.intervalIndicator) this.intervalIndicator.style.display = '';
+            const middleIconContainer = this.container.querySelector('.middle-icon-container');
+            if (middleIconContainer) middleIconContainer.style.display = '';
+
+            // Change label to "Matching Note" and hide solfege
+            if (this.intervalLabelText) {
+                this.intervalLabelText.textContent = 'Matching Note';
+            }
+            if (this.intervalSolfegeLabel) {
+                this.intervalSolfegeLabel.style.display = 'none';
+            }
+
+            // Show play/pause button
+            if (this.intervalPlayPauseBtn) {
+                this.intervalPlayPauseBtn.style.display = 'flex';
+            }
+
+            // Update play/pause icon based on current state
+            this.updatePlayPauseIcon();
+        } else {
+            // Hide play/pause button and instruction arrow for non-slider exercises
+            if (this.intervalPlayPauseBtn) {
+                this.intervalPlayPauseBtn.style.display = 'none';
+            }
+            if (this.sliderInstruction) {
+                this.sliderInstruction.style.display = 'none';
             }
         }
 
@@ -248,11 +364,79 @@ class IntervalSystemExercise {
         const totalSteps = currentExercise.steps.length;
         const currentStep = currentExercise.steps[this.currentStepIndex];
 
+        // Check if this exercise uses glissando slider
+        if (currentExercise.useGlissandoSlider) {
+            // Hide carousel and unison rating UI
+            const flowContainer = this.container.querySelector('.carousel-step-flow');
+            if (flowContainer) {
+                flowContainer.style.display = 'none';
+            }
+            if (this.unisonRatingContainer) {
+                this.unisonRatingContainer.style.display = 'none';
+            }
+
+            // Show glissando slider controls
+            const sliderSection = this.container.querySelector('[data-system-exercise="glissando-slider-controls"]');
+            if (sliderSection) {
+                sliderSection.style.display = 'block';
+            }
+
+            // Initialize glissando slider (only once per exercise start)
+            if (!this.glissandoSliderInitialized) {
+                this.setupGlissandoSlider();
+                this.glissandoSliderInitialized = true;
+            }
+
+            // Update command/instruction display
+            if (this.commandElement) {
+                this.commandElement.textContent = currentStep.command;
+            }
+            if (this.instructionElement) {
+                this.instructionElement.textContent = currentStep.instruction;
+            }
+
+            // Update Skip button text for Slider Glissando
+            if (this.skipExerciseBtn) {
+                this.skipExerciseBtn.textContent = "Can't Find It!";
+            }
+
+            // Apply audio state (play root tone)
+            this.applyAudioState(currentStep.audioState);
+            return;
+        }
+
+        // Check if this is a simplified unison exercise
+        if (this.isUnison && currentStep.simplifiedRating) {
+            // Hide carousel, show unison rating UI
+            const flowContainer = this.container.querySelector('.carousel-step-flow');
+            if (flowContainer) {
+                flowContainer.style.display = 'none';
+            }
+
+            // Update rating labels for regular unison (not Slider Glissando)
+            this.updateRatingLabels(false);
+
+            if (this.unisonRatingContainer) {
+                this.unisonRatingContainer.style.display = 'flex';
+            }
+
+            // Apply audio state (play root tone)
+            this.applyAudioState(currentStep.audioState);
+            return;
+        }
+
+        // Normal carousel rendering for intervals...
         // Hide flow container FIRST, before any text updates or DOM changes
         const flowContainer = this.container.querySelector('.carousel-step-flow');
         if (flowContainer) {
             flowContainer.style.visibility = 'hidden';
             flowContainer.style.opacity = '0';
+            flowContainer.style.display = '';
+        }
+
+        // Hide unison rating UI
+        if (this.unisonRatingContainer) {
+            this.unisonRatingContainer.style.display = 'none';
         }
 
         // Calculate prev/next step indices (with wrapping)
@@ -588,6 +772,11 @@ class IntervalSystemExercise {
 
         // Trigger animation AFTER showing
         this.triggerStepAnimation();
+
+        // Restore Skip button text for non-slider exercises
+        if (this.skipExerciseBtn) {
+            this.skipExerciseBtn.textContent = 'Skip Exercise';
+        }
     }
 
     async applyAudioState(audioState) {
@@ -627,6 +816,14 @@ class IntervalSystemExercise {
     }
 
     async playRoot() {
+        console.log('playRoot called', { rootFrequency: this.rootFrequency, rootOscillator: this.rootOscillator });
+
+        // Stop existing oscillator if already playing
+        if (this.rootOscillator) {
+            console.log('Stopping existing root oscillator before creating new one');
+            this.stopRoot();
+        }
+
         await this.toneGenerator.ensureAudioContext();
         const audioContext = window.audioManager.getAudioContext();
 
@@ -634,6 +831,8 @@ class IntervalSystemExercise {
             console.error('AudioContext not available');
             return;
         }
+
+        console.log('Creating root oscillator at', this.rootFrequency, 'Hz');
 
         // Create gain node
         this.rootGainNode = audioContext.createGain();
@@ -646,13 +845,18 @@ class IntervalSystemExercise {
         this.rootOscillator.frequency.setValueAtTime(this.rootFrequency, audioContext.currentTime);
         this.rootOscillator.connect(this.rootGainNode);
         this.rootOscillator.start(audioContext.currentTime);
+        console.log('Root oscillator started');
     }
 
     stopRoot() {
+        console.log('stopRoot called', { rootOscillator: this.rootOscillator, rootGainNode: this.rootGainNode });
         if (this.rootOscillator) {
             try {
                 const audioContext = window.audioManager.getAudioContext();
-                if (!audioContext) return;
+                if (!audioContext) {
+                    console.log('No audio context in stopRoot');
+                    return;
+                }
 
                 const currentTime = audioContext.currentTime;
 
@@ -661,22 +865,35 @@ class IntervalSystemExercise {
                     this.rootGainNode.gain.setValueAtTime(this.rootGainNode.gain.value, currentTime);
                     this.rootGainNode.gain.exponentialRampToValueAtTime(0.001, currentTime + 0.05);
                     this.rootOscillator.stop(currentTime + 0.05);
+                    console.log('Root oscillator scheduled to stop at', currentTime + 0.05);
                 } else {
                     this.rootOscillator.stop();
+                    console.log('Root oscillator stopped immediately');
                 }
                 this.rootOscillator.disconnect();
             } catch (e) {
                 console.warn('Error stopping root oscillator:', e);
             }
             this.rootOscillator = null;
+        } else {
+            console.log('No root oscillator to stop');
         }
         if (this.rootGainNode) {
             this.rootGainNode.disconnect();
             this.rootGainNode = null;
         }
+        console.log('stopRoot complete');
     }
 
     async playInterval() {
+        console.log('playInterval called', { intervalFrequency: this.intervalFrequency, intervalOscillator: this.intervalOscillator });
+
+        // Stop existing oscillator if already playing
+        if (this.intervalOscillator) {
+            console.log('Stopping existing interval oscillator before creating new one');
+            this.stopInterval();
+        }
+
         await this.toneGenerator.ensureAudioContext();
         const audioContext = window.audioManager.getAudioContext();
 
@@ -684,6 +901,8 @@ class IntervalSystemExercise {
             console.error('AudioContext not available');
             return;
         }
+
+        console.log('Creating interval oscillator at', this.intervalFrequency, 'Hz');
 
         // Create gain node
         this.intervalGainNode = audioContext.createGain();
@@ -696,13 +915,18 @@ class IntervalSystemExercise {
         this.intervalOscillator.frequency.setValueAtTime(this.intervalFrequency, audioContext.currentTime);
         this.intervalOscillator.connect(this.intervalGainNode);
         this.intervalOscillator.start(audioContext.currentTime);
+        console.log('Interval oscillator started');
     }
 
     stopInterval() {
+        console.log('stopInterval called', { intervalOscillator: this.intervalOscillator, intervalGainNode: this.intervalGainNode });
         if (this.intervalOscillator) {
             try {
                 const audioContext = window.audioManager.getAudioContext();
-                if (!audioContext) return;
+                if (!audioContext) {
+                    console.log('No audio context in stopInterval');
+                    return;
+                }
 
                 const currentTime = audioContext.currentTime;
 
@@ -711,24 +935,39 @@ class IntervalSystemExercise {
                     this.intervalGainNode.gain.setValueAtTime(this.intervalGainNode.gain.value, currentTime);
                     this.intervalGainNode.gain.exponentialRampToValueAtTime(0.001, currentTime + 0.05);
                     this.intervalOscillator.stop(currentTime + 0.05);
+                    console.log('Interval oscillator scheduled to stop at', currentTime + 0.05);
                 } else {
                     this.intervalOscillator.stop();
+                    console.log('Interval oscillator stopped immediately');
                 }
                 this.intervalOscillator.disconnect();
             } catch (e) {
                 console.warn('Error stopping interval oscillator:', e);
             }
             this.intervalOscillator = null;
+        } else {
+            console.log('No interval oscillator to stop');
         }
         if (this.intervalGainNode) {
             this.intervalGainNode.disconnect();
             this.intervalGainNode = null;
         }
+        console.log('stopInterval complete');
     }
 
     handleCurrentAction() {
         // Action button advances to next step
-        this.navigateToNext();
+        const currentExercise = this.exercises[this.currentExerciseIndex];
+        const totalSteps = currentExercise.steps.length;
+        const isLastStep = this.currentStepIndex === totalSteps - 1;
+
+        if (isLastStep) {
+            // On last step, clicking "Finish" should complete the exercise
+            this.nextStep();
+        } else {
+            // Otherwise, navigate with animation to next step
+            this.navigateToNext();
+        }
     }
 
     navigateToPrev() {
@@ -806,7 +1045,7 @@ class IntervalSystemExercise {
                 this.instructionElement.classList.add('text-fade-in');
             }
 
-            // Update action button text and show it again
+            // Update action button text and show it again with fade-in
             if (this.actionButton) {
                 const isLastStep = this.currentStepIndex === totalSteps - 1;
                 if (isLastStep) {
@@ -815,7 +1054,7 @@ class IntervalSystemExercise {
                     const nextStep = currentExercise.steps[this.currentStepIndex + 1];
                     this.actionButton.textContent = `then ${nextStep.command.toLowerCase()}`;
                 }
-                this.actionButton.style.opacity = '1';
+                this.actionButton.classList.add('button-fade-in');
             }
 
             // Update other step elements
@@ -834,16 +1073,22 @@ class IntervalSystemExercise {
             if (this.commandElement) {
                 this.commandElement.classList.remove('spotlight-animation');
             }
+            if (this.actionButton) {
+                this.actionButton.classList.remove('button-fade-in');
+            }
         }, 1600);
     }
 
     async toggleRoot() {
+        console.log('toggleRoot called', { rootPlaying: this.rootPlaying });
         if (this.rootPlaying) {
             // Stop root if it's playing
+            console.log('Stopping root');
             this.stopRoot();
             this.rootPlaying = false;
         } else {
             // Play root if it's stopped
+            console.log('Starting root');
             await this.playRoot();
             this.rootPlaying = true;
         }
@@ -851,7 +1096,16 @@ class IntervalSystemExercise {
     }
 
     async toggleInterval() {
-        if (this.isUnison) return; // No interval for unison
+        // Allow toggling for Slider Glissando (useGlissandoSlider), but not for regular unison exercises
+        const currentExercise = this.exercises[this.currentExerciseIndex];
+        if (this.isUnison && !currentExercise?.useGlissandoSlider) return; // No interval for unison (except Slider Glissando)
+
+        console.log('toggleInterval called', {
+            intervalPlaying: this.intervalPlaying,
+            intervalFrequency: this.intervalFrequency,
+            isUnison: this.isUnison,
+            useGlissandoSlider: currentExercise?.useGlissandoSlider
+        });
 
         if (this.intervalPlaying) {
             // Stop interval if it's playing
@@ -861,15 +1115,25 @@ class IntervalSystemExercise {
             // Play interval if it's stopped
             await this.playInterval();
             this.intervalPlaying = true;
+
+            // Hide instruction arrow after first play (for Slider Glissando)
+            if (currentExercise?.useGlissandoSlider && !this.sliderInstructionShown) {
+                if (this.sliderInstruction) {
+                    this.sliderInstruction.style.display = 'none';
+                }
+                this.sliderInstructionShown = true;
+            }
         }
         this.updateButtonStates();
     }
 
     stopAll() {
+        console.log('stopAll called');
         this.stopRoot();
         this.stopInterval();
         this.rootPlaying = false;
         this.intervalPlaying = false;
+        console.log('stopAll complete - all flags reset');
     }
 
     updateButtonStates() {
@@ -882,12 +1146,24 @@ class IntervalSystemExercise {
             }
         }
 
-        if (this.intervalIndicator && !this.isUnison) {
+        // Update interval indicator playing state (including for Slider Glissando)
+        const currentExercise = this.exercises[this.currentExerciseIndex];
+        const shouldShowIntervalPlaying = !this.isUnison || currentExercise?.useGlissandoSlider;
+
+        if (this.intervalIndicator && shouldShowIntervalPlaying) {
             if (this.intervalPlaying) {
                 this.intervalIndicator.classList.add('playing');
             } else {
                 this.intervalIndicator.classList.remove('playing');
             }
+        }
+
+        // Update play/pause icon for Slider Glissando
+        this.updatePlayPauseIcon();
+
+        // Update glissando button states (enable/disable based on interval playing)
+        if (currentExercise && currentExercise.useGlissandoSlider) {
+            this.setGlissandoButtonsDisabled(!this.intervalPlaying);
         }
     }
 
@@ -942,8 +1218,46 @@ class IntervalSystemExercise {
         }
     }
 
+    handleUnisonRating(rating) {
+        console.log('[Unison] User rated:', rating);
+
+        this.repetitionsCompleted++;
+
+        // Map rating to spaced repetition difficulty
+        const difficultyMap = {
+            'easy': 'easy',
+            'medium': 'medium',
+            'hard': 'hard',
+            'failed': 'failed'
+        };
+
+        const difficulty = difficultyMap[rating];
+
+        // Store the rating for training system to use
+        this.lastUnisonRating = difficulty;
+
+        // Check if we've completed all reps for this exercise
+        if (this.repetitionsCompleted >= this.maxRepetitions) {
+            // Complete exercise and let training mode handle it
+            console.log('[Unison] Completed all reps, exiting');
+            this.exit();
+        } else {
+            // Generate new note and continue
+            console.log('[Unison] Generating new note for next rep');
+            this.generateNewTones();
+            this.updateDisplay();
+        }
+    }
+
     skipExercise() {
-        // For unison, this is "Next Note"
+        // If in training mode, let training mode handle the skip
+        if (window.trainingUI && window.trainingUI.isInTrainingMode) {
+            console.log('[System Exercise] Skip pressed during training mode, calling exit');
+            this.exit();
+            return;
+        }
+
+        // For unison, this is "Skip"
         if (this.isUnison) {
             this.repetitionsCompleted++;
             if (this.repetitionsCompleted >= this.maxRepetitions) {
@@ -988,8 +1302,12 @@ class IntervalSystemExercise {
     }
 
     exit() {
+        console.log('exit() called - stopping all audio');
         // Stop all audio
         this.stopAll();
+
+        // Remove full-screen class
+        this.container.classList.remove('unison-fullscreen');
 
         // Hide exercise screen
         this.container.style.display = 'none';
@@ -1000,6 +1318,739 @@ class IntervalSystemExercise {
         // Clear exercise from URL
         if (window.earTrainerApp && window.earTrainerApp.clearExerciseFromURL) {
             window.earTrainerApp.clearExerciseFromURL();
+        }
+    }
+
+    // ===========================
+    // Glissando Slider Methods
+    // ===========================
+
+    setupGlissandoSlider(config = {}) {
+        console.log('setupGlissandoSlider called', { rootFrequency: this.rootFrequency, config });
+
+        // Show help modal on first time this session
+        const HELP_SHOWN_KEY = 'sliderGlissandoHelpShown';
+        if (!sessionStorage.getItem(HELP_SHOWN_KEY)) {
+            this.showSliderGlissandoHelpModal();
+            sessionStorage.setItem(HELP_SHOWN_KEY, 'true');
+        }
+
+        // Optional config:
+        // - targetFrequency: override default rootFrequency
+        // - hashMarks: array of frequencies to mark [740, 460, 450, 442, 441, 440]
+        // - showTargetLabel: show "Target: XXX Hz" label
+        // - initialFrequency: specific starting frequency (override random)
+
+        const targetFreq = config.targetFrequency || this.rootFrequency;
+        const minFreq = targetFreq / 2;  // 220 Hz (one octave below)
+        const maxFreq = targetFreq * 2;  // 880 Hz (one octave above)
+
+        // Calculate the middle 25% range where target should be
+        const rangeSize = maxFreq - minFreq;
+        const middleStart = minFreq + rangeSize * 0.375;  // 37.5% from bottom
+        const middleEnd = minFreq + rangeSize * 0.625;    // 62.5% from bottom
+
+        // Determine starting frequency
+        let startingFreq;
+        if (config.initialFrequency !== undefined) {
+            // Use specified initial frequency
+            startingFreq = config.initialFrequency;
+        } else {
+            // Random starting position within valid range (avoiding the target middle 25%)
+            if (Math.random() < 0.5) {
+                // Start in lower range (below middle 25%)
+                startingFreq = minFreq + Math.random() * (middleStart - minFreq);
+            } else {
+                // Start in upper range (above middle 25%)
+                startingFreq = middleEnd + Math.random() * (maxFreq - middleEnd);
+            }
+        }
+
+        // Round to whole Hz for consistency with button movements
+        startingFreq = Math.round(startingFreq);
+
+        // Store the interval frequency (user's adjustable tone)
+        this.intervalFrequency = startingFreq;
+        console.log('Slider setup complete', {
+            intervalFrequency: this.intervalFrequency,
+            minFreq,
+            maxFreq
+        });
+
+        // Update slider position
+        const slider = this.container.querySelector('[data-glissando-slider="frequency"]');
+        if (slider) {
+            slider.min = minFreq;
+            slider.max = maxFreq;
+            slider.value = startingFreq;
+        }
+
+        // Set up button event listeners
+        const buttons = [
+            { selector: '[data-glissando-slider="jump-up-big"]', direction: 1, size: 'big' },
+            { selector: '[data-glissando-slider="jump-up-medium"]', direction: 1, size: 'medium' },
+            { selector: '[data-glissando-slider="jump-up-small"]', direction: 1, size: 'small' },
+            { selector: '[data-glissando-slider="jump-down-big"]', direction: -1, size: 'big' },
+            { selector: '[data-glissando-slider="jump-down-medium"]', direction: -1, size: 'medium' },
+            { selector: '[data-glissando-slider="jump-down-small"]', direction: -1, size: 'small' }
+        ];
+
+        buttons.forEach(({ selector, direction, size }) => {
+            const button = this.container.querySelector(selector);
+            if (button) {
+                button.addEventListener('click', () => {
+                    this.handleGlissandoJump(direction, size);
+                });
+            }
+        });
+
+        // Set up Next button
+        const nextBtn = this.container.querySelector('[data-glissando-slider="next"]');
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                this.handleGlissandoSliderNext();
+            });
+        }
+
+        // Don't call playRoot() here - applyAudioState() will handle it based on the step's audioState
+        // This prevents duplicate oscillators from being created
+
+        // Set buttons to disabled initially (enabled when interval plays)
+        this.setGlissandoButtonsDisabled(true);
+
+        // Show instruction arrow (will be hidden after first play)
+        if (this.sliderInstruction) {
+            this.sliderInstruction.style.display = 'flex';
+        }
+
+        // Track if instruction has been shown (reset for each exercise)
+        this.sliderInstructionShown = false;
+
+        // Render hash marks if provided
+        if (config.hashMarks && config.hashMarks.length > 0) {
+            this.renderGlissandoHashMarks(config.hashMarks, minFreq, maxFreq);
+        }
+
+        // Show target label if requested
+        if (config.showTargetLabel) {
+            this.showGlissandoTargetLabel(targetFreq);
+        }
+
+        // Show "Found it!" button immediately (always visible)
+        this.showGlissandoNextButton();
+    }
+
+    renderGlissandoHashMarks(frequencies, minFreq, maxFreq) {
+        const sliderWrapper = this.container.querySelector('.glissando-slider-wrapper');
+        if (!sliderWrapper) return;
+
+        // Create container for hash marks if it doesn't exist
+        let hashContainer = this.container.querySelector('.glissando-hash-marks');
+        if (!hashContainer) {
+            hashContainer = document.createElement('div');
+            hashContainer.className = 'glissando-hash-marks';
+            sliderWrapper.appendChild(hashContainer);
+        } else {
+            hashContainer.innerHTML = ''; // Clear existing
+        }
+
+        const range = maxFreq - minFreq;
+        const isMobile = window.innerWidth <= 768;
+        const sliderWidth = isMobile ? 300 : 400;
+        const thumbWidth = isMobile ? 35 : 40;
+
+        frequencies.forEach(freq => {
+            if (freq < minFreq || freq > maxFreq) return;
+
+            // Calculate position accounting for thumb offset
+            // Range inputs position thumb center from (thumbWidth/2) to (sliderWidth - thumbWidth/2)
+            const percentage = (freq - minFreq) / range;
+            const thumbOffset = thumbWidth / 2;
+            const availableTravel = sliderWidth - thumbWidth;
+            const position = thumbOffset + (percentage * availableTravel);
+
+            const mark = document.createElement('div');
+            mark.className = 'glissando-hash-mark';
+            mark.style.left = `${position}px`;
+            hashContainer.appendChild(mark);
+        });
+
+        console.log(`[Slider Glissando] Rendered ${frequencies.length} hash marks`);
+    }
+
+    showGlissandoTargetLabel(targetFreq) {
+        const sliderContainer = this.container.querySelector('.glissando-slider-container');
+        if (!sliderContainer) return;
+
+        let label = this.container.querySelector('.glissando-target-label');
+        if (!label) {
+            label = document.createElement('div');
+            label.className = 'glissando-target-label';
+            sliderContainer.appendChild(label);
+        }
+        label.textContent = `Target: ${Math.round(targetFreq)} Hz`;
+        label.style.display = 'block';
+
+        console.log(`[Slider Glissando] Showing target label: ${Math.round(targetFreq)} Hz`);
+    }
+
+    handleGlissandoJump(direction, size) {
+        // Check if interval is playing (buttons should be disabled if not)
+        if (!this.intervalPlaying) return;
+
+        // Check if clicking the same button that's currently active (for pause behavior)
+        const directionStr = direction > 0 ? 'up' : 'down';
+        const clickingSameButton = this.continuousGlissando.active &&
+                                   this.continuousGlissando.direction === directionStr &&
+                                   this.continuousGlissando.size === size;
+
+        // Stop any active continuous movement
+        if (this.continuousGlissando.active) {
+            this.stopContinuousGlissando();
+        }
+
+        // If clicking the same button, just pause (don't restart)
+        if (clickingSameButton) {
+            return;
+        }
+
+        if (size === 'big' || size === 'medium') {
+            // Big/Medium buttons: continuous glissando at different speeds
+            this.startContinuousGlissando(directionStr, size);
+        } else if (size === 'small') {
+            // Small buttons: adaptive discrete steps (1-5 Hz based on distance to target)
+            const currentFreq = this.intervalFrequency;
+            const targetFreq = this.rootFrequency;
+            const minFreq = targetFreq / 2;
+            const maxFreq = targetFreq * 2;
+
+            // Calculate distance to target
+            const distanceToTarget = Math.abs(currentFreq - targetFreq);
+
+            // Determine jump size based on distance:
+            // 0-3 Hz: 1 Hz jump
+            // 4-5 Hz: 2 Hz jump
+            // 6-7 Hz: 3 Hz jump
+            // 8-9 Hz: 4 Hz jump
+            // 10+ Hz: 5 Hz jump
+            let jumpSize;
+            if (distanceToTarget <= 3) {
+                jumpSize = 1;
+            } else if (distanceToTarget <= 5) {
+                jumpSize = 2;
+            } else if (distanceToTarget <= 7) {
+                jumpSize = 3;
+            } else if (distanceToTarget <= 9) {
+                jumpSize = 4;
+            } else {
+                jumpSize = 5;
+            }
+
+            // Round current position to nearest whole Hz, then move by adaptive jump size
+            const roundedCurrent = Math.round(currentFreq);
+            const newFreq = Math.max(minFreq, Math.min(maxFreq, roundedCurrent + (direction * jumpSize)));
+
+            // Pulse the interval indicator border
+            this.pulseIntervalIndicator();
+
+            // Perform glissando to new frequency (no button disabling for rapid clicking)
+            this.performSliderGlissando(currentFreq, newFreq, () => {
+                // Show Next button after first interaction
+                this.showGlissandoNextButton();
+            });
+        }
+    }
+
+    calculateGlissandoJumpAmount(size, currentFreq, targetFreq) {
+        const distanceToTarget = Math.abs(currentFreq - targetFreq);
+
+        switch (size) {
+            case 'big':
+                // Random 6-10 semitones, rounded to whole Hz
+                const bigSemitones = 6 + Math.floor(Math.random() * 5);
+                const bigJump = currentFreq * (Math.pow(2, bigSemitones / 12) - 1);
+                return Math.round(bigJump);
+
+            case 'medium':
+                // Random 1-3 semitones, rounded to whole Hz
+                const mediumSemitones = 1 + Math.floor(Math.random() * 3);
+                const mediumJump = currentFreq * (Math.pow(2, mediumSemitones / 12) - 1);
+                return Math.round(mediumJump);
+
+            case 'small':
+                // Small buttons always move by exactly 1 Hz to ensure whole integer positions
+                // This allows precise matching of the root tone (unison)
+                return 1;
+
+            default:
+                return 0;
+        }
+    }
+
+    performSliderGlissando(startFreq, endFreq, onComplete) {
+        const frequencyDiff = Math.abs(endFreq - startFreq);
+
+        // Calculate duration: 11.25ms per Hz difference, min 450ms, max 4500ms (50% slower)
+        const baseDuration = Math.min(4500, Math.max(450, frequencyDiff * 11.25));
+
+        const startTime = Date.now();
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(1, elapsed / baseDuration);
+
+            // Ease-in-out curve for smooth glissando
+            const eased = progress < 0.5
+                ? 2 * progress * progress
+                : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+            const currentFreq = startFreq + (endFreq - startFreq) * eased;
+
+            // Update interval frequency
+            this.intervalFrequency = currentFreq;
+
+            // Update slider position
+            const slider = this.container.querySelector('[data-glissando-slider="frequency"]');
+            if (slider) {
+                slider.value = currentFreq;
+            }
+
+            // Update audio
+            if (this.intervalOscillator && this.intervalPlaying) {
+                const audioContext = window.audioManager?.getAudioContext();
+                if (audioContext) {
+                    this.intervalOscillator.frequency.setValueAtTime(currentFreq, audioContext.currentTime);
+                }
+            }
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                // Final update
+                this.intervalFrequency = endFreq;
+
+                if (slider) {
+                    slider.value = endFreq;
+                }
+
+                if (this.intervalOscillator && this.intervalPlaying) {
+                    const audioContext = window.audioManager?.getAudioContext();
+                    if (audioContext) {
+                        this.intervalOscillator.frequency.setValueAtTime(endFreq, audioContext.currentTime);
+                    }
+                }
+
+                if (onComplete) {
+                    onComplete();
+                }
+            }
+        };
+
+        requestAnimationFrame(animate);
+    }
+
+    startContinuousGlissando(direction, size) {
+        const targetFreq = this.rootFrequency;
+        const minFreq = targetFreq / 2;
+        const maxFreq = targetFreq * 2;
+        const targetLimit = direction === 'up' ? maxFreq : minFreq;
+
+        // Set speed based on size: big = 1 Hz/frame, medium = 0.5 Hz/frame
+        const speed = size === 'big' ? 1 : 0.5;
+
+        // Mark as active
+        this.continuousGlissando.active = true;
+        this.continuousGlissando.direction = direction;
+        this.continuousGlissando.size = size;
+        this.continuousGlissando.speed = speed;
+
+        // Update button icon to pause
+        const buttonSelector = direction === 'up'
+            ? `[data-glissando-slider="jump-up-${size}"]`
+            : `[data-glissando-slider="jump-down-${size}"]`;
+        const button = this.container.querySelector(buttonSelector);
+        if (button) {
+            this.updateContinuousButtonIcon(button, true, size);
+        }
+
+        // Show Next button after first interaction
+        this.showGlissandoNextButton();
+
+        // Pulse the interval indicator border
+        this.pulseIntervalIndicator();
+
+        // Continuous glissando animation loop
+        const animate = () => {
+            if (!this.continuousGlissando.active) return;
+
+            const currentFreq = this.intervalFrequency;
+
+            // Check if we've reached the limit
+            const reachedLimit = direction === 'up'
+                ? currentFreq >= targetLimit
+                : currentFreq <= targetLimit;
+
+            if (reachedLimit) {
+                // Stop at limit
+                this.intervalFrequency = targetLimit;
+                const slider = this.container.querySelector('[data-glissando-slider="frequency"]');
+                if (slider) slider.value = targetLimit;
+
+                if (this.intervalOscillator && this.intervalPlaying) {
+                    const audioContext = window.audioManager?.getAudioContext();
+                    if (audioContext) {
+                        this.intervalOscillator.frequency.setValueAtTime(targetLimit, audioContext.currentTime);
+                    }
+                }
+
+                this.stopContinuousGlissando();
+                return;
+            }
+
+            // Move by speed Hz per frame (big = 1 Hz, medium = 0.5 Hz)
+            const increment = direction === 'up' ? speed : -speed;
+            const newFreq = Math.max(minFreq, Math.min(maxFreq, currentFreq + increment));
+
+            // Update interval frequency
+            this.intervalFrequency = newFreq;
+
+            // Update slider position
+            const slider = this.container.querySelector('[data-glissando-slider="frequency"]');
+            if (slider) {
+                slider.value = newFreq;
+            }
+
+            // Update audio
+            if (this.intervalOscillator && this.intervalPlaying) {
+                const audioContext = window.audioManager?.getAudioContext();
+                if (audioContext) {
+                    this.intervalOscillator.frequency.setValueAtTime(newFreq, audioContext.currentTime);
+                }
+            }
+
+            // Continue animation
+            this.continuousGlissando.animationId = requestAnimationFrame(animate);
+        };
+
+        // Start animation
+        this.continuousGlissando.animationId = requestAnimationFrame(animate);
+    }
+
+    stopContinuousGlissando() {
+        if (!this.continuousGlissando.active) return;
+
+        // Cancel animation
+        if (this.continuousGlissando.animationId) {
+            cancelAnimationFrame(this.continuousGlissando.animationId);
+            this.continuousGlissando.animationId = null;
+        }
+
+        // Restore button icon
+        const direction = this.continuousGlissando.direction;
+        const size = this.continuousGlissando.size;
+        const buttonSelector = direction === 'up'
+            ? `[data-glissando-slider="jump-up-${size}"]`
+            : `[data-glissando-slider="jump-down-${size}"]`;
+        const button = this.container.querySelector(buttonSelector);
+        if (button) {
+            this.updateContinuousButtonIcon(button, false, size);
+        }
+
+        // Mark as inactive
+        this.continuousGlissando.active = false;
+        this.continuousGlissando.direction = null;
+        this.continuousGlissando.size = null;
+        this.continuousGlissando.speed = null;
+    }
+
+    updateContinuousButtonIcon(button, showPause, size) {
+        if (!button) return;
+
+        // Determine direction from button's data attribute
+        const isUp = button.hasAttribute('data-glissando-slider') &&
+                    button.getAttribute('data-glissando-slider').includes('up');
+
+        if (showPause) {
+            // Replace with pause icon (two vertical bars) - size depends on button size
+            if (size === 'big') {
+                button.innerHTML = `
+                    <svg width="32" height="24" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="10" y="4" width="4" height="16" fill="currentColor"/>
+                        <rect x="18" y="4" width="4" height="16" fill="currentColor"/>
+                    </svg>
+                `;
+            } else if (size === 'medium') {
+                button.innerHTML = `
+                    <svg width="24" height="20" viewBox="0 0 24 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="8" y="3" width="3" height="14" fill="currentColor"/>
+                        <rect x="13" y="3" width="3" height="14" fill="currentColor"/>
+                    </svg>
+                `;
+            }
+        } else {
+            // Restore original arrow icon based on size and direction
+            if (size === 'big') {
+                // Big buttons: Two triangles
+                if (isUp) {
+                    button.innerHTML = `
+                        <svg width="32" height="24" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Two triangles pointing right -->
+                            <path d="M18 12L10 6V9H2V15H10V18L18 12Z" fill="currentColor"/>
+                            <path d="M30 12L22 6V9H14V15H22V18L30 12Z" fill="currentColor"/>
+                        </svg>
+                    `;
+                } else {
+                    button.innerHTML = `
+                        <svg width="32" height="24" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Two triangles pointing left -->
+                            <path d="M2 12L10 6V9H18V15H10V18L2 12Z" fill="currentColor"/>
+                            <path d="M14 12L22 6V9H30V15H22V18L14 12Z" fill="currentColor"/>
+                        </svg>
+                    `;
+                }
+            } else if (size === 'medium') {
+                // Medium buttons: Single triangle
+                if (isUp) {
+                    button.innerHTML = `
+                        <svg width="24" height="20" viewBox="0 0 24 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Medium single triangle pointing right -->
+                            <path d="M18 10L8 5V8H2V12H8V15L18 10Z" fill="currentColor"/>
+                        </svg>
+                    `;
+                } else {
+                    button.innerHTML = `
+                        <svg width="24" height="20" viewBox="0 0 24 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Medium single triangle pointing left -->
+                            <path d="M6 10L16 5V8H22V12H16V15L6 10Z" fill="currentColor"/>
+                        </svg>
+                    `;
+                }
+            }
+        }
+    }
+
+    handleGlissandoSliderChange(frequency) {
+        // Update interval frequency
+        this.intervalFrequency = frequency;
+
+        // Update audio if playing
+        if (this.intervalOscillator && this.intervalPlaying) {
+            const audioContext = window.audioManager?.getAudioContext();
+            if (audioContext) {
+                this.intervalOscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            }
+        }
+
+        // Show Next button after first interaction
+        this.showGlissandoNextButton();
+    }
+
+    setGlissandoButtonsEnabled(enabled) {
+        const buttons = this.container.querySelectorAll('.glissando-jump-btn');
+        buttons.forEach(button => {
+            button.disabled = !enabled;
+        });
+    }
+
+    showGlissandoNextButton() {
+        const nextBtn = this.container.querySelector('[data-glissando-slider="next"]');
+        if (nextBtn) {
+            nextBtn.style.display = 'block';
+        }
+    }
+
+    handleGlissandoSliderNext() {
+        // Stop playing tones
+        this.stopAll();
+
+        // Increment repetitions
+        this.repetitionsCompleted++;
+
+        // Check if we've completed all reps for this exercise
+        if (this.repetitionsCompleted >= this.maxRepetitions) {
+            // Complete exercise and exit (training mode will handle it)
+            console.log('[Slider Glissando] Completed all reps, exiting');
+            this.exit();
+        } else {
+            // Generate new tones and continue
+            console.log('[Slider Glissando] Generating new tones for next rep');
+
+            // Reset for next rep
+            this.glissandoSliderInitialized = false;
+
+            // Generate new tones and re-render
+            this.generateNewTones();
+            this.updateDisplay();
+            this.renderCurrentStep();
+        }
+    }
+
+    updateRatingLabels(isSliderGlissando) {
+        // Update rating button labels based on exercise type
+        const ratingLabels = this.container.querySelectorAll('.rating-label');
+        ratingLabels.forEach(label => {
+            if (isSliderGlissando) {
+                label.textContent = label.dataset.labelSlider;
+            } else {
+                label.textContent = label.dataset.labelDefault;
+            }
+        });
+    }
+
+    // Update play/pause icon based on interval playing state
+    updatePlayPauseIcon() {
+        if (!this.intervalPlayPauseBtn) return;
+
+        if (this.intervalPlaying) {
+            // Show pause icon
+            if (this.playIcon) this.playIcon.style.display = 'none';
+            if (this.pauseIcon) this.pauseIcon.style.display = 'block';
+        } else {
+            // Show play icon
+            if (this.playIcon) this.playIcon.style.display = 'block';
+            if (this.pauseIcon) this.pauseIcon.style.display = 'none';
+        }
+    }
+
+    // Enable/disable glissando buttons
+    setGlissandoButtonsDisabled(disabled) {
+        const buttons = this.container.querySelectorAll('.glissando-jump-btn');
+        buttons.forEach(button => {
+            button.disabled = disabled;
+        });
+    }
+
+    // Pulse interval indicator border
+    pulseIntervalIndicator() {
+        if (!this.intervalIndicator) return;
+
+        // Add pulsing class
+        this.intervalIndicator.classList.add('border-pulsing');
+
+        // Remove after animation completes (300ms)
+        setTimeout(() => {
+            this.intervalIndicator.classList.remove('border-pulsing');
+        }, 300);
+    }
+
+    /**
+     * Show appropriate help modal based on current exercise
+     */
+    showHelpModal() {
+        const currentExercise = this.exercises[this.currentExerciseIndex];
+
+        if (currentExercise.useGlissandoSlider) {
+            this.showSliderGlissandoHelpModal();
+        } else if (this.isUnison && currentExercise.name === "Match the Tone") {
+            this.showMatchTheToneModal();
+        }
+    }
+
+    /**
+     * Show Slider Glissando help modal
+     */
+    showSliderGlissandoHelpModal() {
+        const modal = document.getElementById('sliderGlissandoHelpModal');
+        if (!modal) {
+            console.warn('Slider Glissando help modal not found');
+            return;
+        }
+
+        // Show modal with animation
+        modal.style.display = 'flex';
+        // Force reflow for animation
+        modal.offsetHeight;
+        modal.classList.add('slider-help-visible');
+
+        // Close button handler
+        const closeBtn = modal.querySelector('.slider-help-close');
+        const gotItBtn = modal.querySelector('.slider-help-got-it');
+        const backdrop = modal.querySelector('.slider-help-backdrop');
+
+        const closeModal = () => {
+            modal.classList.remove('slider-help-visible');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        };
+
+        if (closeBtn) {
+            closeBtn.onclick = closeModal;
+        }
+        if (gotItBtn) {
+            gotItBtn.onclick = closeModal;
+        }
+        if (backdrop) {
+            backdrop.onclick = closeModal;
+        }
+
+        // Escape key handler
+        const escapeHandler = (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                document.removeEventListener('keydown', escapeHandler);
+            }
+        };
+        document.addEventListener('keydown', escapeHandler);
+
+        // Prevent content clicks from closing
+        const content = modal.querySelector('.slider-help-content');
+        if (content) {
+            content.onclick = (e) => e.stopPropagation();
+        }
+    }
+
+    /**
+     * Show Match the Tone help modal
+     * Shows EVERY TIME (no sessionStorage check)
+     */
+    showMatchTheToneModal() {
+        const modal = document.getElementById('matchTheToneHelpModal');
+        if (!modal) {
+            console.warn('Match the Tone help modal not found');
+            return;
+        }
+
+        // Show modal with animation
+        modal.style.display = 'flex';
+        // Force reflow for animation
+        modal.offsetHeight;
+        modal.classList.add('match-tone-help-visible');
+
+        // Close button handler
+        const closeBtn = modal.querySelector('.match-tone-help-close');
+        const gotItBtn = modal.querySelector('.match-tone-help-got-it');
+        const backdrop = modal.querySelector('.match-tone-help-backdrop');
+
+        const closeModal = () => {
+            modal.classList.remove('match-tone-help-visible');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        };
+
+        if (closeBtn) {
+            closeBtn.onclick = closeModal;
+        }
+        if (gotItBtn) {
+            gotItBtn.onclick = closeModal;
+        }
+        if (backdrop) {
+            backdrop.onclick = closeModal;
+        }
+
+        // Escape key handler
+        const escapeHandler = (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                document.removeEventListener('keydown', escapeHandler);
+            }
+        };
+        document.addEventListener('keydown', escapeHandler);
+
+        // Prevent content clicks from closing
+        const content = modal.querySelector('.match-tone-help-content');
+        if (content) {
+            content.onclick = (e) => e.stopPropagation();
         }
     }
 }

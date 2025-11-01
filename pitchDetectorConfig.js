@@ -132,6 +132,16 @@ class PitchDetectorWrapper {
     get lastRejectionReason() {
         return this._detector.lastRejectionReason || 'Unknown';
     }
+
+    // Expose currentVolume property for direct access
+    get currentVolume() {
+        return this._detector.currentVolume || 0;
+    }
+
+    // Expose currentRMS property for direct access
+    get currentRMS() {
+        return this._detector.currentRMS || 0;
+    }
 }
 
 // Replace the global PitchDetector with our wrapper

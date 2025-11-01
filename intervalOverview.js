@@ -471,6 +471,11 @@ class IntervalOverview {
     handleExit() {
         this.destroy();
 
+        // Clear URL parameter to prevent auto-start on refresh
+        if (window.mainApp) {
+            window.mainApp.clearExerciseFromURL();
+        }
+
         // Show the main app container
         const appContainer = document.getElementById('appContainer');
         if (appContainer) {
@@ -668,7 +673,7 @@ class IntervalOverview {
         const nextBtn = resolve('[data-tutorial="next"]');
 
         if (typeof TutorialController === 'function' && typeof INTERVAL_OVERVIEW_TUTORIAL !== 'undefined') {
-            this.tutorialController = new TutorialController(this, INTERVAL_OVERVIEW_TUTORIAL);
+            this.tutorialController = new TutorialController(this, INTERVAL_OVERVIEW_TUTORIAL, 'intervalOverview');
 
             if (prevBtn) {
                 prevBtn.addEventListener('click', (e) => {
@@ -757,6 +762,11 @@ class IntervalOverview {
 let intervalOverviewInstance = null;
 
 function showIntervalOverview() {
+    // Clear URL hash to ensure tutorial always starts at step 1
+    if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+
     // Hide the main app container
     const appContainer = document.getElementById('appContainer');
     if (appContainer) {

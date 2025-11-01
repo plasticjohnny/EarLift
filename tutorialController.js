@@ -40,7 +40,23 @@ class TutorialController {
     async start() {
         this.isActive = true;
         this.saveOriginalStates();
-        await this.goToStep(0);
+
+        // Check for URL hash to jump to specific step
+        let startStep = 0;
+        if (typeof window !== 'undefined' && window.location.hash) {
+            const hashMatch = window.location.hash.match(/^#step(\d+)$/);
+            if (hashMatch) {
+                const stepNum = parseInt(hashMatch[1], 10);
+                // Convert from 1-based to 0-based index and validate
+                const stepIndex = stepNum - 1;
+                if (stepIndex >= 0 && stepIndex < this.steps.length) {
+                    startStep = stepIndex;
+                    console.log(`[TutorialController] Starting at step ${stepNum} from URL hash`);
+                }
+            }
+        }
+
+        await this.goToStep(startStep);
         this.showTutorialUI();
     }
 
@@ -65,6 +81,7 @@ class TutorialController {
         this.uniqueFrequencies = new Set();
         this.unisonReached = false;
         this.targetReached = false; // Reset target reached flag
+        this.unisonReachedInStep = false; // Reset unison detection for directional button logic
 
         this.currentStepIndex = stepIndex;
         const step = this.steps[stepIndex];
@@ -85,10 +102,27 @@ class TutorialController {
         // Set up slider button callback for glissando steps
         this.setupSliderButtonCallback(step);
 
+        // Apply initial directional button logic if requireUnison is set
+        if (step.sliderConfig && step.sliderConfig.requireUnison) {
+            this.checkUnisonAndUpdateButtons(step);
+        }
+
         this.updateTutorialNavigation();
+
+        // Update URL hash to allow direct linking to this step
+        if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
+            const stepNum = stepIndex + 1; // Use 1-based indexing for URLs
+            window.history.replaceState(null, '', `#step${stepNum}`);
+        }
     }
 
     next() {
+        // Safety check: prevent stale event listeners from executing after destroy
+        if (!this.isActive) {
+            console.warn('[Tutorial] next() called on inactive tutorial controller - ignoring');
+            return;
+        }
+
         if (this.currentStepIndex < this.steps.length - 1) {
             this.goToStep(this.currentStepIndex + 1, false);
         } else {
@@ -97,6 +131,12 @@ class TutorialController {
     }
 
     prev() {
+        // Safety check: prevent stale event listeners from executing after destroy
+        if (!this.isActive) {
+            console.warn('[Tutorial] prev() called on inactive tutorial controller - ignoring');
+            return;
+        }
+
         if (this.currentStepIndex > 0) {
             const targetStepIndex = this.currentStepIndex - 1;
 
@@ -240,14 +280,19 @@ class TutorialController {
     applyTextState(text) {
         const textEl = this.exercise.container.querySelector('[data-tutorial="text"]');
         if (textEl) {
-            // Add fade-in animation class
-            textEl.classList.add('tutorial-text-fade-in');
-
             // Process text for helper definitions
             let processedText = text;
             if (window.helperDefinitionsManager) {
                 processedText = window.helperDefinitionsManager.processTextForHelperTerms(text);
             }
+
+            // Only update if text has changed (prevents double animation during glissando)
+            if (textEl.innerHTML === processedText) {
+                return;
+            }
+
+            // Add fade-in animation class
+            textEl.classList.add('tutorial-text-fade-in');
 
             textEl.innerHTML = processedText;
 
@@ -259,6 +304,27 @@ class TutorialController {
                 textEl.classList.remove('tutorial-text-fade-in');
             }, 600);
         }
+    }
+
+    /**
+     * Update text dynamically based on frequency ranges
+     * Used for steps with dynamicTextRanges configuration
+     */
+    updateDynamicText(frequency, dynamicTextRanges) {
+        // Find the appropriate text range for the current frequency
+        for (const range of dynamicTextRanges) {
+            const { minFreq, maxFreq, text } = range;
+
+            // Check if frequency is within this range
+            if (frequency >= minFreq && frequency <= maxFreq) {
+                // Update text using the existing applyTextState method
+                this.applyTextState(text);
+                return;
+            }
+        }
+
+        // If no range matches, log warning but don't update
+        console.warn('[TutorialController] No dynamic text range found for frequency:', frequency);
     }
 
     setupInlineButtons() {
@@ -691,8 +757,10 @@ class TutorialController {
         // Disable the button after clicking
         this.disableInlineButton('show-interference');
 
-        // Trigger the wait action completion
-        this.completeInlineAction('show-interference-inline');
+        // Auto-advance to next step
+        setTimeout(() => {
+            this.next();
+        }, 100);
     }
 
     combineWaves() {
@@ -1299,7 +1367,16 @@ class TutorialController {
     }
 
     async applyAudioState(audioState) {
-        if (!audioState || !this.exercise.audioController) return;
+        if (!audioState || !this.exercise || !this.exercise.audioController) {
+            console.warn('[Tutorial] applyAudioState skipped - missing audioState or audioController');
+            return;
+        }
+
+        // Additional safety check: ensure audio controller tone generators exist
+        if (!this.exercise.audioController.toneGen1 || !this.exercise.audioController.toneGen2) {
+            console.error('[Tutorial] Audio controller tone generators not initialized - skipping audio action');
+            return;
+        }
 
         const action = audioState.action;
         console.log('[Tutorial] applyAudioState called, action:', action, 'audioState:', audioState);
@@ -1375,18 +1452,35 @@ class TutorialController {
                     }
                 }
 
+                // NEW: If preventExpansion is true and audio is already playing with correct "which",
+                // just update frequencies smoothly without restarting (prevents audio pops on Steps 7-9)
+                if (audioState.preventExpansion && this.exercise.isPlaying && !whichChanged && frequenciesChanged) {
+                    console.log('[Tutorial] Smoothly updating frequencies without restart (preventExpansion mode)');
+                    this.exercise.audioController.setFrequencies(this.exercise.tone1Freq, this.exercise.tone2Freq);
+                    this.exercise.syncAllControls();
+                    this.exercise.updateVisualizations();
+                    this.updateNoSoundMode();
+                    break;  // Exit early, don't restart
+                }
+
                 // Only stop and restart if something changed
                 if (needsRestart) {
                     console.log('[Tutorial] Stopping and restarting audio (something changed)');
                     this.exercise.audioController.stopBoth();
                     this.exercise.audioController.setFrequencies(this.exercise.tone1Freq, this.exercise.tone2Freq);
 
+                    // Check if we should prevent expansion animation
+                    const preventExpansion = audioState.preventExpansion === true;
+                    const resetTiming = !preventExpansion;
+
+                    console.log('[Tutorial] resetTiming:', resetTiming, 'preventExpansion:', preventExpansion);
+
                     if (audioState.which === 'tone1') {
-                        this.exercise.audioController.playTone1();
+                        this.exercise.audioController.playTone1(resetTiming);
                     } else if (audioState.which === 'tone2') {
-                        this.exercise.audioController.playTone2();
+                        this.exercise.audioController.playTone2(resetTiming);
                     } else if (audioState.which === 'both') {
-                        this.exercise.audioController.playBoth();
+                        this.exercise.audioController.playBoth(resetTiming);
                     }
                 } else {
                     console.log('[Tutorial] Audio already playing with correct state - continuing smoothly');
@@ -1452,10 +1546,16 @@ class TutorialController {
             return;
         }
 
-        // Phase 1: Start tone 1 with reveal radius expansion
-        // Set start time for reveal radius system
+        // Check if we should prevent expansion animation
+        const preventExpansion = audioState.preventExpansion === true;
+
+        // Phase 1: Start tone 1 with reveal radius expansion (unless prevented)
         const audioController = this.exercise.audioController;
-        audioController.tone1StartTime = performance.now();
+
+        // Only set start time if we want the expansion animation
+        if (!preventExpansion) {
+            audioController.tone1StartTime = performance.now();
+        }
         audioController.playTone1(false); // Don't reset timing, we already set it
 
         // Mark as playing in exercise
@@ -1465,7 +1565,10 @@ class TutorialController {
         // Phase 2: After delay, start tone 2
         const delayTone2 = audioState.delayTone2 || 2000;
         setTimeout(() => {
-            audioController.tone2StartTime = performance.now();
+            // Only set start time if we want the expansion animation
+            if (!preventExpansion) {
+                audioController.tone2StartTime = performance.now();
+            }
             audioController.playTone2(false); // Don't reset timing
 
             this.exercise.updatePlayButtonState();
@@ -1565,37 +1668,91 @@ class TutorialController {
             this.exercise.clearSliderButtonCallback();
         }
 
-        // Only set up callback if step has a glissandoTarget
-        if (!step.glissandoTarget) {
-            console.log('[TutorialController] No glissandoTarget - slider buttons disabled');
+        // Set up callback if step has a glissandoTarget OR exploration mode
+        const hasGlissandoTarget = !!step.glissandoTarget;
+        const isExplorationMode = step.sliderConfig?.explorationMode;
+
+        if (!hasGlissandoTarget && !isExplorationMode) {
+            console.log('[TutorialController] No glissandoTarget or exploration mode - slider buttons disabled');
             return;
         }
 
         // Set up callback for slider buttons
         if (this.exercise.setSliderButtonCallback) {
             this.exercise.setSliderButtonCallback(async (direction, size) => {
-                console.log('[TutorialController] Slider button clicked:', { direction, size });
+                // Prevent multiple glissandos from running simultaneously
+                if (this.glissandoInProgress) {
+                    console.log('[TutorialController] Glissando already in progress, ignoring click');
+                    return;
+                }
 
-                // Store the glissando target and current slider position before advancing
-                const glissandoTarget = step.glissandoTarget;
-                const slider = this.exercise.container.querySelector('[data-glissando-slider="frequency"]');
-                const startFreq = slider ? parseFloat(slider.value) : step.sliderConfig?.initialFrequency;
+                console.log('[TutorialController] Slider button clicked:', { direction, size, isExplorationMode });
+                this.glissandoInProgress = true;
 
-                // Advance to next step immediately (text changes)
-                if (this.currentStepIndex < this.steps.length - 1) {
-                    // Temporarily prevent slider reset
-                    this.skipSliderReset = true;
-                    this.goToStep(this.currentStepIndex + 1, false);
-                    this.skipSliderReset = false;
+                // Calculate glissando target
+                let glissandoTarget;
+                if (isExplorationMode) {
+                    // Exploration mode: calculate relative target based on button
+                    const currentTone2 = this.exercise.tone2Freq;
+                    const stepSize = size === 'big' ? 100 : size === 'medium' ? 50 : 20;
+                    const newTone2 = currentTone2 + (direction * stepSize);
 
-                    // Restore slider to starting position
-                    if (slider) {
-                        slider.value = startFreq;
+                    // Clamp to reasonable range
+                    let clampedTone2 = Math.max(220, Math.min(880, newTone2));
+
+                    // Snap to nearest hash mark if hashMarks are defined
+                    if (step.sliderConfig?.hashMarks && step.sliderConfig.hashMarks.length > 0) {
+                        const hashMarks = step.sliderConfig.hashMarks;
+                        // Find the nearest hash mark to the clamped frequency
+                        const nearest = hashMarks.reduce((prev, curr) =>
+                            Math.abs(curr - clampedTone2) < Math.abs(prev - clampedTone2) ? curr : prev
+                        );
+                        clampedTone2 = nearest;
+                        console.log('[TutorialController] Snapped to hash mark:', nearest);
+                    }
+
+                    glissandoTarget = {
+                        tone1: this.exercise.tone1Freq,  // Keep tone1 constant
+                        tone2: clampedTone2,
+                        duration: 5.0  // Slowed down from 3.0 to 5.0 seconds
+                    };
+                    console.log('[TutorialController] Exploration mode target:', glissandoTarget);
+                } else {
+                    // Progressive mode: use step's fixed target
+                    glissandoTarget = step.glissandoTarget;
+                }
+
+                // Don't trigger flash effect - tones are already playing
+                // Resetting tone2StartTime would cause unwanted expansion of interference visualization
+
+                // Update text to show next step's text (without advancing step)
+                // But only if this step requires progression (has disableNext flag)
+                // For exploration steps, keep the current text
+                if (step.disableNext && this.currentStepIndex < this.steps.length - 1) {
+                    const nextStep = this.steps[this.currentStepIndex + 1];
+                    if (nextStep && nextStep.text) {
+                        this.applyTextState(nextStep.text);
                     }
                 }
 
                 // Start the glissando animation (audio + slider)
                 await this.playForwardGlissando(glissandoTarget);
+
+                // Clean up button states after glissando completes
+                this.cleanupButtonStates();
+
+                // Check for unison detection and update button states
+                if (step.sliderConfig && step.sliderConfig.requireUnison) {
+                    this.checkUnisonAndUpdateButtons(step);
+                }
+
+                // After glissando completes, advance to next step
+                // But only if the current step has disableNext (indicating required progression)
+                if (this.currentStepIndex < this.steps.length - 1 && step.disableNext) {
+                    this.goToStep(this.currentStepIndex + 1, false);
+                }
+
+                this.glissandoInProgress = false;
             });
         }
     }
@@ -1654,6 +1811,98 @@ class TutorialController {
         }
     }
 
+    cleanupButtonStates() {
+        // Clean up all glissando button states to prevent visual sticking
+        const buttonSelectors = [
+            '[data-glissando-slider="jump-up-big"]',
+            '[data-glissando-slider="jump-up-medium"]',
+            '[data-glissando-slider="jump-up-small"]',
+            '[data-glissando-slider="jump-down-big"]',
+            '[data-glissando-slider="jump-down-medium"]',
+            '[data-glissando-slider="jump-down-small"]'
+        ];
+
+        buttonSelectors.forEach(selector => {
+            const button = this.exercise.container.querySelector(selector);
+            if (button) {
+                // Force blur to remove focus
+                button.blur();
+
+                // Remove any active classes
+                button.classList.remove('active');
+
+                // Force repaint to clear :active pseudo-class
+                void button.offsetHeight;
+            }
+        });
+    }
+
+    checkUnisonAndUpdateButtons(step) {
+        const sliderConfig = step.sliderConfig;
+        if (!sliderConfig || !sliderConfig.targetFrequency) return;
+
+        const targetFreq = sliderConfig.targetFrequency;
+        const currentFreq = this.exercise.tone2Freq;
+        const unisonThreshold = 2; // Within 2 Hz is considered unison
+
+        const isAtUnison = Math.abs(currentFreq - targetFreq) < unisonThreshold;
+
+        // Check if this is the first time reaching unison
+        if (isAtUnison && !this.unisonReachedInStep) {
+            console.log('[TutorialController] Unison reached for the first time!');
+            this.unisonReachedInStep = true;
+
+            // Enable Next button
+            const nextBtn = this.exercise.container.querySelector('[data-tutorial="next"]');
+            if (nextBtn) {
+                nextBtn.disabled = false;
+                nextBtn.style.opacity = '1';
+                nextBtn.style.cursor = 'pointer';
+            }
+
+            // Unlock all buttons for free exploration
+            if (this.exercise.configureGlissandoButtons) {
+                this.exercise.configureGlissandoButtons([
+                    'big-up', 'medium-up', 'small-up',
+                    'big-down', 'medium-down', 'small-down'
+                ]);
+            }
+
+            // Show success message (optional)
+            console.log('[TutorialController] All buttons now unlocked for exploration');
+        } else if (!this.unisonReachedInStep) {
+            // Not at unison yet - only enable buttons that move toward unison
+            const enabledButtons = [];
+
+            if (currentFreq < targetFreq) {
+                // Need to go UP to reach unison
+                enabledButtons.push('small-up');
+                // Also allow the initially configured buttons if they move up
+                if (sliderConfig.enabledButtons.includes('medium-up')) {
+                    enabledButtons.push('medium-up');
+                }
+                if (sliderConfig.enabledButtons.includes('big-up')) {
+                    enabledButtons.push('big-up');
+                }
+            } else if (currentFreq > targetFreq) {
+                // Need to go DOWN to reach unison
+                enabledButtons.push('small-down');
+                // Also allow the initially configured buttons if they move down
+                if (sliderConfig.enabledButtons.includes('medium-down')) {
+                    enabledButtons.push('medium-down');
+                }
+                if (sliderConfig.enabledButtons.includes('big-down')) {
+                    enabledButtons.push('big-down');
+                }
+            }
+
+            // Update button states
+            if (this.exercise.configureGlissandoButtons && enabledButtons.length > 0) {
+                this.exercise.configureGlissandoButtons(enabledButtons);
+            }
+        }
+    }
+
     showTutorialUI() {
         const tutorialPanel = this.exercise.container.querySelector('[data-tutorial="panel"]');
         if (tutorialPanel) {
@@ -1679,21 +1928,33 @@ class TutorialController {
 
         if (nextBtn) {
             const isLastStep = this.currentStepIndex === this.steps.length - 1;
-            nextBtn.textContent = isLastStep ? 'Finish' : 'Next →';
 
             // Get current step
             const currentStep = this.steps[this.currentStepIndex];
 
-            // Check if current step has disableNext flag
+            // Check for custom button text first, then default to Finish/Next
+            if (currentStep && currentStep.customNextButtonText) {
+                nextBtn.textContent = currentStep.customNextButtonText;
+            } else {
+                nextBtn.textContent = isLastStep ? 'Finish' : 'Next →';
+            }
+
+            // Check if current step has disableNext flag and waitForAction
             const hasDisableNext = currentStep && currentStep.disableNext === true;
+            const hasWaitForAction = currentStep && currentStep.waitForAction;
 
             // Special case for step 1: enable if tone is playing OR if not waiting for action
             if (this.currentStepIndex === 0) {
                 const isTone1Playing = this.exercise.audioController?.isTone1Playing?.();
-                nextBtn.disabled = (this.waitingForAction && !isTone1Playing) || hasDisableNext;
+                nextBtn.disabled = (this.waitingForAction && !isTone1Playing) || (hasDisableNext && !hasWaitForAction);
             } else {
-                // Disable Next button if waiting for user action OR if disableNext is set
-                nextBtn.disabled = this.waitingForAction || hasDisableNext;
+                // If step has waitForAction, only check waitingForAction (disableNext is just for initial state)
+                // Otherwise, use the disableNext flag directly
+                if (hasWaitForAction) {
+                    nextBtn.disabled = this.waitingForAction;
+                } else {
+                    nextBtn.disabled = hasDisableNext;
+                }
             }
 
             // Add no-sound class to Next button if any tones are playing
@@ -2328,6 +2589,12 @@ class TutorialController {
                 this.exercise.audioController.updatePlayingFrequencies();
             }
         }
+
+        // Handle dynamic text updates based on frequency ranges
+        const currentStep = this.steps[this.currentStepIndex];
+        if (currentStep && currentStep.dynamicTextRanges) {
+            this.updateDynamicText(frequency, currentStep.dynamicTextRanges);
+        }
     }
 
     /**
@@ -2453,14 +2720,16 @@ class TutorialController {
         // Animate slider during glissando
         this.animateSlider(startTone2, tone2, duration);
 
-        // Update exercise frequencies AFTER the glissando completes
-        // so the UI doesn't jump ahead of the audio
-        setTimeout(() => {
-            this.exercise.tone1Freq = tone1;
-            this.exercise.tone2Freq = tone2;
-            this.exercise.syncAllControls();
-            this.exercise.updateVisualizations();
-        }, duration * 1000);
+        // Wait for glissando to complete, then update exercise frequencies
+        await new Promise(resolve => {
+            setTimeout(() => {
+                this.exercise.tone1Freq = tone1;
+                this.exercise.tone2Freq = tone2;
+                this.exercise.syncAllControls();
+                this.exercise.updateVisualizations();
+                resolve();
+            }, duration * 1000);
+        });
     }
 
     /**

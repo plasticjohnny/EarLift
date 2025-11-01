@@ -543,10 +543,10 @@
 
                     <!-- FTUE Progress Bar -->
                     <div class="ftue-progress-container">
-                        <div class="ftue-progress-label">Tutorial Progress</div>
+                        <div class="ftue-progress-label">Progress to Training Mode</div>
                         <div class="ftue-progress-bar">
                             <div class="ftue-progress-fill" id="ftueProgressFill" style="width: 0%"></div>
-                            <div class="ftue-progress-text" id="ftueProgressText">0 / 3</div>
+                            <div class="ftue-progress-text" id="ftueProgressText">0 / 2</div>
                         </div>
                     </div>
 
@@ -1125,6 +1125,7 @@
                 <p class="subtitle" data-system-exercise="title">System Exercise</p>
                 <p class="exercise-label" data-system-exercise="exercise-label">Exercise Name</p>
             </div>
+            <button data-system-exercise="help" class="help-btn" style="display: none;" aria-label="Help">?</button>
             <button id="audioSettingsBtnSystemExercise" class="settings-btn" aria-label="Audio Settings">⚙️</button>
         </header>
 
@@ -1236,7 +1237,83 @@
                         </div>
 
                         <!-- Next Button (shown after user adjusts slider) -->
-                        <button data-glissando-slider="next" class="btn-action-primary" style="display: none;">Next</button>
+                        <button data-glissando-slider="next" class="flow-action-button" style="display: none;">Found it!</button>
+                    </div>
+                </div>
+
+                <!-- Slider Glissando Help Modal -->
+                <div id="sliderGlissandoHelpModal" class="slider-help-modal" style="display: none;">
+                    <div class="slider-help-backdrop"></div>
+                    <div class="slider-help-content">
+                        <button class="slider-help-close" aria-label="Close">×</button>
+                        <h2 class="slider-help-title">Slider Glissando: Finding Unison</h2>
+
+                        <div class="slider-help-section">
+                            <h3>🎯 Your Goal</h3>
+                            <p>Listen for the <strong><span class="helper-term" data-term="beat frequency">beat frequency</span></strong> — when two notes are <strong>close but not matched</strong>, you'll hear a pulsing or wobbling sound. The closer you get, the more obvious it becomes. When that pulsing <strong>disappears completely</strong>, you've found <span class="helper-term" data-term="unison">unison</span>!</p>
+                        </div>
+
+                        <div class="slider-help-section">
+                            <h3>🎚️ How to Use the Controls</h3>
+                            <ul style="list-style: none; padding-left: 0;">
+                                <li style="margin-bottom: 8px;">
+                                    <svg width="16" height="18" viewBox="0 0 16 18" style="vertical-align: middle; margin-right: 8px;" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M4 10L12 5V8H14V12H12V15L4 10Z" fill="currentColor"/>
+                                        <rect x="2" y="7" width="1.5" height="6" fill="currentColor"/>
+                                    </svg>
+                                    <strong>Small buttons:</strong> Precise control (1-5 <span class="helper-term" data-term="hz">Hz</span> jumps)
+                                </li>
+                                <li style="margin-bottom: 8px;">
+                                    <svg width="24" height="20" viewBox="0 0 24 20" style="vertical-align: middle; margin-right: 8px;" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M6 10L16 5V8H22V12H16V15L6 10Z" fill="currentColor"/>
+                                    </svg>
+                                    <strong>Medium buttons:</strong> Smooth continuous movement (toggle)
+                                </li>
+                                <li>
+                                    <svg width="32" height="24" viewBox="0 0 32 24" style="vertical-align: middle; margin-right: 8px;" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M2 12L10 6V9H18V15H10V18L2 12Z" fill="currentColor"/>
+                                        <path d="M14 12L22 6V9H30V15H22V18L14 12Z" fill="currentColor"/>
+                                    </svg>
+                                    <strong>Large buttons:</strong> Fast continuous movement (toggle)
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="slider-help-section">
+                            <h3>💡 Strategy</h3>
+                            <p>Start with large buttons to get close, then use medium to zone in, and finally use small for precise matching. Listen carefully as the <span class="helper-term" data-term="beat frequency">beat frequency</span> slows down!</p>
+                        </div>
+
+                        <button class="slider-help-got-it">Got it!</button>
+                    </div>
+                </div>
+
+                <!-- Match the Tone Help Modal -->
+                <div id="matchTheToneHelpModal" class="match-tone-help-modal" style="display: none;">
+                    <div class="match-tone-help-backdrop"></div>
+                    <div class="match-tone-help-content">
+                        <button class="match-tone-help-close" aria-label="Close">×</button>
+                        <h2 class="match-tone-help-title">Match the Tone</h2>
+
+                        <!-- Image Section -->
+                        <div class="match-tone-help-image">
+                            <img src="images/TwoEarsOneBud.png" alt="One earbud in, one ear free">
+                        </div>
+
+                        <!-- Important Setup Info -->
+                        <div class="match-tone-help-section">
+                            <h3>⚠️ Important Setup</h3>
+                            <p>This exercise is <strong>significantly better while using a headphone in one ear and the other being free to hear your voice</strong>. It does not work with two headphones or if the sound source is too quiet.</p>
+                        </div>
+
+                        <!-- How to Find Unison -->
+                        <div class="match-tone-help-section">
+                            <h3>🎵 How to Find Unison</h3>
+                            <p>Start with a low or high tone and slowly shift the pitch of your voice to find the <strong><span class="helper-term" data-term="beat frequency">beat frequency</span></strong>. Use those as your guides to finding perfect <span class="helper-term" data-term="unison">unison</span>.</p>
+                            <p>It's okay if at first it's hard — just keep trying!</p>
+                        </div>
+
+                        <button class="match-tone-help-got-it">Got it!</button>
                     </div>
                 </div>
 
@@ -4170,7 +4247,7 @@
             <section class="card">
                 <!-- Tutorial Instructions -->
                 <div style="margin-bottom: 0; padding: 20px; background: rgba(0,255,136,0.1); border-radius: 8px;">
-                    <div data-tutorial="text" style="color: rgba(255,255,255,0.9); line-height: 1.6; font-size: 1.1rem;">
+                    <div data-tutorial="text" style="color: rgba(255,255,255,0.9); line-height: 1.6; font-size: 1.1rem; min-height: 160px; max-height: 160px; overflow-y: auto;">
                         Loading tutorial...
                     </div>
 
@@ -4241,13 +4318,13 @@
                 </div>
 
                 <!-- Visualizations (tucked under text box) -->
-                <div data-unison-panel="interference" style="margin-top: -10px; margin-bottom: 15px; display: none; position: relative; height: 198px;">
-                    <canvas data-unison="interference-canvas" style="width: 100%; max-width: 100%; height: 198px; display: block; background: #000; border-radius: 4px;"></canvas>
+                <div data-unison-panel="interference" style="margin-top: -10px; margin-bottom: 15px; display: none; position: relative; height: 228px;">
+                    <canvas data-unison="interference-canvas" style="width: 100%; max-width: 100%; height: 228px; display: block; background: #000; border-radius: 4px;"></canvas>
                     <div data-unison="interference-hz-labels" style="margin-top: 8px; text-align: center; color: rgba(255,255,255,0.6); font-size: 0.9rem;"></div>
                 </div>
 
                 <div data-unison-panel="wave" style="margin-top: -10px; margin-bottom: 15px; display: none;">
-                    <canvas data-unison="wave-canvas" style="width: 100%; max-width: 100%; height: 440px; display: block; background: #000; border-radius: 4px;"></canvas>
+                    <canvas data-unison="wave-canvas" style="width: 100%; max-width: 100%; height: 228px; display: block; background: #000; border-radius: 4px;"></canvas>
                     <div data-unison="wave-settings-panel" data-tutorial-target="waveSettingsPanel" style="margin-top: 10px; text-align: center; display: none;">
                         <label style="color: rgba(255,255,255,0.9); margin-right: 15px; cursor: pointer;">
                             <input type="radio" name="unisonWaveMode" data-unison="wave-mode" value="sideBySide" checked>

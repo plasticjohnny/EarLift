@@ -103,7 +103,8 @@ const INTERVAL_OVERVIEW_TUTORIAL_STEPS = [
         viz: "wave",
         waveMode: "overlay",
         audio: {
-            action: "set",
+            action: "play",
+            which: "both",
             tone1: 440,
             tone2: 554.37
         }
@@ -123,7 +124,8 @@ const INTERVAL_OVERVIEW_TUTORIAL_STEPS = [
         viz: "wave",
         waveMode: "overlay",
         audio: {
-            action: "set",
+            action: "play",
+            which: "both",
             tone1: 440,
             tone2: 660
         }
@@ -143,7 +145,8 @@ const INTERVAL_OVERVIEW_TUTORIAL_STEPS = [
         viz: "wave",
         waveMode: "overlay",
         audio: {
-            action: "set",
+            action: "play",
+            which: "both",
             tone1: 440,
             tone2: 622
         }
@@ -165,7 +168,8 @@ const INTERVAL_OVERVIEW_TUTORIAL_STEPS = [
         viz: "wave",
         waveMode: "overlay",
         audio: {
-            action: "set",
+            action: "play",
+            which: "both",
             tone1: 440,
             tone2: 440
         },
@@ -225,26 +229,7 @@ const INTERVAL_OVERVIEW_TUTORIAL_STEPS = [
         waitForAction: "play-random-tone2-step13-3x"
     },
 
-    // ===== PHASE 7: Final Exploration (Step 14) =====
-    {
-        text: "Now it's your turn! Try clicking <button class='tutorial-inline-btn' data-tutorial-action='play-random-major'>Play Random Note</button> to explore different intervals. These notes are from the major scale, one octave above the root. Notice how each creates a different pattern and feeling!",
-        ui: {
-            simplifiedControls: { visible: false },
-            rootDisplay: { visible: true, enabled: true },
-            intervalDisplay: { visible: true, enabled: true },
-            intervalArrows: { visible: false },
-            intervalChromatic: { visible: false },
-            vizSelection: { visible: true, enabled: true },
-            advancedControls: { visible: false },
-            controlsDivider: { visible: false }
-        },
-        viz: "interference",
-        audio: {
-            action: "keep"
-        }
-    },
-
-    // ===== PHASE 8: Summary (Step 15) =====
+    // ===== PHASE 7: Summary (Step 14) =====
     {
         text: "You've learned how <strong>frequency</strong> determines pitch, visualized <strong>waveforms</strong> oscillating at different rates, and explored how <strong>intervals</strong> create unique patterns of consonance and dissonance. The <strong>interference patterns</strong> show how sound waves interact in space. These fundamentals will help you understand and recognize musical intervals by ear!",
         ui: {

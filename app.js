@@ -1,5 +1,24 @@
-const TONEDEATH_BUILD_VERSION = '2024.10.21-06';
-console.log(`[ToneDeath] App initializing – build ${TONEDEATH_BUILD_VERSION}`);
+const earlift_BUILD_VERSION = '2024.10.21-06';
+console.log(`[earlift] App initializing – build ${earlift_BUILD_VERSION}`);
+
+// Initialize Profile System
+const profileManager = new ProfileManager();
+window.profileManager = profileManager;
+
+// Determine which profile to load on startup
+const startupProfile = profileManager.getStartupProfile();
+console.log('[Profile] Loading startup profile:', startupProfile);
+
+// Initialize global settings with the startup profile
+appSettings = new Settings(startupProfile);
+window.appSettings = appSettings;
+
+// Initialize FTUE System
+const ftueManager = new FTUEManager(startupProfile);
+window.ftueManager = ftueManager;
+
+const ftueAnimations = new FTUEAnimations();
+window.ftueAnimations = ftueAnimations;
 
 // Main App Class
 class EarTrainerApp {
@@ -40,6 +59,9 @@ class EarTrainerApp {
         element.classList.add('fade-in');
     }
 
+    /**
+     * Clear exercise parameter from URL (called when returning to main menu)
+     */
     clearExerciseFromURL() {
         const url = new URL(window.location);
         url.searchParams.delete('exercise');
@@ -118,6 +140,47 @@ class EarTrainerApp {
                 toggle.textContent = isCollapsed ? '+' : '−';
             });
         });
+
+        // Global click handler for helper definition terms
+        document.addEventListener('click', (e) => {
+            const helperTerm = e.target.closest('.helper-term');
+            if (helperTerm && window.helperDefinitionModal) {
+                const term = helperTerm.dataset.term;
+                if (term) {
+                    // Gather context information
+                    const context = {
+                        inTutorial: !!document.querySelector('[data-tutorial="controls"]'),
+                        currentExercise: this.getCurrentExercise()
+                    };
+
+                    window.helperDefinitionModal.show(term, context);
+                }
+            }
+        });
+    }
+
+    /**
+     * Get the current exercise name if in an exercise
+     * @returns {string|null}
+     */
+    getCurrentExercise() {
+        // Check if any exercise container is visible
+        const exerciseContainers = [
+            'intervalOverview',
+            'unisonOverview',
+            'glissandoOverview',
+            'intervalSystem',
+            'beatFrequencyFeeling'
+        ];
+
+        for (const containerName of exerciseContainers) {
+            const container = document.getElementById(containerName);
+            if (container && container.style.display !== 'none') {
+                return containerName;
+            }
+        }
+
+        return null;
     }
 
     updateExerciseStates() {
@@ -816,6 +879,20 @@ class EarTrainerApp {
             } else {
                 console.error('Unison Overview not available');
             }
+        } else if (type === 'glissandoOverview') {
+            // Glissando Overview Tutorial
+            if (window.glissandoOverview && window.glissandoOverview.start) {
+                window.glissandoOverview.start();
+
+                setTimeout(() => {
+                    const exerciseEl = document.getElementById('glissandoOverviewExercise');
+                    if (exerciseEl && exerciseEl.style.display === 'block') {
+                        this.addFadeIn(exerciseEl);
+                    }
+                }, 10);
+            } else {
+                console.error('Glissando Overview not available');
+            }
         } else if (type === 'octaveOverview') {
             // Octave Overview
             if (typeof showOctaveOverview === 'function') {
@@ -961,6 +1038,22 @@ class EarTrainerApp {
                     this.addFadeIn(exerciseEl);
                 }
             }, 10);
+        } else if (type === 'beatFrequencyFeeling') {
+            // Beat Frequency Feeling exercise
+            if (!window.beatFrequencyFeelingInstance) {
+                window.beatFrequencyFeelingInstance = new BeatFrequencyFeeling();
+            }
+
+            document.getElementById('beatFrequencyFeeling').style.display = 'block';
+            document.getElementById('appContainer').style.display = 'none';
+
+            setTimeout(() => {
+                window.beatFrequencyFeelingInstance.start();
+                const exerciseEl = document.getElementById('beatFrequencyFeeling');
+                if (exerciseEl && exerciseEl.style.display === 'block') {
+                    this.addFadeIn(exerciseEl);
+                }
+            }, 10);
         } else if (type.endsWith('SystemExercise')) {
             // System exercises for intervals - show menu to choose which exercise
             const intervalType = type.replace('SystemExercise', '');
@@ -1042,6 +1135,9 @@ if (document.readyState === 'loading') {
 
         // Initialize Training Mode
         initializeTrainingMode();
+
+        // Initialize FTUE
+        initializeFTUE();
     });
 } else {
     mainApp = new EarTrainerApp();
@@ -1049,21 +1145,44 @@ if (document.readyState === 'loading') {
 
     // Initialize Training Mode
     initializeTrainingMode();
+
+    // Initialize FTUE
+    initializeFTUE();
 }
 
 /**
  * Initialize Training Mode UI and event listeners
  */
 function initializeTrainingMode() {
-    // Create training UI instance
-    trainingUI = new TrainingUI();
+    // Create training UI instance with current profile
+    const currentProfile = profileManager.getCurrentProfileName();
+    trainingUI = new TrainingUI(currentProfile);
     window.trainingUI = trainingUI;
+
+    // Update profile display
+    updateProfileDisplay();
 
     // Training Mode button (main menu)
     const trainingModeBtn = document.getElementById('trainingModeBtn');
     if (trainingModeBtn) {
         trainingModeBtn.addEventListener('click', () => {
-            trainingUI.showTrainingMenu();
+            trainingUI.startTrainNow();
+        });
+    }
+
+    // Progress button
+    const progressBtn = document.getElementById('progressBtn');
+    if (progressBtn) {
+        progressBtn.addEventListener('click', () => {
+            trainingUI.showProgress();
+        });
+    }
+
+    // Training Settings button
+    const trainingSettingsBtn = document.getElementById('trainingSettingsBtn');
+    if (trainingSettingsBtn) {
+        trainingSettingsBtn.addEventListener('click', () => {
+            trainingUI.showSettings();
         });
     }
 
@@ -1092,9 +1211,9 @@ function initializeTrainingMode() {
     }
 
     // Training Menu - Settings button
-    const trainingSettingsBtn = document.getElementById('trainingSettingsBtn');
-    if (trainingSettingsBtn) {
-        trainingSettingsBtn.addEventListener('click', () => {
+    const trainingMenuSettingsBtn = document.getElementById('trainingMenuSettingsBtn');
+    if (trainingMenuSettingsBtn) {
+        trainingMenuSettingsBtn.addEventListener('click', () => {
             trainingUI.showSettings();
         });
     }
@@ -1139,6 +1258,17 @@ function initializeTrainingMode() {
         });
     }
 
+    // Training Settings - Slider Glissando Visualization checkbox
+    const sliderGlissandoVizCheckbox = document.getElementById('settingSliderGlissandoVisualization');
+    if (sliderGlissandoVizCheckbox) {
+        // Initialize from settings
+        sliderGlissandoVizCheckbox.checked = appSettings.getSliderGlissandoVisualization();
+
+        sliderGlissandoVizCheckbox.addEventListener('change', (e) => {
+            appSettings.setSliderGlissandoVisualization(e.target.checked);
+        });
+    }
+
     // Training Settings - Reset button
     const resetTrainingDataBtn = document.getElementById('resetTrainingDataBtn');
     if (resetTrainingDataBtn) {
@@ -1171,4 +1301,687 @@ function initializeTrainingMode() {
             trainingUI.exitTrainingMode();
         });
     }
+
+    // ==== PROFILE MANAGEMENT EVENT LISTENERS ====
+
+    // Enable Profile System checkbox
+    const enableProfileSystemCheckbox = document.getElementById('enableProfileSystem');
+    if (enableProfileSystemCheckbox) {
+        enableProfileSystemCheckbox.checked = profileManager.isEnabled();
+        enableProfileSystemCheckbox.addEventListener('change', (e) => {
+            profileManager.setEnabled(e.target.checked);
+            updateProfileDisplay();
+            updateProfileManagementUI();
+        });
+    }
+
+    // Auto-load preference radio buttons
+    const autoLoadLastRadio = document.getElementById('autoLoadLast');
+    const autoLoadDefaultRadio = document.getElementById('autoLoadDefault');
+    if (autoLoadLastRadio && autoLoadDefaultRadio) {
+        const pref = profileManager.getAutoLoadPreference();
+        if (pref === 'last') {
+            autoLoadLastRadio.checked = true;
+        } else {
+            autoLoadDefaultRadio.checked = true;
+        }
+
+        autoLoadLastRadio.addEventListener('change', () => {
+            if (autoLoadLastRadio.checked) {
+                profileManager.setAutoLoadPreference('last');
+            }
+        });
+
+        autoLoadDefaultRadio.addEventListener('change', () => {
+            if (autoLoadDefaultRadio.checked) {
+                profileManager.setAutoLoadPreference('default');
+            }
+        });
+    }
+
+    // Add Profile button
+    const addProfileBtn = document.getElementById('addProfileBtn');
+    const newProfileNameInput = document.getElementById('newProfileName');
+    if (addProfileBtn && newProfileNameInput) {
+        addProfileBtn.addEventListener('click', () => {
+            const name = newProfileNameInput.value.trim();
+            if (!name) {
+                alert('Please enter a profile name');
+                return;
+            }
+
+            const result = profileManager.createProfile(name);
+            if (result.success) {
+                // Switch to new profile
+                switchToProfile(result.profileName);
+                newProfileNameInput.value = '';
+                updateProfileList();
+            } else {
+                alert(result.error);
+            }
+        });
+
+        // Allow Enter key to add profile
+        newProfileNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addProfileBtn.click();
+            }
+        });
+    }
+
+    // Initialize profile management UI
+    updateProfileManagementUI();
+    updateProfileList();
+
+    // ==== PROFILE SWITCHER DIALOG EVENT LISTENERS ====
+
+    // Click on profile name to show switcher
+    const profileNameSpan = document.getElementById('currentProfileName');
+    if (profileNameSpan) {
+        profileNameSpan.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // Only show if profiles are enabled
+            if (profileManager.isEnabled()) {
+                showProfileSwitcher();
+            }
+        });
+    }
+
+    // Close button
+    const closeProfileSwitcherBtn = document.getElementById('closeProfileSwitcher');
+    if (closeProfileSwitcherBtn) {
+        closeProfileSwitcherBtn.addEventListener('click', () => {
+            hideProfileSwitcher();
+        });
+    }
+
+    // Click outside dialog to close
+    const profileSwitcherOverlay = document.getElementById('profileSwitcherModal');
+    if (profileSwitcherOverlay) {
+        profileSwitcherOverlay.addEventListener('click', (e) => {
+            if (e.target === profileSwitcherOverlay) {
+                hideProfileSwitcher();
+            }
+        });
+    }
+}
+
+/**
+ * Update profile display in header
+ */
+function updateProfileDisplay() {
+    const profileDisplay = document.getElementById('currentProfileDisplay');
+    const profileNameSpan = document.getElementById('currentProfileName');
+
+    if (profileDisplay && profileNameSpan) {
+        const isEnabled = profileManager.isEnabled();
+        const currentProfile = profileManager.getCurrentProfileName();
+
+        if (isEnabled) {
+            profileDisplay.style.display = 'inline';
+            profileNameSpan.textContent = currentProfile;
+        } else {
+            profileDisplay.style.display = 'none';
+        }
+    }
+}
+
+/**
+ * Update profile management UI visibility
+ */
+function updateProfileManagementUI() {
+    const profileManagementSection = document.getElementById('profileManagementSection');
+    const currentProfileNameSetting = document.getElementById('currentProfileNameSetting');
+
+    if (profileManagementSection) {
+        const isEnabled = profileManager.isEnabled();
+        profileManagementSection.style.display = isEnabled ? 'block' : 'none';
+    }
+
+    if (currentProfileNameSetting) {
+        currentProfileNameSetting.textContent = profileManager.getCurrentProfileName();
+    }
+}
+
+/**
+ * Update profile list in settings
+ */
+function updateProfileList() {
+    const profileListContainer = document.getElementById('profileListContainer');
+    if (!profileListContainer) return;
+
+    const profiles = profileManager.getProfiles();
+    const currentProfile = profileManager.getCurrentProfileName();
+    const profileNames = Object.keys(profiles).sort();
+
+    profileListContainer.innerHTML = '';
+
+    profileNames.forEach(profileName => {
+        const profileItem = document.createElement('div');
+        profileItem.className = 'profile-list-item';
+        if (profileName === currentProfile) {
+            profileItem.classList.add('active-profile');
+        }
+
+        const profileInfo = document.createElement('div');
+        profileInfo.className = 'profile-info';
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'profile-name';
+        nameSpan.textContent = profileName;
+        if (profileName === currentProfile) {
+            nameSpan.textContent += ' (active)';
+        }
+
+        profileInfo.appendChild(nameSpan);
+
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'profile-actions';
+
+        // Load button
+        if (profileName !== currentProfile) {
+            const loadBtn = document.createElement('button');
+            loadBtn.textContent = 'Load';
+            loadBtn.className = 'btn-secondary btn-small';
+            loadBtn.addEventListener('click', () => {
+                switchToProfile(profileName);
+            });
+            actionsDiv.appendChild(loadBtn);
+        }
+
+        // Reset button
+        const resetBtn = document.createElement('button');
+        resetBtn.textContent = 'Reset';
+        resetBtn.className = 'btn-secondary btn-small';
+        resetBtn.addEventListener('click', () => {
+            if (confirm(`Are you sure you want to reset all data for profile "${profileName}"? This cannot be undone.`)) {
+                const result = profileManager.resetProfile(profileName);
+                if (result.success) {
+                    alert(`Profile "${profileName}" has been reset.`);
+                    // If it's the current profile, reinitialize
+                    if (profileName === currentProfile) {
+                        location.reload();
+                    }
+                } else {
+                    alert(result.error);
+                }
+            }
+        });
+        actionsDiv.appendChild(resetBtn);
+
+        // Delete button (not for Default profile)
+        if (profileName !== 'Default') {
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.className = 'btn-danger btn-small';
+            deleteBtn.addEventListener('click', () => {
+                if (confirm(`Are you sure you want to delete profile "${profileName}"? This cannot be undone.`)) {
+                    const result = profileManager.deleteProfile(profileName);
+                    if (result.success) {
+                        updateProfileList();
+                        alert(`Profile "${profileName}" has been deleted.`);
+                    } else {
+                        alert(result.error);
+                    }
+                }
+            });
+            actionsDiv.appendChild(deleteBtn);
+        }
+
+        profileItem.appendChild(profileInfo);
+        profileItem.appendChild(actionsDiv);
+        profileListContainer.appendChild(profileItem);
+    });
+}
+
+/**
+ * Show profile switcher dialog
+ */
+function showProfileSwitcher() {
+    const modal = document.getElementById('profileSwitcherModal');
+    if (!modal) return;
+
+    // Populate with profiles
+    populateProfileSwitcher();
+
+    // Show modal
+    modal.style.display = 'flex';
+}
+
+/**
+ * Hide profile switcher dialog
+ */
+function hideProfileSwitcher() {
+    const modal = document.getElementById('profileSwitcherModal');
+    if (!modal) return;
+
+    modal.style.display = 'none';
+}
+
+/**
+ * Populate profile switcher with list of profiles
+ */
+function populateProfileSwitcher() {
+    const listContainer = document.getElementById('profileSwitcherList');
+    if (!listContainer) return;
+
+    const profiles = profileManager.getProfiles();
+    const currentProfile = profileManager.getCurrentProfileName();
+    const profileNames = Object.keys(profiles).sort();
+
+    listContainer.innerHTML = '';
+
+    profileNames.forEach(profileName => {
+        const item = document.createElement('button');
+        item.className = 'profile-switcher-item';
+        item.textContent = profileName;
+
+        if (profileName === currentProfile) {
+            item.classList.add('active');
+        }
+
+        // Click to switch profile
+        item.addEventListener('click', () => {
+            hideProfileSwitcher();
+            if (profileName !== currentProfile) {
+                switchToProfile(profileName);
+            }
+        });
+
+        listContainer.appendChild(item);
+    });
+}
+
+/**
+ * Switch to a different profile
+ */
+function switchToProfile(profileName) {
+    console.log('[Profile] Switching to profile:', profileName);
+
+    // Switch profile in manager
+    const result = profileManager.switchProfile(profileName);
+    if (!result.success) {
+        alert(result.error);
+        return;
+    }
+
+    // Update app settings with new profile
+    appSettings = new Settings(profileName);
+    window.appSettings = appSettings;
+
+    // Update training UI with new profile
+    trainingUI.switchProfile(profileName);
+
+    // Update UI
+    updateProfileDisplay();
+    updateProfileManagementUI();
+    updateProfileList();
+
+    // If we're in training mode, exit it
+    if (trainingUI.isInTrainingMode) {
+        trainingUI.exitTrainingMode();
+    }
+
+    // Reload the page to ensure all components use the new profile
+    // This is the safest approach to ensure consistency
+    setTimeout(() => {
+        location.reload();
+    }, 500);
+}
+
+/**
+ * Initialize FTUE (First Time User Experience) System
+ */
+function initializeFTUE() {
+    console.log('[FTUE] Initializing FTUE system');
+
+    // Apply initial lock states
+    updateFTUELocks();
+
+    // Update progress bar
+    updateFTUEProgress();
+
+    // Prevent Tutorial section collapse during FTUE
+    setupTutorialSectionBehavior();
+
+    // Unlock All button
+    const unlockAllBtn = document.getElementById('ftueUnlockAllBtn');
+    if (unlockAllBtn) {
+        unlockAllBtn.addEventListener('click', handleUnlockAll);
+    }
+
+    // Training Mode button - check if locked or if Glissando prompt is active
+    const trainingModeBtn = document.getElementById('trainingModeBtn');
+    const progressBtn = document.getElementById('progressBtn');
+    const trainingSettingsBtn = document.getElementById('trainingSettingsBtn');
+
+    // Override clicks if locked or if Glissando prompt is active
+    [trainingModeBtn, progressBtn, trainingSettingsBtn].forEach(btn => {
+        if (btn) {
+            btn.addEventListener('click', (e) => {
+                // Check if Training Mode is completely locked (not unlocked yet)
+                if (!ftueManager.isTrainingModeUnlocked()) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    console.log('[FTUE] Training Mode is locked');
+                    return;
+                }
+
+                // Check if Glissando Overview prompt is active (should do Glissando first)
+                if (ftueManager.isGlissandoPromptActive()) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    console.log('[FTUE] Glissando Overview should be completed first');
+                    showGlissandoPromptModal();
+                    return;
+                }
+            }, true); // Use capture phase to intercept before other handlers
+        }
+    });
+
+    // Listen for Glissando Overview unlock event
+    window.addEventListener('glissandoOverviewUnlocked', () => {
+        console.log('[FTUE] Glissando Overview unlocked - updating UI');
+        updateFTUELocks();
+        updateFTUEProgress();
+
+        // Play unlock animation if available
+        const glissandoCard = document.querySelector('[data-tutorial-card="glissandoOverview"]');
+        if (glissandoCard && window.ftueAnimations && window.ftueAnimations.playUnlockSequence) {
+            window.ftueAnimations.playUnlockSequence(glissandoCard, 'Glissando Overview');
+        }
+    });
+
+    // Listen for Interval Overview unlock event
+    window.addEventListener('intervalOverviewUnlocked', () => {
+        console.log('[FTUE] Interval Overview unlocked - updating UI');
+        updateFTUELocks();
+        updateFTUEProgress();
+
+        // Play unlock animation if available
+        const intervalCard = document.querySelector('[data-tutorial-card="intervalOverview"]');
+        if (intervalCard && window.ftueAnimations && window.ftueAnimations.playUnlockSequence) {
+            window.ftueAnimations.playUnlockSequence(intervalCard, 'Interval Overview');
+        }
+    });
+}
+
+/**
+ * Show modal prompting user to complete Glissando Overview
+ * Also highlights the Glissando Overview card
+ */
+function showGlissandoPromptModal() {
+    // Create modal backdrop
+    const backdrop = document.createElement('div');
+    backdrop.className = 'glissando-prompt-modal-backdrop';
+    backdrop.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        animation: fadeIn 0.2s ease-out;
+    `;
+
+    // Create modal
+    const modal = document.createElement('div');
+    modal.className = 'glissando-prompt-modal';
+    modal.style.cssText = `
+        background: var(--color-surface, #2C2C2E);
+        border: 2px solid var(--color-accent, #A568D9);
+        border-radius: 12px;
+        padding: 32px;
+        max-width: 500px;
+        width: 90%;
+        text-align: center;
+        animation: slideUp 0.3s ease-out;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    `;
+
+    modal.innerHTML = `
+        <div style="font-size: 48px; margin-bottom: 16px;">🎯</div>
+        <h2 style="color: var(--color-accent, #A568D9); margin: 0 0 16px 0; font-size: 24px;">Ready for the Next Level!</h2>
+        <p style="color: var(--color-text, #FFFFFF); margin: 0 0 24px 0; line-height: 1.6; font-size: 16px;">
+            You've mastered Slider Glissando! Now it's time to learn how to use your <strong>voice</strong> to match pitch.
+        </p>
+        <p style="color: var(--color-text-secondary, #B0B0B0); margin: 0 0 32px 0; font-size: 14px;">
+            Complete <strong>Glissando Overview</strong> to unlock Training Mode
+        </p>
+        <button id="glissandoPromptOk" style="
+            background: linear-gradient(135deg, var(--color-accent, #A568D9), var(--color-accent-dark, #7B3AA0));
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        ">Got it!</button>
+    `;
+
+    backdrop.appendChild(modal);
+    document.body.appendChild(backdrop);
+
+    // Highlight Glissando Overview card
+    const glissandoCard = document.querySelector('[data-tutorial-card="glissandoOverview"]');
+    if (glissandoCard) {
+        // Scroll to card
+        glissandoCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        // Add highlight animation
+        setTimeout(() => {
+            if (window.ftueAnimations && window.ftueAnimations.highlightElement) {
+                window.ftueAnimations.highlightElement(glissandoCard);
+            } else {
+                // Fallback: simple highlight
+                glissandoCard.style.animation = 'none';
+                setTimeout(() => {
+                    glissandoCard.style.animation = 'pulse 1s ease-in-out 3';
+                }, 10);
+            }
+        }, 300);
+    }
+
+    // Close modal on button click or backdrop click
+    const closeModal = () => {
+        backdrop.style.animation = 'fadeOut 0.2s ease-out';
+        setTimeout(() => backdrop.remove(), 200);
+    };
+
+    document.getElementById('glissandoPromptOk').addEventListener('click', closeModal);
+    backdrop.addEventListener('click', (e) => {
+        if (e.target === backdrop) closeModal();
+    });
+}
+
+/**
+ * Update FTUE lock states on tutorial cards and Training Mode
+ */
+function updateFTUELocks() {
+    // Tutorial cards
+    const tutorialCards = [
+        { name: 'earTrainingOverview', card: document.querySelector('[data-tutorial-card="earTrainingOverview"]') },
+        { name: 'unisonOverview', card: document.querySelector('[data-tutorial-card="unisonOverview"]') },
+        { name: 'glissandoOverview', card: document.querySelector('[data-tutorial-card="glissandoOverview"]') }
+    ];
+
+    tutorialCards.forEach(({ name, card }) => {
+        if (card) {
+            const isUnlocked = ftueManager.isTutorialUnlocked(name);
+            const lockOverlay = card.querySelector('.tutorial-lock-overlay');
+
+            if (isUnlocked) {
+                card.classList.remove('tutorial-card-locked');
+                if (lockOverlay) lockOverlay.style.display = 'none';
+            } else {
+                card.classList.add('tutorial-card-locked');
+                if (lockOverlay) lockOverlay.style.display = 'flex';
+            }
+        }
+    });
+
+    // Training Mode lock
+    const trainingModeLock = document.querySelector('.training-mode-lock-overlay');
+    const trainingModeSection = document.getElementById('trainingModeSection');
+
+    if (ftueManager.isTrainingModeUnlocked()) {
+        if (trainingModeLock) trainingModeLock.style.display = 'none';
+        if (trainingModeSection) trainingModeSection.classList.remove('training-mode-locked');
+    } else {
+        if (trainingModeLock) trainingModeLock.style.display = 'flex';
+        if (trainingModeSection) trainingModeSection.classList.add('training-mode-locked');
+    }
+}
+
+/**
+ * Update FTUE progress bar
+ */
+function updateFTUEProgress() {
+    const progress = ftueManager.getProgress();
+    const progressFill = document.getElementById('ftueProgressFill');
+    const progressText = document.getElementById('ftueProgressText');
+
+    if (progressFill) {
+        progressFill.style.width = `${progress.percentage}%`;
+    }
+
+    if (progressText) {
+        progressText.textContent = `${progress.completed} / ${progress.total}`;
+    }
+
+    // Hide "Unlock All" button if everything is unlocked
+    const unlockAllContainer = document.querySelector('.ftue-unlock-all-container');
+    if (unlockAllContainer) {
+        const allUnlocked = ftueManager.isTrainingModeUnlocked();
+        unlockAllContainer.style.display = allUnlocked ? 'none' : 'block';
+    }
+}
+
+/**
+ * Prevent Tutorial section from collapsing during FTUE
+ */
+function setupTutorialSectionBehavior() {
+    const tutorialSection = document.getElementById('tutorialSection');
+    const tutorialToggle = document.getElementById('tutorialCategoryToggle');
+
+    if (!tutorialToggle || !tutorialSection) return;
+
+    tutorialToggle.addEventListener('click', (e) => {
+        // Prevent collapse if FTUE is incomplete
+        if (!ftueManager.isTrainingModeUnlocked()) {
+            e.stopPropagation();
+            e.preventDefault();
+            console.log('[FTUE] Cannot collapse Tutorial section during FTUE');
+
+            // Optional: Show a brief visual feedback
+            tutorialToggle.style.opacity = '0.5';
+            setTimeout(() => {
+                tutorialToggle.style.opacity = '1';
+            }, 200);
+        }
+    });
+
+    // Keep section expanded during FTUE
+    if (!ftueManager.isTrainingModeUnlocked()) {
+        tutorialSection.classList.remove('collapsed');
+    }
+}
+
+/**
+ * Handle tutorial completion - triggers unlock animations
+ */
+window.handleTutorialCompletion = async function(tutorialName) {
+    console.log(`[FTUE] Tutorial ${tutorialName} completed!`);
+
+    // Mark as complete and get what was unlocked
+    const unlockedItem = ftueManager.markTutorialComplete(tutorialName);
+
+    if (!unlockedItem) {
+        console.warn('[FTUE] No item unlocked');
+        return;
+    }
+
+    console.log(`[FTUE] Unlocked: ${unlockedItem}`);
+
+    // Update locks and progress
+    updateFTUELocks();
+    updateFTUEProgress();
+
+    // Wait a moment before animation
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    if (unlockedItem === 'trainingMode') {
+        // All tutorials complete - Training Mode unlocked!
+        await showTrainingModeUnlockCelebration();
+
+        // Also unlock bonus tutorials with animation
+        for (const bonusTutorial of ftueManager.bonusTutorials) {
+            const bonusCard = document.querySelector(`[data-tutorial-card="${bonusTutorial}"]`);
+            if (bonusCard) {
+                console.log(`[FTUE] Unlocking bonus tutorial: ${bonusTutorial}`);
+                await ftueAnimations.playUnlockSequence(bonusCard, bonusTutorial, () => {
+                    console.log(`[FTUE] ${bonusTutorial} unlock animation complete`);
+                });
+            }
+        }
+    } else {
+        // Next tutorial unlocked
+        const nextCard = document.querySelector(`[data-tutorial-card="${unlockedItem}"]`);
+        if (nextCard) {
+            await ftueAnimations.playUnlockSequence(nextCard, unlockedItem, () => {
+                console.log(`[FTUE] ${unlockedItem} unlock animation complete`);
+            });
+        }
+    }
+};
+
+/**
+ * Show Training Mode unlock celebration
+ */
+async function showTrainingModeUnlockCelebration() {
+    console.log('[FTUE] Showing Training Mode unlock celebration');
+
+    // First, scroll to Training Mode section so user sees the unlock happen
+    const trainingModeSection = document.getElementById('trainingModeSection');
+    if (trainingModeSection) {
+        console.log('[FTUE] Scrolling to Training Mode section');
+        ftueAnimations.scrollToElement(trainingModeSection);
+
+        // Wait for scroll to complete
+        await new Promise(resolve => setTimeout(resolve, 800));
+    }
+
+    // Now show the celebration at the Training Mode location
+    await ftueAnimations.playBigCelebration({
+        title: '🎉 Training Mode Unlocked!',
+        message: 'You\'ve completed all tutorials! You\'re ready to start your ear training journey.',
+        onComplete: null
+    });
+}
+
+/**
+ * Handle "Unlock All" button click
+ */
+async function handleUnlockAll() {
+    console.log('[FTUE] Unlock All clicked');
+
+    // Unlock everything
+    ftueManager.unlockAll();
+
+    // Update UI
+    updateFTUELocks();
+    updateFTUEProgress();
+
+    // Play big celebration
+    await ftueAnimations.playBigCelebration({
+        title: '🔓 All Unlocked!',
+        message: 'All tutorials and Training Mode are now available. Happy training!',
+        onComplete: null
+    });
 }

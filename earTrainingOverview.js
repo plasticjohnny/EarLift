@@ -8,24 +8,24 @@ class EarTrainingOverview {
 
         this.steps = [
             {
-                title: "About Ear Training",
-                content: "<p>The goal of ear training is to help you recognize what's happening musically when you hear melodies and chords.</p><p>This can be challenging at first, but like any skill, you can learn and improve with practice.</p>"
+                title: "Welcome to the Ear Gym",
+                content: "<p style='font-size: 1.05rem; line-height: 1.6;'>Just like building physical strength, <strong>your musical ear is a muscle</strong> that needs training. You're here to develop the ability to hear and recognize musical relationships—melodies, harmonies, and intervals.</p><p style='font-size: 1.05rem; line-height: 1.6;'>This helps with singing, playing instruments, and understanding music. And yes, <strong>it's challenging at first.</strong> That's the whole point.</p>"
             },
             {
-                title: "A More Effective Method",
-                content: "<p>There are many approaches to ear training, but most show limited results despite requiring significant effort.</p><p>This method has been proven to be the most effective and efficient way to develop your musical ear.</p>"
+                title: "The Foundation: Unison",
+                content: "<p style='font-size: 1.05rem; line-height: 1.6;'>The EarLift Method starts with the most fundamental skill: <strong>matching pitch</strong> (unison). Two notes at the same frequency create a special feeling—you'll learn to recognize it.</p><p style='font-size: 1.05rem; line-height: 1.6;'><strong>Master unison, and everything else unlocks.</strong> It's like learning to walk before you run. Every interval, every chord—it all builds from this foundation.</p>"
             },
             {
-                title: "Feel First, Hear Second",
-                content: "<p>The core principle is not focusing on your ears, but instead on your body.</p><p><strong>If you can feel the differences between notes, you can hear the differences.</strong></p><p>This body-centered approach helps you internalize musical relationships in a deeper, more intuitive way.</p>"
+                title: "You'll Use Your Voice",
+                content: "<p style='font-size: 1.05rem; line-height: 1.6;'>Throughout these exercises, you'll sing. Don't worry—<strong>this isn't about sounding pretty.</strong> Your voice is simply a tool for building the connection between what you <em>hear</em> and what you <em>feel</em>.</p><p style='font-size: 1.05rem; line-height: 1.6;'>You're literally training the muscles in your larynx and brain to work together. It's physical. It's mental. <strong>It's a workout.</strong></p>"
             },
             {
-                title: "You'll Be Asked to Sing",
-                content: "<p>Core to this program is using your voice. You will be asked to sing different pitches throughout the exercises.</p><p>If you feel intimidated, don't worry—<strong>it's not about how good your voice sounds.</strong></p><p>It's about developing the muscles and skills within your body to internalize pitch and musical relationships.</p>"
+                title: "It Takes Reps",
+                content: "<p style='font-size: 1.05rem; line-height: 1.6;'>Like any training program, <strong>progress takes time and repetition.</strong> Your first attempts might feel impossible. You might miss notes. You might feel frustrated. <em>That's completely normal.</em></p><p style='font-size: 1.05rem; line-height: 1.6;'><strong>Every attempt strengthens the muscle.</strong> Every rep counts. Don't rush. Don't judge yourself harshly. Just show up and put in the work. The gains will come.</p>"
             },
             {
-                title: "Follow the Order",
-                content: "<p>The exercises are arranged in a very specific sequence, with more fundamental skills appearing first.</p><p><strong>Try to tackle them in order</strong> for the best results—each builds upon the previous skills.</p><p>Good luck on your ear training journey!</p>"
+                title: "You're the Judge",
+                content: "<p style='font-size: 1.05rem; line-height: 1.6;'>Here's the challenge: <strong>you'll learn to judge your own success.</strong> No computer will tell you when you're right—you have to <em>feel</em> it. This is called <strong>internalization</strong>, and it's the most powerful part of the method.</p><p style='font-size: 1.05rem; line-height: 1.6;'>It's hard at first. But as you train, your ear gets sharper. You <em>will</em> get there. <strong>Let's get started!</strong> 💪</p>"
             }
         ];
 
@@ -127,9 +127,14 @@ class EarTrainingOverview {
     }
 
     continueToNextTutorial() {
-        // TODO: Navigate to next tutorial exercise
-        // For now, just exit to main menu
-        console.log('Continue to next tutorial (not implemented yet)');
+        console.log('[EarTrainingOverview] Tutorial completed, notifying FTUE system');
+
+        // Notify FTUE system of completion
+        if (window.handleTutorialCompletion) {
+            window.handleTutorialCompletion('earTrainingOverview');
+        }
+
+        // Exit already clears URL, so just call it
         this.exit();
     }
 
@@ -138,6 +143,7 @@ class EarTrainingOverview {
         document.getElementById('appContainer').style.display = 'block';
 
         if (window.mainApp) {
+            window.mainApp.clearExerciseFromURL();
             window.mainApp.addFadeIn(document.getElementById('appContainer'));
         }
     }

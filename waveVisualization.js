@@ -305,7 +305,10 @@ class WaveVisualizationExercise {
 
         const rect = this.canvas.getBoundingClientRect();
         const width = rect.width || 900;
-        const height = rect.height || 420;
+
+        // Try to get height from inline style first, then bounding rect, then fallback
+        const inlineHeight = parseInt(this.canvas.style.height) || 0;
+        const height = rect.height || inlineHeight || 420;
         const ratio = window.devicePixelRatio || 1;
 
         this.canvas.width = width * ratio;

@@ -473,21 +473,30 @@ class UnisonOverview {
     }
 
     destroy() {
+        // Stop tutorial controller first (prevents old event listeners from firing)
+        if (this.tutorialController && typeof this.tutorialController.stop === 'function') {
+            this.tutorialController.stop();
+            this.tutorialController = null;
+        }
+
         // Stop audio
         if (this.audioController) {
             this.audioController.stopBoth();
             if (typeof this.audioController.destroy === 'function') {
                 this.audioController.destroy();
             }
+            this.audioController = null;
         }
 
         // Destroy visualizations
         if (this.interferenceViz && typeof this.interferenceViz.destroy === 'function') {
             this.interferenceViz.destroy();
+            this.interferenceViz = null;
         }
 
         if (this.waveViz && typeof this.waveViz.destroy === 'function') {
             this.waveViz.destroy();
+            this.waveViz = null;
         }
     }
 
@@ -744,9 +753,14 @@ class UnisonOverview {
 
         // Get config values with defaults
         const targetFreq = config.targetFrequency || 440;
-        const minFreq = parseFloat(slider.min) || 220;
-        const maxFreq = parseFloat(slider.max) || 880;
+        // Allow custom min/max range for zoomed views
+        const minFreq = config.minFrequency !== undefined ? config.minFrequency : (parseFloat(slider.min) || 220);
+        const maxFreq = config.maxFrequency !== undefined ? config.maxFrequency : (parseFloat(slider.max) || 880);
         const initialFreq = config.initialFrequency || targetFreq;
+
+        // Update slider min/max attributes for zoomed range
+        slider.min = minFreq;
+        slider.max = maxFreq;
 
         // Set slider to initial frequency
         slider.value = initialFreq;
@@ -765,10 +779,15 @@ class UnisonOverview {
             buttons.forEach(({ selector, direction, size }) => {
                 const button = this.container.querySelector(selector);
                 if (button) {
-                    button.addEventListener('click', () => {
+                    button.addEventListener('click', (e) => {
                         console.log(`UnisonOverview: Glissando button clicked: ${selector}`);
-                        // Remove focus to prevent stuck appearance
+
+                        // Prevent default
+                        e.preventDefault();
+
+                        // Remove focus to prevent focus ring
                         button.blur();
+
                         // Call callback if set (for tutorial mode)
                         if (this.sliderButtonCallback) {
                             this.sliderButtonCallback(direction, size);
@@ -789,6 +808,14 @@ class UnisonOverview {
         if (config.showTargetLabel) {
             this.showGlissandoTargetLabel(targetFreq);
         }
+
+        // Enable/disable buttons based on config
+        if (config.enabledButtons) {
+            this.configureGlissandoButtons(config.enabledButtons);
+        } else {
+            // If no config provided, enable all buttons
+            this.configureGlissandoButtons(['big-up', 'medium-up', 'small-up', 'big-down', 'medium-down', 'small-down']);
+        }
     }
 
     // Set callback for slider button clicks (used by tutorial controller)
@@ -799,6 +826,28 @@ class UnisonOverview {
     // Clear slider button callback
     clearSliderButtonCallback() {
         this.sliderButtonCallback = null;
+    }
+
+    // Configure which glissando buttons are enabled
+    configureGlissandoButtons(enabledButtons) {
+        const buttonSelectors = {
+            'big-up': '[data-glissando-slider="jump-up-big"]',
+            'medium-up': '[data-glissando-slider="jump-up-medium"]',
+            'small-up': '[data-glissando-slider="jump-up-small"]',
+            'big-down': '[data-glissando-slider="jump-down-big"]',
+            'medium-down': '[data-glissando-slider="jump-down-medium"]',
+            'small-down': '[data-glissando-slider="jump-down-small"]'
+        };
+
+        for (const [buttonName, selector] of Object.entries(buttonSelectors)) {
+            const button = this.container.querySelector(selector);
+            if (button) {
+                const isEnabled = enabledButtons.includes(buttonName);
+                button.disabled = !isEnabled;
+                button.style.opacity = isEnabled ? '1' : '0.25';
+                button.style.cursor = isEnabled ? 'pointer' : 'not-allowed';
+            }
+        }
     }
 
     // Render hash marks on the glissando slider
@@ -817,13 +866,19 @@ class UnisonOverview {
         }
 
         const range = maxFreq - minFreq;
-        const sliderWidth = window.innerWidth <= 768 ? 300 : 400;
+        const isMobile = window.innerWidth <= 768;
+        const sliderWidth = isMobile ? 300 : 400;
+        const thumbWidth = isMobile ? 35 : 40;
 
         frequencies.forEach(freq => {
             if (freq < minFreq || freq > maxFreq) return;
 
+            // Calculate position accounting for thumb offset
+            // Range inputs position thumb center from (thumbWidth/2) to (sliderWidth - thumbWidth/2)
             const percentage = (freq - minFreq) / range;
-            const position = percentage * sliderWidth;
+            const thumbOffset = thumbWidth / 2;
+            const availableTravel = sliderWidth - thumbWidth;
+            const position = thumbOffset + (percentage * availableTravel);
 
             const mark = document.createElement('div');
             mark.className = 'glissando-hash-mark';
@@ -853,6 +908,11 @@ class UnisonOverview {
 let unisonOverviewInstance = null;
 
 function showUnisonOverview() {
+    // Clear URL hash to ensure tutorial always starts at step 1
+    if (typeof window !== 'undefined' && window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+
     // Hide the main app container
     const appContainer = document.getElementById('appContainer');
     if (appContainer) {

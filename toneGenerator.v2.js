@@ -5,6 +5,7 @@ class ToneGenerator {
         this.gainNode = null;
         this.isPlaying = false;
         this.currentFrequency = null;
+        this.audioContext = null;
     }
 
     async ensureAudioContext() {
@@ -16,12 +17,17 @@ class ToneGenerator {
 
         // Resume if suspended (iOS)
         await window.audioManager.resume();
+
+        // Store reference to audioContext
+        this.audioContext = window.audioManager.getAudioContext();
     }
 
     async playTone(frequency, volume = 0.3) {
         await this.ensureAudioContext();
 
-        const audioContext = window.audioManager.getAudioContext();
+        // Update stored reference
+        this.audioContext = window.audioManager.getAudioContext();
+        const audioContext = this.audioContext;
         console.log(`AudioContext:`, audioContext ? `state=${audioContext.state}, sampleRate=${audioContext.sampleRate}` : 'NULL');
 
         // Check audio output devices
@@ -39,8 +45,26 @@ class ToneGenerator {
             return;
         }
 
-        // Stop any currently playing tone
-        this.stopTone();
+        // Force stop any currently playing tone (even if isPlaying is false)
+        // This prevents ghost tones from fading oscillators
+        if (this.oscillator) {
+            try {
+                this.oscillator.stop();
+                this.oscillator.disconnect();
+            } catch (e) {
+                // Already stopped/disconnected
+            }
+        }
+        if (this.gainNode) {
+            try {
+                this.gainNode.disconnect();
+            } catch (e) {
+                // Already disconnected
+            }
+        }
+        this.oscillator = null;
+        this.gainNode = null;
+        this.isPlaying = false;
 
         try {
             // Create oscillator

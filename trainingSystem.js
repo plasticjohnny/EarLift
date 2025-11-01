@@ -173,6 +173,11 @@ class TrainingSystem {
      * Select exercise variant based on weak areas
      */
     selectExerciseVariant(intervalType) {
+        // Special progressive logic for unison exercises (Slider Glissando vs Match the Tone)
+        if (intervalType === 'unison') {
+            return this.selectUnisonExerciseVariant();
+        }
+
         const stats = this.trainingData.getStats(intervalType);
 
         // Get system exercises for this interval
@@ -207,6 +212,108 @@ class TrainingSystem {
         return this.weightedRandomSelect(
             variantWeights.map((weight, index) => ({ index, weight }))
         ).index;
+    }
+
+    /**
+     * Select unison exercise variant with progressive prioritization
+     * Slider Glissando is prioritized initially to teach beat frequency detection,
+     * then phases out in favor of Match the Tone once competency is demonstrated.
+     */
+    selectUnisonExerciseVariant() {
+        const MATCH_THE_TONE_INDEX = 0;
+        const SLIDER_GLISSANDO_INDEX = 1;
+
+        const exercise = this.trainingData.data.exercises['unison'];
+
+        // If never practiced, start with Slider Glissando
+        if (!exercise || !exercise.attempts || exercise.attempts.length === 0) {
+            console.log('[Training] Unison: First time, starting with Slider Glissando');
+            return SLIDER_GLISSANDO_INDEX;
+        }
+
+        // Check if Slider Glissando threshold is met
+        const sliderThresholdMet = this.isSliderGlissandoThresholdMet();
+
+        if (!sliderThresholdMet) {
+            // Before threshold: ONLY Slider Glissando
+            console.log('[Training] Unison: Slider threshold not met, continuing with Slider Glissando');
+            return SLIDER_GLISSANDO_INDEX;
+        }
+
+        console.log('[Training] Unison: Slider threshold MET, transitioning to Match the Tone');
+
+        // After threshold: Check if user is struggling with Match the Tone
+        const matchAttempts = exercise.attempts.filter(a => a.exerciseIndex === MATCH_THE_TONE_INDEX);
+
+        if (matchAttempts.length === 0) {
+            // Haven't tried Match the Tone yet, start with it
+            console.log('[Training] Unison: First time with Match the Tone');
+            return MATCH_THE_TONE_INDEX;
+        }
+
+        // Check Match the Tone performance (last 5 attempts)
+        const recentMatchAttempts = matchAttempts.slice(-5);
+        const matchEasyCount = recentMatchAttempts.filter(a => a.difficulty === 'easy').length;
+        const matchStrugglingThreshold = 3; // Need at least 3/5 easy to be doing well
+
+        const isStrugglingWithMatch = recentMatchAttempts.length >= 5 &&
+                                       matchEasyCount < matchStrugglingThreshold;
+
+        if (isStrugglingWithMatch) {
+            // Struggling with Match the Tone: 50/50 chance between both
+            const selected = Math.random() < 0.5 ? MATCH_THE_TONE_INDEX : SLIDER_GLISSANDO_INDEX;
+            console.log('[Training] Unison: Struggling with Match, selected:', selected === 0 ? 'Match' : 'Slider');
+            return selected;
+        }
+
+        // Doing well: Mostly Match the Tone, occasionally Slider Glissando (10% chance)
+        const selected = Math.random() < 0.9 ? MATCH_THE_TONE_INDEX : SLIDER_GLISSANDO_INDEX;
+        console.log('[Training] Unison: Doing well, selected:', selected === 0 ? 'Match' : 'Slider');
+        return selected;
+    }
+
+    /**
+     * Check if Slider Glissando threshold is met
+     * Threshold 1: 4 out of last 5 attempts are "easy"
+     * Threshold 2: 8 out of last 10 attempts are "easy" or "medium"
+     */
+    isSliderGlissandoThresholdMet() {
+        const SLIDER_GLISSANDO_INDEX = 1;
+        const exercise = this.trainingData.data.exercises['unison'];
+
+        if (!exercise || !exercise.attempts) {
+            return false;
+        }
+
+        const sliderAttempts = exercise.attempts.filter(a => a.exerciseIndex === SLIDER_GLISSANDO_INDEX);
+
+        if (sliderAttempts.length < 5) {
+            return false; // Need at least 5 attempts
+        }
+
+        // Threshold 1: 4 out of last 5 are "easy"
+        const last5 = sliderAttempts.slice(-5);
+        const last5EasyCount = last5.filter(a => a.difficulty === 'easy').length;
+
+        if (last5EasyCount >= 4) {
+            console.log('[Training] Slider threshold met: 4/5 last attempts were easy');
+            return true;
+        }
+
+        // Threshold 2: 8 out of last 10 are "easy" or "medium"
+        if (sliderAttempts.length >= 10) {
+            const last10 = sliderAttempts.slice(-10);
+            const last10EasyOrMediumCount = last10.filter(a =>
+                a.difficulty === 'easy' || a.difficulty === 'medium'
+            ).length;
+
+            if (last10EasyOrMediumCount >= 8) {
+                console.log('[Training] Slider threshold met: 8/10 last attempts were easy/medium');
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

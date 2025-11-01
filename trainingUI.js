@@ -5,8 +5,9 @@
  */
 
 class TrainingUI {
-    constructor() {
-        this.trainingData = new TrainingData();
+    constructor(profileName = 'Default') {
+        this.profileName = profileName;
+        this.trainingData = new TrainingData(profileName);
         this.trainingSystem = new TrainingSystem(this.trainingData);
         this.currentExercise = null;
         this.isInTrainingMode = false;
@@ -20,6 +21,18 @@ class TrainingUI {
         if (range && range.low && range.high) {
             this.trainingSystem.setVocalRange(range.low.frequency, range.high.frequency);
         }
+    }
+
+    /**
+     * Switch to a different profile
+     */
+    switchProfile(profileName) {
+        console.log('[TrainingUI] Switching profile from', this.profileName, 'to', profileName);
+        this.profileName = profileName;
+        this.trainingData = new TrainingData(profileName);
+        this.trainingSystem = new TrainingSystem(this.trainingData);
+        this.initializeVocalRange();
+        this.updateTrainingMenuStats();
     }
 
     /**
@@ -141,6 +154,10 @@ class TrainingUI {
             window.systemExerciseInstance.doAllExercises = false; // Single exercise mode
             window.systemExerciseInstance.maxRepetitions = 1; // Only 1 repetition in training mode
 
+            // IMPORTANT: Reset repetition counter for training mode
+            window.systemExerciseInstance.repetitionsCompleted = 0;
+            console.log('[Training] Reset repetitionsCompleted to 0');
+
             // Override the root frequency with our selected target note
             window.systemExerciseInstance.customRootFrequency = targetNote;
             console.log('[Training] Set customRootFrequency:', targetNote);
@@ -153,6 +170,11 @@ class TrainingUI {
             document.getElementById('trainingProgress').style.display = 'none';
             document.getElementById('trainingRatingUI').style.display = 'none';
             console.log('[Training] All menus hidden, only exercise should be visible');
+
+            // Clear any button focus from previous exercise
+            if (document.activeElement && document.activeElement.blur) {
+                document.activeElement.blur();
+            }
 
             // Start exercise
             console.log('[Training] Calling start() on exercise instance');
@@ -182,16 +204,27 @@ class TrainingUI {
             console.log('[Training] Stored original exit method');
         }
 
+        // Prevent multiple attachments - check if already overridden for training
+        if (window.systemExerciseInstance._trainingCallbackAttached) {
+            console.log('[Training] Callback already attached, skipping');
+            return;
+        }
+
+        window.systemExerciseInstance._trainingCallbackAttached = true;
+
         // Create a bound reference to this TrainingUI instance
         const trainingUI = this;
 
         // Override the exit method
         window.systemExerciseInstance.exit = function() {
             console.log('[Training] Exit called, isInTrainingMode:', trainingUI.isInTrainingMode);
+            console.log('[Training] repetitionsCompleted:', this.repetitionsCompleted, 'maxRepetitions:', this.maxRepetitions);
 
             if (trainingUI.isInTrainingMode) {
                 // Check if exercise was completed or user hit back early
                 const wasCompleted = this.repetitionsCompleted >= this.maxRepetitions;
+
+                console.log('[Training] wasCompleted:', wasCompleted);
 
                 // Stop audio but don't show appContainer
                 this.stopAll();
@@ -199,9 +232,39 @@ class TrainingUI {
                 document.getElementById('intervalSystemExercise').style.display = 'none';
 
                 if (wasCompleted) {
-                    // Normal completion - show rating UI
-                    console.log('[Training] Exercise completed, showing rating UI');
-                    trainingUI.showRatingUI();
+                    // Check if this is a unison exercise with self-rating
+                    if (trainingUI.currentIntervalType === 'unison' && this.lastUnisonRating) {
+                        const rating = this.lastUnisonRating;
+                        console.log('[Training] Unison completed with self-rating:', rating);
+
+                        // Get frequencies
+                        const rootFreq = this.rootFrequency || trainingUI.currentTargetNote;
+                        const intervalFreq = rootFreq; // For unison, interval = root
+
+                        // Record result directly without showing separate rating UI
+                        const newUnlocks = trainingUI.trainingSystem.recordExerciseResult(
+                            trainingUI.currentIntervalType,
+                            rating,
+                            rootFreq,
+                            intervalFreq,
+                            trainingUI.currentExerciseIndex
+                        );
+
+                        // Clear the rating for next exercise
+                        this.lastUnisonRating = null;
+
+                        // Show unlock notification if any
+                        if (newUnlocks && newUnlocks.length > 0) {
+                            trainingUI.showUnlockNotification(newUnlocks);
+                        }
+
+                        // Continue to next exercise
+                        trainingUI.continueToNextExercise();
+                    } else {
+                        // Normal completion - show rating UI for intervals
+                        console.log('[Training] Exercise completed, showing rating UI');
+                        trainingUI.showRatingUI();
+                    }
                 } else {
                     // User hit back early - treat as skip (record as failed)
                     console.log('[Training] Exercise skipped via back button, recording as failed');
@@ -210,6 +273,8 @@ class TrainingUI {
             } else {
                 // Normal exit behavior
                 console.log('[Training] Normal exit (not in training mode)');
+                // Clear the flag when exiting normally
+                window.systemExerciseInstance._trainingCallbackAttached = false;
                 window.systemExerciseInstance._originalExit();
             }
         };
@@ -269,7 +334,7 @@ class TrainingUI {
      * Handle skip (back button pressed during exercise)
      */
     handleSkip() {
-        console.log('[Training] Handling skip');
+        console.log('[Training] Handling skip - returning to training menu');
 
         // Get the actual root and interval frequencies from the exercise
         const rootFreq = window.systemExerciseInstance.rootFrequency || this.currentTargetNote;
@@ -289,8 +354,8 @@ class TrainingUI {
             this.showUnlockNotification(newUnlocks);
         }
 
-        // Continue to next exercise
-        this.continueToNextExercise();
+        // Exit training mode and return to menu instead of continuing
+        this.exitTrainingMode();
     }
 
     /**
@@ -353,14 +418,16 @@ class TrainingUI {
         document.getElementById('trainingRatingUI').style.display = 'none';
         document.getElementById('intervalSystemExercise').style.display = 'none';
 
-        // Show training menu
-        this.showTrainingMenu();
+        // Return to main page
+        this.hideTrainingMenu();
     }
 
     /**
      * Show Settings menu
      */
     showSettings() {
+        // Hide main app (in case called from main page)
+        document.getElementById('appContainer').style.display = 'none';
         document.getElementById('trainingMenu').style.display = 'none';
         document.getElementById('trainingSettings').style.display = 'block';
 
@@ -373,7 +440,8 @@ class TrainingUI {
      */
     hideSettings() {
         document.getElementById('trainingSettings').style.display = 'none';
-        this.showTrainingMenu();
+        // Return to main page instead of training menu
+        this.hideTrainingMenu();
     }
 
     /**
@@ -493,6 +561,8 @@ class TrainingUI {
      * Show Progress screen
      */
     showProgress() {
+        // Hide main app (in case called from main page)
+        document.getElementById('appContainer').style.display = 'none';
         document.getElementById('trainingMenu').style.display = 'none';
         document.getElementById('trainingProgress').style.display = 'block';
 
@@ -504,7 +574,8 @@ class TrainingUI {
      */
     hideProgress() {
         document.getElementById('trainingProgress').style.display = 'none';
-        this.showTrainingMenu();
+        // Return to main page instead of training menu
+        this.hideTrainingMenu();
     }
 
     /**

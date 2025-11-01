@@ -6,8 +6,9 @@
  */
 
 class TrainingData {
-    constructor() {
-        this.cookieName = 'tonedeath_training_data';
+    constructor(profileName = 'Default') {
+        this.profileName = profileName;
+        this.cookieName = `earlift_training_data_${profileName}`;
         this.cookieExpireDays = 365;
         this.data = this.loadData();
     }
@@ -142,6 +143,16 @@ class TrainingData {
 
         // Check for unlocks
         this.checkUnlocks();
+
+        // Check if Slider Glissando threshold met for FTUE progression (Glissando Overview unlock)
+        if (window.ftueManager && intervalType === 'unison' && exerciseIndex === 1) {
+            window.ftueManager.checkSliderGlissandoThreshold(this);
+        }
+
+        // Check if Unison Match threshold met for FTUE progression (Interval Overview unlock)
+        if (window.ftueManager && intervalType === 'unison' && exerciseIndex === 0) {
+            window.ftueManager.checkUnisonMatchThreshold(this);
+        }
 
         this.saveData();
     }

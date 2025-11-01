@@ -1,11 +1,12 @@
 {
-  "name": "ToneDeath - Conquer Tone Deafness",
-  "short_name": "ToneDeath",
-  "description": "Irish-inspired ear training app. Master intervals, intonation, and chords with ToneDeath",
-  "start_url": "/",
+  "name": "EarLift Method - Train Your Musical Ear",
+  "short_name": "EarLift Method",
+  "description": "Fitness-inspired ear training app. Build your musical muscles with interval training, pitch matching, and more!",
+  "version": "1.0.14",
+  "start_url": "/?v=1.0.14",
   "display": "standalone",
-  "background_color": "#EDE4D3",
-  "theme_color": "#2D5016",
+  "background_color": "#1a0033",
+  "theme_color": "#9C26EB",
   "orientation": "portrait-primary",
   "icons": [
     {

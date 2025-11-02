@@ -272,7 +272,7 @@ const UNISON_OVERVIEW_TUTORIAL_STEPS = [
         customNextButtonText: "Let's Demonstrate"
     },
 
-    // Step 12: NEW - Close-range wah-wah demonstration
+    // Step 12: NEW - Close-range wah-wah demonstration with dynamic text
     {
         text: "Now let's start really close to <span class='helper-term' data-term='unison'>unison</span>. <strong>Listen carefully</strong> to the distinctive <strong>\"wah-wah\"</strong> pulsing of the <span class='helper-term' data-term='beat frequency'>beat frequency</span>. Even this close, you can clearly hear it. Use the small buttons to move towards perfect <span class='helper-term' data-term='unison'>unison</span>, where the pulsing disappears completely.",
         ui: {
@@ -304,6 +304,38 @@ const UNISON_OVERVIEW_TUTORIAL_STEPS = [
             explorationMode: true,
             requireUnison: true  // Enable directional button logic and unison detection
         },
+        dynamicTextRanges: [
+            {
+                minFreq: 425,
+                maxFreq: 433.99,
+                text: "This pulsing <strong>\"wah-wah\"</strong> is <span class='helper-term' data-term='beat frequency'>beat frequency</span> — a <strong>natural effect</strong> between two really close tones. Use the buttons to move toward <span class='helper-term' data-term='unison'>unison</span>. <strong>Listen:</strong> The pulsing slows as you get closer."
+            },
+            {
+                minFreq: 434,
+                maxFreq: 437.99,
+                text: "Getting closer! This <span class='helper-term' data-term='beat frequency'>beat frequency</span> effect is <strong>extremely common</strong> — musicians use it to <strong>tune instruments</strong>. <strong>Listen:</strong> The pulsing is slowing down."
+            },
+            {
+                minFreq: 438,
+                maxFreq: 439.49,
+                text: "Almost there! When tuning, you <strong>listen for the pulsing to slow and stop</strong>. This natural effect makes tuning by ear possible. <strong>Listen:</strong> Very slow pulsing now."
+            },
+            {
+                minFreq: 439.5,
+                maxFreq: 440.49,
+                text: "<strong>Perfect <span class='helper-term' data-term='unison'>unison</span>!</strong> The <span class='helper-term' data-term='beat frequency'>beat frequency</span> is gone — the tones are <strong>perfectly matched</strong>. This is how instruments are tuned! Explore by moving around."
+            },
+            {
+                minFreq: 440.5,
+                maxFreq: 442.99,
+                text: "Above <span class='helper-term' data-term='unison'>unison</span> now. Notice the pulsing returns? Move back toward 440 Hz to find perfect <span class='helper-term' data-term='unison'>unison</span> where the <span class='helper-term' data-term='beat frequency'>beat frequency</span> disappears."
+            },
+            {
+                minFreq: 443,
+                maxFreq: 455,
+                text: "You're getting further away. The <span class='helper-term' data-term='beat frequency'>beat frequency</span> speeds up as the tones drift apart. Move back toward <span class='helper-term' data-term='unison'>unison</span> (440 Hz) to hear the pulsing slow and stop."
+            }
+        ],
         preventExpansion: true,
         disableNext: true  // Disable Next button until unison is found
     },
@@ -332,10 +364,13 @@ const UNISON_OVERVIEW_TUTORIAL_STEPS = [
         },
         sliderConfig: {
             targetFrequency: 440,
+            minFrequency: 420,
+            maxFrequency: 760,
             hashMarks: [740, 460, 450, 442, 441, 440],
             initialFrequency: 740,
             explorationMode: true,
-            requireUnison: true  // Enable directional button logic with distance-based enabling
+            requireUnison: true,  // Enable directional button logic with distance-based enabling
+            glissandoDuration: 10.0  // Slower animation for large jumps
         },
         dynamicTextRanges: [
             {

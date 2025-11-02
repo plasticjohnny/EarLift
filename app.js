@@ -1680,7 +1680,7 @@ function initializeFTUE() {
     });
 
     // Listen for Glissando Overview unlock event
-    window.addEventListener('glissandoOverviewUnlocked', () => {
+    window.addEventListener('glissandoOverviewUnlocked', async () => {
         console.log('[FTUE] Glissando Overview unlocked - updating UI');
         updateFTUELocks();
         updateFTUEProgress();
@@ -1688,12 +1688,21 @@ function initializeFTUE() {
         // Play unlock animation if available
         const glissandoCard = document.querySelector('[data-tutorial-card="glissandoOverview"]');
         if (glissandoCard && window.ftueAnimations && window.ftueAnimations.playUnlockSequence) {
-            window.ftueAnimations.playUnlockSequence(glissandoCard, 'Glissando Overview');
+            await window.ftueAnimations.playUnlockSequence(glissandoCard, 'Glissando Overview');
+        }
+
+        // Show prompt asking if user wants to start Glissando Overview
+        const startGlissando = await showGlissandoOverviewStartPrompt();
+        if (startGlissando) {
+            console.log('[FTUE] User chose to start Glissando Overview');
+            mainApp.startExercise('glissandoOverview');
+        } else {
+            console.log('[FTUE] User chose to keep training');
         }
     });
 
     // Listen for Interval Overview unlock event
-    window.addEventListener('intervalOverviewUnlocked', () => {
+    window.addEventListener('intervalOverviewUnlocked', async () => {
         console.log('[FTUE] Interval Overview unlocked - updating UI');
         updateFTUELocks();
         updateFTUEProgress();
@@ -1701,7 +1710,16 @@ function initializeFTUE() {
         // Play unlock animation if available
         const intervalCard = document.querySelector('[data-tutorial-card="intervalOverview"]');
         if (intervalCard && window.ftueAnimations && window.ftueAnimations.playUnlockSequence) {
-            window.ftueAnimations.playUnlockSequence(intervalCard, 'Interval Overview');
+            await window.ftueAnimations.playUnlockSequence(intervalCard, 'Interval Overview');
+        }
+
+        // Show prompt asking if user wants to start Interval Overview
+        const startInterval = await showIntervalOverviewStartPrompt();
+        if (startInterval) {
+            console.log('[FTUE] User chose to start Interval Overview');
+            mainApp.startExercise('intervalOverview');
+        } else {
+            console.log('[FTUE] User chose to keep training');
         }
     });
 }
@@ -1797,6 +1815,438 @@ function showGlissandoPromptModal() {
     document.getElementById('glissandoPromptOk').addEventListener('click', closeModal);
     backdrop.addEventListener('click', (e) => {
         if (e.target === backdrop) closeModal();
+    });
+}
+
+/**
+ * Show prompt after Ear Training Overview - asks if user wants to start Unison Overview
+ * Returns promise that resolves with true (start) or false (back to menu)
+ */
+function showUnisonOverviewPrompt() {
+    return new Promise((resolve) => {
+        const backdrop = document.createElement('div');
+        backdrop.className = 'tutorial-prompt-modal-backdrop';
+        backdrop.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.2s ease-out;
+        `;
+
+        const modal = document.createElement('div');
+        modal.className = 'tutorial-prompt-modal';
+        modal.style.cssText = `
+            background: var(--color-surface, #2C2C2E);
+            border: 2px solid var(--color-accent, #A568D9);
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            animation: slideUp 0.3s ease-out;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        `;
+
+        modal.innerHTML = `
+            <div style="font-size: 48px; margin-bottom: 16px;">🎵</div>
+            <h2 style="color: var(--color-accent, #A568D9); margin: 0 0 16px 0; font-size: 24px;">Ready for Unison Training?</h2>
+            <p style="color: var(--color-text, #FFFFFF); margin: 0 0 24px 0; line-height: 1.6; font-size: 16px;">
+                Learn to recognize when two tones are <strong>perfectly matched</strong> - the foundation of all ear training.
+            </p>
+            <div class="tutorial-prompt-buttons" style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                <button id="tutorialPromptStart" style="
+                    background: linear-gradient(135deg, var(--color-accent, #A568D9), var(--color-accent-dark, #7B3AA0));
+                    color: white;
+                    border: none;
+                    padding: 12px 32px;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: transform 0.2s, box-shadow 0.2s;
+                    flex: 1;
+                    min-width: 180px;
+                ">Start Unison Overview</button>
+                <button id="tutorialPromptBack" style="
+                    background: transparent;
+                    color: var(--color-text-secondary, #B0B0B0);
+                    border: 2px solid var(--color-border, #444);
+                    padding: 12px 32px;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: transform 0.2s, border-color 0.2s;
+                    flex: 1;
+                    min-width: 180px;
+                ">Back to Menu</button>
+            </div>
+        `;
+
+        backdrop.appendChild(modal);
+        document.body.appendChild(backdrop);
+
+        const closeModal = (startTutorial) => {
+            backdrop.style.animation = 'fadeOut 0.2s ease-out';
+            setTimeout(() => {
+                backdrop.remove();
+                resolve(startTutorial);
+            }, 200);
+        };
+
+        document.getElementById('tutorialPromptStart').addEventListener('click', () => closeModal(true));
+        document.getElementById('tutorialPromptBack').addEventListener('click', () => closeModal(false));
+        backdrop.addEventListener('click', (e) => {
+            if (e.target === backdrop) closeModal(false);
+        });
+
+        // ESC key to close
+        const escHandler = (e) => {
+            if (e.key === 'Escape') {
+                closeModal(false);
+                document.removeEventListener('keydown', escHandler);
+            }
+        };
+        document.addEventListener('keydown', escHandler);
+    });
+}
+
+/**
+ * Show prompt after Unison Overview - asks if user wants to start Training Mode
+ * Returns promise that resolves with true (start) or false (explore more)
+ */
+function showTrainingModePrompt() {
+    return new Promise((resolve) => {
+        const backdrop = document.createElement('div');
+        backdrop.className = 'tutorial-prompt-modal-backdrop';
+        backdrop.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.2s ease-out;
+        `;
+
+        const modal = document.createElement('div');
+        modal.className = 'tutorial-prompt-modal';
+        modal.style.cssText = `
+            background: var(--color-surface, #2C2C2E);
+            border: 2px solid var(--gym-gold, #FFD700);
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            animation: slideUp 0.3s ease-out;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        `;
+
+        modal.innerHTML = `
+            <div style="font-size: 48px; margin-bottom: 16px;">🎉</div>
+            <h2 style="color: var(--gym-gold, #FFD700); margin: 0 0 16px 0; font-size: 24px;">Training Mode Unlocked!</h2>
+            <p style="color: var(--color-text, #FFFFFF); margin: 0 0 24px 0; line-height: 1.6; font-size: 16px;">
+                You've completed the basics! <strong>Training Mode</strong> uses spaced repetition to help you master ear training exercises.
+            </p>
+            <div class="tutorial-prompt-buttons" style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                <button id="tutorialPromptStart" style="
+                    background: linear-gradient(135deg, var(--gym-gold, #FFD700), var(--gym-gold-dark, #CC9900));
+                    color: #000;
+                    border: none;
+                    padding: 12px 32px;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: transform 0.2s, box-shadow 0.2s;
+                    flex: 1;
+                    min-width: 180px;
+                ">Start Training</button>
+                <button id="tutorialPromptBack" style="
+                    background: transparent;
+                    color: var(--color-text-secondary, #B0B0B0);
+                    border: 2px solid var(--color-border, #444);
+                    padding: 12px 32px;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: transform 0.2s, border-color 0.2s;
+                    flex: 1;
+                    min-width: 180px;
+                ">Explore More First</button>
+            </div>
+        `;
+
+        backdrop.appendChild(modal);
+        document.body.appendChild(backdrop);
+
+        const closeModal = (startTraining) => {
+            backdrop.style.animation = 'fadeOut 0.2s ease-out';
+            setTimeout(() => {
+                backdrop.remove();
+                resolve(startTraining);
+            }, 200);
+        };
+
+        document.getElementById('tutorialPromptStart').addEventListener('click', () => closeModal(true));
+        document.getElementById('tutorialPromptBack').addEventListener('click', () => closeModal(false));
+        backdrop.addEventListener('click', (e) => {
+            if (e.target === backdrop) closeModal(false);
+        });
+
+        // ESC key to close
+        const escHandler = (e) => {
+            if (e.key === 'Escape') {
+                closeModal(false);
+                document.removeEventListener('keydown', escHandler);
+            }
+        };
+        document.addEventListener('keydown', escHandler);
+    });
+}
+
+/**
+ * Show prompt when Glissando Overview unlocks - asks if user wants to start it
+ * Returns promise that resolves with true (start) or false (keep training)
+ */
+function showGlissandoOverviewStartPrompt() {
+    return new Promise((resolve) => {
+        const backdrop = document.createElement('div');
+        backdrop.className = 'tutorial-prompt-modal-backdrop';
+        backdrop.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.2s ease-out;
+        `;
+
+        const modal = document.createElement('div');
+        modal.className = 'tutorial-prompt-modal';
+        modal.style.cssText = `
+            background: var(--color-surface, #2C2C2E);
+            border: 2px solid var(--color-accent, #A568D9);
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            animation: slideUp 0.3s ease-out;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        `;
+
+        modal.innerHTML = `
+            <div style="font-size: 48px; margin-bottom: 16px;">🎤</div>
+            <h2 style="color: var(--color-accent, #A568D9); margin: 0 0 16px 0; font-size: 24px;">Ready to Use Your Voice?</h2>
+            <p style="color: var(--color-text, #FFFFFF); margin: 0 0 24px 0; line-height: 1.6; font-size: 16px;">
+                You've mastered the slider! Now learn to <strong>match pitch with your voice</strong> - a crucial musical skill.
+            </p>
+            <div class="tutorial-prompt-buttons" style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                <button id="tutorialPromptStart" style="
+                    background: linear-gradient(135deg, var(--color-accent, #A568D9), var(--color-accent-dark, #7B3AA0));
+                    color: white;
+                    border: none;
+                    padding: 12px 32px;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: transform 0.2s, box-shadow 0.2s;
+                    flex: 1;
+                    min-width: 180px;
+                ">Start Glissando Overview</button>
+                <button id="tutorialPromptBack" style="
+                    background: transparent;
+                    color: var(--color-text-secondary, #B0B0B0);
+                    border: 2px solid var(--color-border, #444);
+                    padding: 12px 32px;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: transform 0.2s, border-color 0.2s;
+                    flex: 1;
+                    min-width: 180px;
+                ">Keep Training</button>
+            </div>
+        `;
+
+        backdrop.appendChild(modal);
+        document.body.appendChild(backdrop);
+
+        // Highlight Glissando Overview card
+        const glissandoCard = document.querySelector('[data-tutorial-card="glissandoOverview"]');
+        if (glissandoCard) {
+            glissandoCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => {
+                if (window.ftueAnimations && window.ftueAnimations.highlightElement) {
+                    window.ftueAnimations.highlightElement(glissandoCard);
+                } else {
+                    glissandoCard.style.animation = 'none';
+                    setTimeout(() => {
+                        glissandoCard.style.animation = 'pulse 1s ease-in-out 3';
+                    }, 10);
+                }
+            }, 300);
+        }
+
+        const closeModal = (startTutorial) => {
+            backdrop.style.animation = 'fadeOut 0.2s ease-out';
+            setTimeout(() => {
+                backdrop.remove();
+                resolve(startTutorial);
+            }, 200);
+        };
+
+        document.getElementById('tutorialPromptStart').addEventListener('click', () => closeModal(true));
+        document.getElementById('tutorialPromptBack').addEventListener('click', () => closeModal(false));
+        backdrop.addEventListener('click', (e) => {
+            if (e.target === backdrop) closeModal(false);
+        });
+
+        // ESC key to close
+        const escHandler = (e) => {
+            if (e.key === 'Escape') {
+                closeModal(false);
+                document.removeEventListener('keydown', escHandler);
+            }
+        };
+        document.addEventListener('keydown', escHandler);
+    });
+}
+
+/**
+ * Show prompt when Interval Overview unlocks - asks if user wants to start it
+ * Returns promise that resolves with true (start) or false (keep training)
+ */
+function showIntervalOverviewStartPrompt() {
+    return new Promise((resolve) => {
+        const backdrop = document.createElement('div');
+        backdrop.className = 'tutorial-prompt-modal-backdrop';
+        backdrop.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.2s ease-out;
+        `;
+
+        const modal = document.createElement('div');
+        modal.className = 'tutorial-prompt-modal';
+        modal.style.cssText = `
+            background: var(--color-surface, #2C2C2E);
+            border: 2px solid var(--color-accent, #A568D9);
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            animation: slideUp 0.3s ease-out;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        `;
+
+        modal.innerHTML = `
+            <div style="font-size: 48px; margin-bottom: 16px;">🎼</div>
+            <h2 style="color: var(--color-accent, #A568D9); margin: 0 0 16px 0; font-size: 24px;">Ready for Intervals?</h2>
+            <p style="color: var(--color-text, #FFFFFF); margin: 0 0 24px 0; line-height: 1.6; font-size: 16px;">
+                Learn to recognize the <strong>space between notes</strong> - the building blocks of melodies and harmonies.
+            </p>
+            <div class="tutorial-prompt-buttons" style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                <button id="tutorialPromptStart" style="
+                    background: linear-gradient(135deg, var(--color-accent, #A568D9), var(--color-accent-dark, #7B3AA0));
+                    color: white;
+                    border: none;
+                    padding: 12px 32px;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: transform 0.2s, box-shadow 0.2s;
+                    flex: 1;
+                    min-width: 180px;
+                ">Start Interval Overview</button>
+                <button id="tutorialPromptBack" style="
+                    background: transparent;
+                    color: var(--color-text-secondary, #B0B0B0);
+                    border: 2px solid var(--color-border, #444);
+                    padding: 12px 32px;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: transform 0.2s, border-color 0.2s;
+                    flex: 1;
+                    min-width: 180px;
+                ">Keep Training</button>
+            </div>
+        `;
+
+        backdrop.appendChild(modal);
+        document.body.appendChild(backdrop);
+
+        // Highlight Interval Overview card
+        const intervalCard = document.querySelector('[data-tutorial-card="intervalOverview"]');
+        if (intervalCard) {
+            intervalCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => {
+                if (window.ftueAnimations && window.ftueAnimations.highlightElement) {
+                    window.ftueAnimations.highlightElement(intervalCard);
+                } else {
+                    intervalCard.style.animation = 'none';
+                    setTimeout(() => {
+                        intervalCard.style.animation = 'pulse 1s ease-in-out 3';
+                    }, 10);
+                }
+            }, 300);
+        }
+
+        const closeModal = (startTutorial) => {
+            backdrop.style.animation = 'fadeOut 0.2s ease-out';
+            setTimeout(() => {
+                backdrop.remove();
+                resolve(startTutorial);
+            }, 200);
+        };
+
+        document.getElementById('tutorialPromptStart').addEventListener('click', () => closeModal(true));
+        document.getElementById('tutorialPromptBack').addEventListener('click', () => closeModal(false));
+        backdrop.addEventListener('click', (e) => {
+            if (e.target === backdrop) closeModal(false);
+        });
+
+        // ESC key to close
+        const escHandler = (e) => {
+            if (e.key === 'Escape') {
+                closeModal(false);
+                document.removeEventListener('keydown', escHandler);
+            }
+        };
+        document.addEventListener('keydown', escHandler);
     });
 }
 
@@ -1930,6 +2380,19 @@ window.handleTutorialCompletion = async function(tutorialName) {
                 });
             }
         }
+
+        // Show Training Mode prompt after Unison Overview
+        const startTraining = await showTrainingModePrompt();
+        if (startTraining) {
+            console.log('[FTUE] User chose to start Training Mode');
+            // Click the Training Mode button
+            const trainingModeBtn = document.querySelector('[data-training-start]');
+            if (trainingModeBtn) {
+                trainingModeBtn.click();
+            }
+        } else {
+            console.log('[FTUE] User chose to explore more first');
+        }
     } else {
         // Next tutorial unlocked
         const nextCard = document.querySelector(`[data-tutorial-card="${unlockedItem}"]`);
@@ -1937,6 +2400,18 @@ window.handleTutorialCompletion = async function(tutorialName) {
             await ftueAnimations.playUnlockSequence(nextCard, unlockedItem, () => {
                 console.log(`[FTUE] ${unlockedItem} unlock animation complete`);
             });
+        }
+
+        // Show appropriate prompt based on which tutorial was completed
+        if (tutorialName === 'earTrainingOverview' && unlockedItem === 'unisonOverview') {
+            // Ask if user wants to start Unison Overview
+            const startUnison = await showUnisonOverviewPrompt();
+            if (startUnison) {
+                console.log('[FTUE] User chose to start Unison Overview');
+                mainApp.startExercise('unisonOverview');
+            } else {
+                console.log('[FTUE] User chose to return to menu');
+            }
         }
     }
 };

@@ -364,6 +364,12 @@ class IntervalSystemExercise {
         const totalSteps = currentExercise.steps.length;
         const currentStep = currentExercise.steps[this.currentStepIndex];
 
+        // Always hide glissando slider by default (for Match the Tone)
+        const sliderSection = this.container.querySelector('[data-system-exercise="glissando-slider-controls"]');
+        if (sliderSection) {
+            sliderSection.style.display = 'none';
+        }
+
         // Check if this exercise uses glissando slider
         if (currentExercise.useGlissandoSlider) {
             // Hide carousel and unison rating UI
@@ -1220,6 +1226,16 @@ class IntervalSystemExercise {
 
     handleUnisonRating(rating) {
         console.log('[Unison] User rated:', rating);
+
+        const currentExercise = this.exercises[this.currentExerciseIndex];
+
+        // If rating is "failed" on Match the Tone, show instructions modal again
+        if (rating === 'failed' && this.isUnison && currentExercise.name === "Match the Tone") {
+            console.log('[Unison] User marked "Did not complete" on Match the Tone - showing instructions');
+            this.showMatchTheToneModal();
+            // Don't increment repetitions or generate new tones - let them try again with same note
+            return;
+        }
 
         this.repetitionsCompleted++;
 

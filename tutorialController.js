@@ -1688,7 +1688,13 @@ class TutorialController {
                     return;
                 }
 
-                console.log('[TutorialController] Slider button clicked:', { direction, size, isExplorationMode });
+                console.log('[TutorialController] Slider button clicked:', {
+                    direction,
+                    size,
+                    isExplorationMode,
+                    currentTone2: this.exercise.tone2Freq,
+                    isPlaying: this.exercise.isPlaying
+                });
                 this.glissandoInProgress = true;
 
                 // Calculate glissando target
@@ -1706,8 +1712,28 @@ class TutorialController {
                         const currentIndex = hashMarks.findIndex(mark => Math.abs(mark - currentTone2) < 0.5);
 
                         if (currentIndex !== -1) {
-                            // Move to next hash mark in the direction
-                            const nextIndex = currentIndex + (direction > 0 ? 1 : -1);
+                            // Determine if hash marks are sorted ascending or descending
+                            const isAscending = hashMarks.length > 1 && hashMarks[0] < hashMarks[1];
+
+                            // Calculate next index based on direction and sort order
+                            // If ascending [428, 432, 436...]: direction +1 = +1 index, direction -1 = -1 index
+                            // If descending [740, 460, 450...]: direction +1 = -1 index, direction -1 = +1 index
+                            let indexDelta;
+                            if (isAscending) {
+                                indexDelta = direction > 0 ? 1 : -1;
+                            } else {
+                                indexDelta = direction > 0 ? -1 : 1;
+                            }
+
+                            const nextIndex = currentIndex + indexDelta;
+                            console.log('[TutorialController] Hash mark navigation:', {
+                                currentIndex,
+                                direction,
+                                isAscending,
+                                indexDelta,
+                                nextIndex
+                            });
+
                             if (nextIndex >= 0 && nextIndex < hashMarks.length) {
                                 clampedTone2 = hashMarks[nextIndex];
                                 console.log('[TutorialController] Moving to next hash mark:', clampedTone2);
@@ -1730,12 +1756,19 @@ class TutorialController {
                         clampedTone2 = Math.max(220, Math.min(880, newTone2));
                     }
 
+                    // Use custom duration from sliderConfig if specified, otherwise default
+                    const duration = step.sliderConfig?.glissandoDuration || 5.0;
+
                     glissandoTarget = {
                         tone1: this.exercise.tone1Freq,  // Keep tone1 constant
                         tone2: clampedTone2,
-                        duration: 5.0  // Slowed down from 3.0 to 5.0 seconds
+                        duration: duration
                     };
-                    console.log('[TutorialController] Exploration mode target:', glissandoTarget);
+                    console.log('[TutorialController] Exploration mode target:', {
+                        glissandoTarget,
+                        startFreq: this.exercise.tone2Freq,
+                        willAnimate: clampedTone2 !== this.exercise.tone2Freq
+                    });
                 } else {
                     // Progressive mode: use step's fixed target
                     glissandoTarget = step.glissandoTarget;
@@ -1900,6 +1933,14 @@ class TutorialController {
             const distance = Math.abs(currentFreq - targetFreq);
             const hasEnabledButtonsConfig = sliderConfig.enabledButtons && sliderConfig.enabledButtons.length > 0;
 
+            console.log('[Tutorial] checkUnisonAndUpdateButtons:', {
+                currentFreq,
+                targetFreq,
+                distance,
+                hasEnabledButtonsConfig,
+                configButtons: sliderConfig.enabledButtons
+            });
+
             if (hasEnabledButtonsConfig) {
                 // Use configured enabledButtons list, filtered by direction
                 if (currentFreq < targetFreq) {
@@ -1919,17 +1960,19 @@ class TutorialController {
                     // Need to go UP to reach unison
                     if (distance < 20) enabledButtons.push('small-up');
                     if (distance < 50) enabledButtons.push('medium-up');
-                    enabledButtons.push('big-up');
+                    if (distance >= 50) enabledButtons.push('medium-up');  // Start with medium at far distance
                 } else if (currentFreq > targetFreq) {
                     // Need to go DOWN to reach unison
                     if (distance < 20) enabledButtons.push('small-down');
                     if (distance < 50) enabledButtons.push('medium-down');
-                    enabledButtons.push('big-down');
+                    if (distance >= 50) enabledButtons.push('medium-down');  // Start with medium at far distance
                 }
             }
 
-            // Update button states
-            if (this.exercise.configureGlissandoButtons && enabledButtons.length > 0) {
+            console.log('[Tutorial] Enabling buttons:', enabledButtons);
+
+            // Update button states - always call even if empty to disable unwanted buttons
+            if (this.exercise.configureGlissandoButtons) {
                 this.exercise.configureGlissandoButtons(enabledButtons);
             }
         }
@@ -2791,6 +2834,12 @@ class TutorialController {
             // Update exercise frequencies and visualizations during animation
             this.exercise.tone2Freq = currentFreq;
             this.exercise.updateVisualizations();
+
+            // Update dynamic text based on frequency ranges
+            const currentStep = this.steps[this.currentStepIndex];
+            if (currentStep && currentStep.dynamicTextRanges) {
+                this.updateDynamicText(currentFreq, currentStep.dynamicTextRanges);
+            }
 
             // Continue animation if not complete
             if (progress < 1) {

@@ -41,29 +41,72 @@ jobs:
       - name: Install lftp
         run: sudo apt-get update && sudo apt-get install -y lftp
 
-      - name: Test FTP connection and upload single file
+      - name: Deploy to FTP
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USER: ${{ secrets.FTP_USER }}
           FTP_PASS: ${{ secrets.FTP_PASSWORD }}
+          FTP_DEST: /earlift
         run: |
-          echo "Testing FTP connection to $FTP_HOST as $FTP_USER..."
-          echo "Password length: ${#FTP_PASS}"
+          set -e
 
-          # Create a test file
-          echo "Test deployment from GitHub Actions at $(date)" > test-deploy.txt
+          echo "Deploying to $FTP_DEST on $FTP_HOST..."
 
-          # Test upload
-          echo "Uploading test file..."
-          lftp -c "
-            set ftp:ssl-allow no
-            set ftp:passive-mode on
-            set ftp:debug 3
-            open -u '$FTP_USER,$FTP_PASS' $FTP_HOST
-            cd /earlift
-            put test-deploy.txt
-            ls -la test-deploy.txt
-            bye
-          "
+          # Find all files to deploy
+          find . -maxdepth 1 -type f \( \
+            -name "*.html" -o \
+            -name "*.css" -o \
+            -name "*.js" -o \
+            -name "*.json" -o \
+            -name "*.png" -o \
+            -name "*.svg" -o \
+            -name "*.jpg" -o \
+            -name "*.jpeg" -o \
+            -name "*.ico" -o \
+            -name "*.wav" \
+          \) > /tmp/root_files.txt
 
-          echo "Test upload complete!"
+          # Upload root files
+          while IFS= read -r file; do
+            file="${file#./}"
+            if [ -f "$file" ]; then
+              file_name=$(basename "$file")
+              echo "Uploading: $file"
+              lftp -c "
+                set ftp:ssl-allow no
+                set ftp:passive-mode on
+                open -u '$FTP_USER,$FTP_PASS' $FTP_HOST
+                mkdir -p '$FTP_DEST'
+                cd '$FTP_DEST'
+                put '$file' -o '$file_name'
+                bye
+              " || echo "Warning: Failed to upload $file"
+            fi
+          done < /tmp/root_files.txt
+
+          # Upload directories
+          for dir in core adapters ui lib sounds images; do
+            if [ -d "$dir" ]; then
+              echo "Uploading directory: $dir"
+              find "$dir" -type f > /tmp/${dir}_files.txt
+              while IFS= read -r file; do
+                file_dir=$(dirname "$file")
+                file_name=$(basename "$file")
+                target_dir="$FTP_DEST/$file_dir"
+
+                echo "  Uploading: $file"
+                lftp -c "
+                  set ftp:ssl-allow no
+                  set ftp:passive-mode on
+                  open -u '$FTP_USER,$FTP_PASS' $FTP_HOST
+                  mkdir -p '$target_dir'
+                  cd '$target_dir'
+                  put '$file' -o '$file_name'
+                  bye
+                " || echo "  Warning: Failed to upload $file"
+              done < /tmp/${dir}_files.txt
+            fi
+          done
+
+          echo ""
+          echo "Deployment complete!"

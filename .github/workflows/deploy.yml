@@ -47,6 +47,14 @@ jobs:
           FTP_USER: ${{ secrets.FTP_USER }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
         run: |
+          # Create .netrc for authentication
+          cat > ~/.netrc << EOF
+          machine $FTP_HOST
+          login $FTP_USER
+          password $FTP_PASSWORD
+          EOF
+          chmod 600 ~/.netrc
+
           # Deploy root files
           for file in *.html *.css *.js *.json *.png *.svg *.jpg *.jpeg *.ico *.wav; do
             if [ -f "$file" ]; then
@@ -54,7 +62,7 @@ jobs:
               lftp -c "
               set ftp:ssl-allow no
               set ftp:passive-mode on
-              open -u '$FTP_USER,$FTP_PASSWORD' $FTP_HOST
+              open $FTP_HOST
               cd /earlift
               put '$file'
               bye
@@ -69,9 +77,12 @@ jobs:
               lftp -c "
               set ftp:ssl-allow no
               set ftp:passive-mode on
-              open -u '$FTP_USER,$FTP_PASSWORD' $FTP_HOST
+              open $FTP_HOST
               mirror -R --verbose --delete --parallel=3 '$dir' '/earlift/$dir'
               bye
               "
             fi
           done
+
+          # Clean up
+          rm ~/.netrc

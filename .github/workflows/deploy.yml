@@ -50,34 +50,51 @@ jobs:
         run: |
           set -e
 
-          # Deploy root files
-          for file in *.html *.css *.js *.json *.png *.svg *.jpg *.jpeg *.ico *.wav; do
-            if [ -f "$file" ]; then
-              echo "Uploading: $file -> $FTP_DEST/$file"
-              lftp -c "
-                set ftp:ssl-allow no
-                set ftp:passive-mode on
-                open -u '$FTP_USER,$FTP_PASS' $FTP_HOST
-                mkdir -p '$FTP_DEST'
-                cd '$FTP_DEST'
-                put '$file' -o '$file'
-                bye
-              " || echo "Warning: Failed to upload $file"
-            fi
-          done
+          echo "Starting deployment to $FTP_DEST..."
 
-          # Deploy directories
+          # Use a single lftp session with batch commands
+          lftp -c "
+            set ftp:ssl-allow no
+            set ftp:passive-mode on
+            set net:max-retries 2
+            set net:timeout 30
+            open -u '$FTP_USER,$FTP_PASS' $FTP_HOST
+
+            # Create destination directory
+            mkdir -p '$FTP_DEST'
+            cd '$FTP_DEST'
+
+            # Upload all root files
+            lcd '$GITHUB_WORKSPACE'
+            mput -O '$FTP_DEST' *.html || echo 'No HTML files'
+            mput -O '$FTP_DEST' *.css || echo 'No CSS files'
+            mput -O '$FTP_DEST' *.js || echo 'No JS files'
+            mput -O '$FTP_DEST' *.json || echo 'No JSON files'
+            mput -O '$FTP_DEST' *.png || echo 'No PNG files'
+            mput -O '$FTP_DEST' *.svg || echo 'No SVG files'
+            mput -O '$FTP_DEST' *.jpg || echo 'No JPG files'
+            mput -O '$FTP_DEST' *.jpeg || echo 'No JPEG files'
+            mput -O '$FTP_DEST' *.ico || echo 'No ICO files'
+            mput -O '$FTP_DEST' *.wav || echo 'No WAV files'
+
+            bye
+          "
+
+          # Upload directories with mirror (one connection per directory)
           for dir in core adapters ui lib sounds images; do
             if [ -d "$dir" ]; then
-              echo "Uploading directory: $dir -> $FTP_DEST/$dir"
+              echo "Mirroring directory: $dir"
               lftp -c "
                 set ftp:ssl-allow no
                 set ftp:passive-mode on
+                set net:max-retries 2
+                set net:timeout 30
                 open -u '$FTP_USER,$FTP_PASS' $FTP_HOST
-                mkdir -p '$FTP_DEST/$dir'
-                mirror -R --verbose --delete --parallel=3 '$dir' '$FTP_DEST/$dir'
+                mirror -R --verbose --parallel=2 --use-cache '$dir' '$FTP_DEST/$dir'
                 bye
-              " || echo "Warning: Failed to upload $dir"
+              "
+              # Add delay between directory uploads to avoid rate limiting
+              sleep 2
             fi
           done
 

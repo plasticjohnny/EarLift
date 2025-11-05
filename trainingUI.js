@@ -10,6 +10,7 @@ class TrainingUI {
         this.trainingData = new TrainingData(profileName);
         this.trainingSystem = new TrainingSystem(this.trainingData);
         this.currentExercise = null;
+        this.currentLevel = 1;
         this.isInTrainingMode = false;
 
         // Initialize vocal range
@@ -133,6 +134,10 @@ class TrainingUI {
         this.currentExerciseIndex = exerciseIndex;
         this.currentTargetNote = targetNote;
 
+        // Get current level for this exercise from trainingData
+        const exerciseData = this.trainingData.data.exercises[intervalType];
+        this.currentLevel = exerciseData?.currentLevel || 1;
+
         try {
             // Create or reuse system exercise instance
             if (!window.systemExerciseInstance || !(window.systemExerciseInstance instanceof IntervalSystemExercise)) {
@@ -149,10 +154,12 @@ class TrainingUI {
                 window.systemExerciseInstance.exercises = getSystemExercisesForInterval(config.intervalType);
             }
 
-            // Set starting exercise index
+            // Set starting exercise index and level
             window.systemExerciseInstance.currentExerciseIndex = exerciseIndex;
+            window.systemExerciseInstance.currentLevel = this.currentLevel;
             window.systemExerciseInstance.doAllExercises = false; // Single exercise mode
             window.systemExerciseInstance.maxRepetitions = 1; // Only 1 repetition in training mode
+            window.systemExerciseInstance.practiceMode = false; // Disable practice mode in training mode
 
             // IMPORTANT: Reset repetition counter for training mode
             window.systemExerciseInstance.repetitionsCompleted = 0;
@@ -242,20 +249,24 @@ class TrainingUI {
                         const intervalFreq = rootFreq; // For unison, interval = root
 
                         // Record result directly without showing separate rating UI
-                        const newUnlocks = trainingUI.trainingSystem.recordExerciseResult(
+                        const result = trainingUI.trainingSystem.recordExerciseResult(
                             trainingUI.currentIntervalType,
                             rating,
                             rootFreq,
                             intervalFreq,
-                            trainingUI.currentExerciseIndex
+                            trainingUI.currentExerciseIndex,
+                            trainingUI.currentLevel
                         );
 
                         // Clear the rating for next exercise
                         this.lastUnisonRating = null;
 
-                        // Show unlock notification if any
-                        if (newUnlocks && newUnlocks.length > 0) {
-                            trainingUI.showUnlockNotification(newUnlocks);
+                        // Show unlock and level-up notifications
+                        if (result.newUnlocks && result.newUnlocks.length > 0) {
+                            trainingUI.showUnlockNotification(result.newUnlocks);
+                        }
+                        if (result.leveledUp) {
+                            trainingUI.showLevelUpNotification(result.leveledUp);
                         }
 
                         // Continue to next exercise
@@ -310,20 +321,24 @@ class TrainingUI {
         const intervalFreq = window.systemExerciseInstance.intervalFrequency || rootFreq;
 
         // Record the result
-        const newUnlocks = this.trainingSystem.recordExerciseResult(
+        const result = this.trainingSystem.recordExerciseResult(
             this.currentIntervalType,
             difficulty,
             rootFreq,
             intervalFreq,
-            this.currentExerciseIndex
+            this.currentExerciseIndex,
+            this.currentLevel
         );
 
         // Hide rating UI
         document.getElementById('trainingRatingUI').style.display = 'none';
 
-        // Show unlock notification if any
-        if (newUnlocks && newUnlocks.length > 0) {
-            this.showUnlockNotification(newUnlocks);
+        // Show unlock and level-up notifications
+        if (result.newUnlocks && result.newUnlocks.length > 0) {
+            this.showUnlockNotification(result.newUnlocks);
+        }
+        if (result.leveledUp) {
+            this.showLevelUpNotification(result.leveledUp);
         }
 
         // Continue to next exercise
@@ -341,17 +356,21 @@ class TrainingUI {
         const intervalFreq = window.systemExerciseInstance.intervalFrequency || rootFreq;
 
         // Record as failed
-        const newUnlocks = this.trainingSystem.recordExerciseResult(
+        const result = this.trainingSystem.recordExerciseResult(
             this.currentIntervalType,
             'failed',
             rootFreq,
             intervalFreq,
-            this.currentExerciseIndex
+            this.currentExerciseIndex,
+            this.currentLevel
         );
 
-        // Show unlock notification if any (unlikely with a failed attempt)
-        if (newUnlocks && newUnlocks.length > 0) {
-            this.showUnlockNotification(newUnlocks);
+        // Show notifications (unlikely with a failed attempt)
+        if (result.newUnlocks && result.newUnlocks.length > 0) {
+            this.showUnlockNotification(result.newUnlocks);
+        }
+        if (result.leveledUp) {
+            this.showLevelUpNotification(result.leveledUp);
         }
 
         // Exit training mode and return to menu instead of continuing
@@ -377,6 +396,14 @@ class TrainingUI {
         setTimeout(() => {
             notification.style.display = 'none';
         }, 4000);
+    }
+
+    /**
+     * Show level-up notification
+     */
+    showLevelUpNotification(newLevel) {
+        // Create a simple notification
+        alert(`🎉 Level Up! You've unlocked Level ${newLevel}!`);
     }
 
     /**

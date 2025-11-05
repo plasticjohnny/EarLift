@@ -48,13 +48,61 @@ const INTERVAL_SYSTEM_EXERCISES = Object.freeze({
     unison: [
         {
             name: "Match the Tone",
-            steps: [
+            levels: [
+                // Level I: Focus on hearing beat frequency
                 {
-                    command: "Match",
-                    instruction: "the tone with your voice. Use glissando to hone in and find the exact match.",
-                    audioState: "root",
-                    userAction: "match-root",
-                    simplifiedRating: true
+                    levelNumber: 1,
+                    goal: "Use glissando to get close enough to the note to hear the beat frequency",
+                    tips: [
+                        "Listen for the beats to slow down / speed up",
+                        "Slow down the speed of your pitch changes",
+                        "Start lower and higher",
+                        "Have audio volume be about the same as your voice",
+                        "Be patient with the process - it can take time"
+                    ],
+                    ratingQuestion: "Were you able to hear the beat frequency?",
+                    ratingOptions: [
+                        { label: "Heard Clearly", difficulty: "easy" },
+                        { label: "Trouble Finding", difficulty: "medium" },
+                        { label: "Maybe Heard", difficulty: "hard" },
+                        { label: "Could not Hear", difficulty: "failed" }
+                    ],
+                    steps: [
+                        {
+                            command: "Match",
+                            instruction: "the tone with your voice. Use glissando to get close to the note and listen for the beat frequency (a pulsing/wobbling sound).",
+                            audioState: "root",
+                            userAction: "match-root",
+                            simplifiedRating: true
+                        }
+                    ]
+                },
+                // Level II: Match the tone exactly (original exercise)
+                {
+                    levelNumber: 2,
+                    goal: "Match the tone exactly using glissando",
+                    tips: [
+                        "Use small pitch adjustments",
+                        "Listen for when the wobbling disappears",
+                        "Match your voice volume to the audio",
+                        "Take your time - precision matters"
+                    ],
+                    ratingQuestion: "How difficult was matching the tone?",
+                    ratingOptions: [
+                        { label: "Matched Quick", difficulty: "easy" },
+                        { label: "Took Some Work", difficulty: "medium" },
+                        { label: "Struggled", difficulty: "hard" },
+                        { label: "Did not complete", difficulty: "failed" }
+                    ],
+                    steps: [
+                        {
+                            command: "Match",
+                            instruction: "the tone with your voice. Use glissando to hone in and find the exact match.",
+                            audioState: "root",
+                            userAction: "match-root",
+                            simplifiedRating: true
+                        }
+                    ]
                 }
             ]
         },

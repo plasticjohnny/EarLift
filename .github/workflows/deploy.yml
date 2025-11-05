@@ -1,0 +1,58 @@
+name: Deploy to ToneDeath.app
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to FTP Server
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Fetch last 2 commits to enable diffing
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v41
+        with:
+          files: |
+            *.html
+            *.css
+            *.js
+            *.json
+            *.png
+            *.svg
+            *.jpg
+            *.jpeg
+            *.ico
+            *.wav
+            core/**
+            adapters/**
+            ui/**
+            lib/**
+            sounds/**
+            images/**
+
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: /earlift/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/*.md
+            **/deploy*.sh
+            **/create-icons.html
+            **/example-new-architecture.html
+            **/.deploy.json
+            **/archive/**
+            **/.checksums/**

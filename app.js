@@ -30,11 +30,63 @@ class EarTrainerApp {
         this.toneGenerator = new ToneGenerator();
         this.isFirstLoad = true;
 
+        // Testing mode detection (auto-enabled on test.earlift.app)
+        this.isTestingMode = window.location.hostname === 'test.earlift.app';
+
+        // Load hidden exercises from localStorage
+        this.loadHiddenExercises();
+
         this.attachEventListeners();
         this.initialize();
     }
 
+    /**
+     * Load hidden exercises from localStorage
+     */
+    loadHiddenExercises() {
+        const stored = localStorage.getItem('earlift_hidden_exercises');
+        this.hiddenExercises = stored ? JSON.parse(stored) : {};
+    }
+
+    /**
+     * Save hidden exercises to localStorage
+     */
+    saveHiddenExercises() {
+        localStorage.setItem('earlift_hidden_exercises', JSON.stringify(this.hiddenExercises));
+    }
+
+    /**
+     * Check if an exercise is hidden
+     */
+    isExerciseHidden(intervalType, exerciseIndex) {
+        return this.hiddenExercises[intervalType]?.includes(exerciseIndex) || false;
+    }
+
+    /**
+     * Toggle exercise visibility
+     */
+    toggleExerciseHidden(intervalType, exerciseIndex, hidden) {
+        if (!this.hiddenExercises[intervalType]) {
+            this.hiddenExercises[intervalType] = [];
+        }
+
+        const index = this.hiddenExercises[intervalType].indexOf(exerciseIndex);
+
+        if (hidden && index === -1) {
+            this.hiddenExercises[intervalType].push(exerciseIndex);
+        } else if (!hidden && index !== -1) {
+            this.hiddenExercises[intervalType].splice(index, 1);
+        }
+
+        this.saveHiddenExercises();
+    }
+
     initialize() {
+        // Initialize testing mode if on test subdomain
+        if (this.isTestingMode) {
+            this.initializeTestingMode();
+        }
+
         // Check if setup is complete
         if (appSettings.isSetupComplete()) {
             this.showMainApp();
@@ -50,6 +102,92 @@ class EarTrainerApp {
             }
         } else {
             this.showSetup();
+        }
+    }
+
+    /**
+     * Initialize testing mode features
+     * - Unlocks all tutorials
+     * - Force unlocks all training intervals
+     * - Shows testing mode banner
+     */
+    initializeTestingMode() {
+        console.log('[Testing Mode] Activating testing mode features');
+
+        // Show testing mode banner
+        const banner = document.getElementById('testingModeBanner');
+        if (banner) {
+            banner.style.display = 'flex';
+        }
+
+        // Unlock all tutorials in FTUE system
+        if (window.ftueManager) {
+            window.ftueManager.temporarilyUnlockedAll = true;
+            console.log('[Testing Mode] All tutorials unlocked');
+        }
+
+        // Force unlock all intervals for Train Now
+        if (window.trainingUI && window.trainingUI.trainingData) {
+            const allIntervals = [
+                'unison', 'octave', 'fifth', 'major-third',
+                'major-second', 'minor-second', 'fourth',
+                'major-sixth', 'minor-sixth', 'minor-third',
+                'tritone', 'minor-seventh', 'major-seventh'
+            ];
+
+            allIntervals.forEach(interval => {
+                window.trainingUI.trainingData.forceUnlock(interval);
+            });
+
+            console.log('[Testing Mode] All training intervals unlocked');
+        }
+    }
+
+    /**
+     * Toggle testing mode on/off (only works when on test.earlift.app)
+     */
+    toggleTestingMode(enabled) {
+        if (!this.isTestingMode) {
+            console.warn('[Testing Mode] Cannot toggle - not on test.earlift.app');
+            return;
+        }
+
+        console.log('[Testing Mode] Toggling:', enabled);
+
+        if (enabled) {
+            // Show banner
+            const banner = document.getElementById('testingModeBanner');
+            if (banner) banner.style.display = 'flex';
+
+            // Unlock tutorials
+            if (window.ftueManager) {
+                window.ftueManager.temporarilyUnlockedAll = true;
+            }
+
+            // Unlock all intervals
+            if (window.trainingUI && window.trainingUI.trainingData) {
+                const allIntervals = [
+                    'unison', 'octave', 'fifth', 'major-third',
+                    'major-second', 'minor-second', 'fourth',
+                    'major-sixth', 'minor-sixth', 'minor-third',
+                    'tritone', 'minor-seventh', 'major-seventh'
+                ];
+                allIntervals.forEach(interval => {
+                    window.trainingUI.trainingData.forceUnlock(interval);
+                });
+            }
+        } else {
+            // Hide banner
+            const banner = document.getElementById('testingModeBanner');
+            if (banner) banner.style.display = 'none';
+
+            // Lock tutorials back (session only, will reset on page reload anyway)
+            if (window.ftueManager) {
+                window.ftueManager.temporarilyUnlockedAll = false;
+            }
+
+            // Note: We don't re-lock intervals as that would require more complex state management
+            // User can reload page to reset
         }
     }
 
@@ -238,32 +376,94 @@ class EarTrainerApp {
         grid.innerHTML = '';
 
         exercises.forEach((exercise, index) => {
-            const card = document.createElement('button');
-            card.className = 'exercise-card';
+            const isHidden = this.isExerciseHidden(intervalType, index);
+
+            const card = document.createElement('div');
+            card.className = 'exercise-card-wrapper';
+            if (isHidden) {
+                card.classList.add('hidden-exercise');
+            }
+
+            // Handle exercises with levels vs. direct steps
+            let stepCount;
+            let description;
+            if (exercise.levels) {
+                // Exercise has multiple levels
+                const level1 = exercise.levels[0];
+                stepCount = level1.steps ? level1.steps.length : 1;
+                description = `${exercise.levels.length} levels • ${stepCount} steps per level`;
+            } else if (exercise.steps) {
+                // Exercise has direct steps
+                stepCount = exercise.steps.length;
+                description = `${stepCount} steps • Practice this interval relationship`;
+            } else {
+                // Fallback
+                description = 'Practice this interval relationship';
+            }
+
             card.innerHTML = `
-                <div class="exercise-icon">📝</div>
-                <h3>${exercise.name}</h3>
-                <p>${exercise.steps.length} steps • Practice this interval relationship</p>
+                <button class="exercise-card" data-exercise-index="${index}">
+                    <div class="exercise-icon">📝</div>
+                    <h3>${exercise.name}</h3>
+                    <p>${description}</p>
+                </button>
+                <label class="exercise-hide-checkbox">
+                    <input type="checkbox" ${isHidden ? 'checked' : ''} data-interval="${intervalType}" data-index="${index}">
+                    <span>Don't show</span>
+                </label>
             `;
-            card.addEventListener('click', () => {
-                this.startSystemExercise(intervalType, index);
+
+            // Add click handler to the button
+            const button = card.querySelector('.exercise-card');
+            if (isHidden) {
+                button.disabled = true;
+            }
+
+            button.addEventListener('click', () => {
+                // Check current hidden state
+                if (!button.disabled) {
+                    this.startSystemExercise(intervalType, index);
+                }
             });
+
+            // Add checkbox handler
+            const checkbox = card.querySelector('input[type="checkbox"]');
+            checkbox.addEventListener('change', (e) => {
+                e.stopPropagation(); // Prevent triggering card click
+                const hidden = e.target.checked;
+                this.toggleExerciseHidden(intervalType, index, hidden);
+
+                // Update card visual state
+                if (hidden) {
+                    card.classList.add('hidden-exercise');
+                    button.disabled = true;
+                } else {
+                    card.classList.remove('hidden-exercise');
+                    button.disabled = false;
+                }
+            });
+
             grid.appendChild(card);
         });
 
         // Add "All Exercises" option
-        const allCard = document.createElement('button');
-        allCard.className = 'exercise-card';
-        allCard.style.borderColor = 'var(--neon-green)';
-        allCard.innerHTML = `
-            <div class="exercise-icon">📚</div>
-            <h3>All Exercises</h3>
-            <p>Complete all ${exercises.length} exercises in sequence</p>
+        const allCardWrapper = document.createElement('div');
+        allCardWrapper.className = 'exercise-card-wrapper no-checkbox';
+
+        allCardWrapper.innerHTML = `
+            <button class="exercise-card" style="border-color: var(--neon-green);">
+                <div class="exercise-icon">📚</div>
+                <h3>All Exercises</h3>
+                <p>Complete all ${exercises.length} exercises in sequence</p>
+            </button>
         `;
-        allCard.addEventListener('click', () => {
+
+        const allButton = allCardWrapper.querySelector('.exercise-card');
+        allButton.addEventListener('click', () => {
             this.startSystemExercise(intervalType, 0, true); // Start from first, do all
         });
-        grid.appendChild(allCard);
+
+        grid.appendChild(allCardWrapper);
 
         // Set up back button
         const backBtn = document.getElementById('systemExerciseMenuBack');
@@ -300,7 +500,12 @@ class EarTrainerApp {
 
             // Set starting exercise index
             window.systemExerciseInstance.currentExerciseIndex = exerciseIndex;
+            window.systemExerciseInstance.currentLevel = 1; // Always start at level 1 in practice mode
             window.systemExerciseInstance.doAllExercises = doAll;
+
+            // Enable practice mode (no data saving, auto-continue)
+            window.systemExerciseInstance.practiceMode = true;
+            window.systemExerciseInstance.maxRepetitions = 1; // One rep per exercise in practice mode
 
             // Hide menu, start exercise
             document.getElementById('systemExerciseMenu').style.display = 'none';
@@ -1266,6 +1471,23 @@ function initializeTrainingMode() {
 
         sliderGlissandoVizCheckbox.addEventListener('change', (e) => {
             appSettings.setSliderGlissandoVisualization(e.target.checked);
+        });
+    }
+
+    // Training Settings - Testing Mode checkbox
+    const testingModeCheckbox = document.getElementById('settingTestingMode');
+    const testingModeContainer = document.getElementById('testingModeSettingContainer');
+    if (testingModeCheckbox && testingModeContainer) {
+        // Only show if on test.earlift.app
+        if (window.earTrainerApp.isTestingMode) {
+            testingModeContainer.style.display = 'block';
+            testingModeCheckbox.checked = true; // Testing mode auto-enabled
+        }
+
+        testingModeCheckbox.addEventListener('change', (e) => {
+            if (window.earTrainerApp.isTestingMode) {
+                window.earTrainerApp.toggleTestingMode(e.target.checked);
+            }
         });
     }
 

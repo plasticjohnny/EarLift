@@ -223,6 +223,12 @@ class TrainingSystem {
         const MATCH_THE_TONE_INDEX = 0;
         const SLIDER_GLISSANDO_INDEX = 1;
 
+        // Testing mode: Always skip Slider Glissando, use Match the Tone only
+        if (window.earTrainerApp && window.earTrainerApp.isTestingMode) {
+            console.log('[Testing Mode] Unison: Skipping Slider Glissando, using Match the Tone');
+            return MATCH_THE_TONE_INDEX;
+        }
+
         const exercise = this.trainingData.data.exercises['unison'];
 
         // If never practiced, start with Slider Glissando
@@ -417,19 +423,25 @@ class TrainingSystem {
     /**
      * Record exercise result
      */
-    recordExerciseResult(intervalType, difficulty, rootFreq, intervalFreq, exerciseIndex) {
+    recordExerciseResult(intervalType, difficulty, rootFreq, intervalFreq, exerciseIndex, level = 1) {
         const { direction, range } = this.detectDirectionAndRange(rootFreq, intervalFreq);
 
-        this.trainingData.recordAttempt(
+        const result = this.trainingData.recordAttempt(
             intervalType,
             difficulty,
             direction,
             range,
-            exerciseIndex
+            exerciseIndex,
+            level
         );
 
         // Check for new unlocks
         const newUnlocks = this.trainingData.checkUnlocks();
-        return newUnlocks;
+
+        // Return both interval unlocks and level-up info
+        return {
+            newUnlocks: newUnlocks,
+            leveledUp: result.leveledUp
+        };
     }
 }

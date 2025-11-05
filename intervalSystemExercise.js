@@ -33,9 +33,15 @@ class IntervalSystemExercise {
         this.exercises = getSystemExercisesForInterval(this.intervalType);
         this.currentExerciseIndex = 0;
         this.currentStepIndex = 0;
+        this.currentLevel = 1; // Current level for leveled exercises
         this.repetitionsCompleted = 0;
         this.maxRepetitions = 5; // Practice same interval 5 times
         this.doAllExercises = false; // If false, return to menu after completing one exercise
+        this.practiceMode = false; // If true, no data saving and auto-continue to new exercise
+
+        // Tip rotation
+        this.tipRotationInterval = null;
+        this.currentTipIndex = 0;
 
         // Randomization support
         this.glissandoDirection = null; // 'up' or 'down'
@@ -93,6 +99,10 @@ class IntervalSystemExercise {
         // Unison rating UI
         this.unisonRatingContainer = this.container.querySelector('[data-system-exercise="unison-rating"]');
         this.unisonRatingButtons = this.container.querySelectorAll('.unison-rating-btn');
+
+        // Tip display elements
+        this.tipContainer = this.container.querySelector('[data-system-exercise="tip-container"]');
+        this.tipElement = this.container.querySelector('[data-system-exercise="tip"]');
     }
 
     attachEventListeners() {
@@ -182,6 +192,35 @@ class IntervalSystemExercise {
         // Update UI
         this.updateDisplay();
         this.renderCurrentStep();
+
+        // Start tip rotation
+        this.startTipRotation();
+    }
+
+    /**
+     * Get the current exercise configuration
+     * Handles both leveled and non-leveled exercises
+     */
+    getCurrentExerciseConfig() {
+        const exercise = this.exercises[this.currentExerciseIndex];
+        if (!exercise) return null;
+
+        // If exercise has levels, return the specific level config
+        if (exercise.levels) {
+            const levelConfig = exercise.levels.find(l => l.levelNumber === this.currentLevel);
+            if (levelConfig) {
+                // Merge base exercise properties with level-specific ones
+                return {
+                    ...exercise,
+                    ...levelConfig,
+                    name: exercise.name, // Keep base name
+                    levels: undefined // Don't include levels array in returned config
+                };
+            }
+        }
+
+        // Return exercise as-is for non-leveled exercises
+        return exercise;
     }
 
     generateNewTones() {
@@ -191,7 +230,7 @@ class IntervalSystemExercise {
             this.rootFrequency = this.customRootFrequency;
 
             // For Slider Glissando, round to whole Hz to enable exact matching
-            const currentExercise = this.exercises[this.currentExerciseIndex];
+            const currentExercise = this.getCurrentExerciseConfig();
             if (currentExercise?.useGlissandoSlider) {
                 this.rootFrequency = Math.round(this.rootFrequency);
                 console.log('[SystemExercise] Rounded custom root frequency for Slider Glissando:', this.rootFrequency);
@@ -252,7 +291,7 @@ class IntervalSystemExercise {
         }
 
         // Randomize glissando direction if current exercise supports it
-        const currentExercise = this.exercises[this.currentExerciseIndex];
+        const currentExercise = this.getCurrentExerciseConfig();
         if (currentExercise && currentExercise.randomizeDirection) {
             this.glissandoDirection = Math.random() < 0.5 ? 'up' : 'down';
         }
@@ -275,12 +314,17 @@ class IntervalSystemExercise {
 
     updateDisplay() {
         // Update header with interval name and exercise name
-        const currentExercise = this.exercises[this.currentExerciseIndex];
+        const currentExercise = this.getCurrentExerciseConfig();
+        if (!currentExercise) return;
+
         if (this.exerciseTitle) {
             this.exerciseTitle.textContent = this.intervalName;
         }
         if (this.exerciseLabel) {
-            this.exerciseLabel.textContent = currentExercise.name;
+            // Show exercise name with level if applicable
+            const baseExercise = this.exercises[this.currentExerciseIndex];
+            const levelSuffix = baseExercise?.levels ? ` - Level ${this.currentLevel}` : '';
+            this.exerciseLabel.textContent = currentExercise.name + levelSuffix;
         }
 
         // Show help button for Match the Tone and Slider Glissando exercises
@@ -360,7 +404,9 @@ class IntervalSystemExercise {
     }
 
     renderCurrentStep() {
-        const currentExercise = this.exercises[this.currentExerciseIndex];
+        const currentExercise = this.getCurrentExerciseConfig();
+        if (!currentExercise || !currentExercise.steps) return;
+
         const totalSteps = currentExercise.steps.length;
         const currentStep = currentExercise.steps[this.currentStepIndex];
 
@@ -963,7 +1009,9 @@ class IntervalSystemExercise {
 
     handleCurrentAction() {
         // Action button advances to next step
-        const currentExercise = this.exercises[this.currentExerciseIndex];
+        const currentExercise = this.getCurrentExerciseConfig();
+        if (!currentExercise || !currentExercise.steps) return;
+
         const totalSteps = currentExercise.steps.length;
         const isLastStep = this.currentStepIndex === totalSteps - 1;
 
@@ -978,7 +1026,9 @@ class IntervalSystemExercise {
 
     navigateToPrev() {
         // Navigate to previous step (with wrapping)
-        const currentExercise = this.exercises[this.currentExerciseIndex];
+        const currentExercise = this.getCurrentExerciseConfig();
+        if (!currentExercise || !currentExercise.steps) return;
+
         const totalSteps = currentExercise.steps.length;
         this.currentStepIndex = (this.currentStepIndex - 1 + totalSteps) % totalSteps;
         this.renderCurrentStep();
@@ -998,7 +1048,9 @@ class IntervalSystemExercise {
 
     navigateToNext() {
         // Navigate to next step (with wrapping)
-        const currentExercise = this.exercises[this.currentExerciseIndex];
+        const currentExercise = this.getCurrentExerciseConfig();
+        if (!currentExercise || !currentExercise.steps) return;
+
         const totalSteps = currentExercise.steps.length;
 
         // Get current and next step
@@ -1174,7 +1226,8 @@ class IntervalSystemExercise {
     }
 
     nextStep() {
-        const currentExercise = this.exercises[this.currentExerciseIndex];
+        const currentExercise = this.getCurrentExerciseConfig();
+        if (!currentExercise || !currentExercise.steps) return;
 
         if (this.currentStepIndex < currentExercise.steps.length - 1) {
             // Move to next step in current exercise
@@ -1319,8 +1372,46 @@ class IntervalSystemExercise {
 
     exit() {
         console.log('exit() called - stopping all audio');
+
+        // Check if we're in practice mode and should auto-continue
+        if (this.practiceMode && this.repetitionsCompleted >= this.maxRepetitions) {
+            console.log('[Practice Mode] Auto-continuing to next exercise');
+
+            // Stop current audio
+            this.stopAll();
+
+            // Determine next exercise
+            if (this.doAllExercises) {
+                // Sequential mode: move to next exercise
+                this.currentExerciseIndex++;
+                if (this.currentExerciseIndex >= this.exercises.length) {
+                    // Loop back to first exercise
+                    this.currentExerciseIndex = 0;
+                }
+            } else {
+                // Random mode: pick a random exercise
+                const randomIndex = Math.floor(Math.random() * this.exercises.length);
+                this.currentExerciseIndex = randomIndex;
+            }
+
+            this.repetitionsCompleted = 0;
+            this.currentStepIndex = 0;
+
+            // Generate new tones and restart
+            this.generateNewTones();
+            this.updateDisplay();
+            this.renderCurrentStep();
+
+            // Restart tip rotation
+            this.startTipRotation();
+            return;
+        }
+
         // Stop all audio
         this.stopAll();
+
+        // Stop tip rotation
+        this.stopTipRotation();
 
         // Remove full-screen class
         this.container.classList.remove('unison-fullscreen');
@@ -1334,6 +1425,82 @@ class IntervalSystemExercise {
         // Clear exercise from URL
         if (window.earTrainerApp && window.earTrainerApp.clearExerciseFromURL) {
             window.earTrainerApp.clearExerciseFromURL();
+        }
+    }
+
+    // ===========================
+    // Tip Rotation Methods
+    // ===========================
+
+    startTipRotation() {
+        // Stop any existing rotation
+        this.stopTipRotation();
+
+        // Get current exercise config
+        const currentExercise = this.exercises[this.currentExerciseIndex];
+        if (!currentExercise) return;
+
+        // Check if exercise has levels
+        let tips = [];
+        if (currentExercise.levels) {
+            // Find the level config
+            const levelConfig = currentExercise.levels.find(l => l.levelNumber === this.currentLevel);
+            if (levelConfig && levelConfig.tips) {
+                tips = levelConfig.tips;
+            }
+        } else if (currentExercise.tips) {
+            // Exercise without levels but has tips
+            tips = currentExercise.tips;
+        }
+
+        // If no tips, hide container and return
+        if (!tips || tips.length === 0) {
+            if (this.tipContainer) {
+                this.tipContainer.style.display = 'none';
+            }
+            return;
+        }
+
+        // Show tip container
+        if (this.tipContainer) {
+            this.tipContainer.style.display = 'block';
+        }
+
+        // Show first tip immediately
+        this.showRandomTip(tips);
+
+        // Set up interval to rotate tips every 10 seconds
+        this.tipRotationInterval = setInterval(() => {
+            this.showRandomTip(tips);
+        }, 10000); // 10 seconds
+    }
+
+    showRandomTip(tips) {
+        if (!tips || tips.length === 0 || !this.tipElement) return;
+
+        // Select a random tip
+        const randomIndex = Math.floor(Math.random() * tips.length);
+        const selectedTip = tips[randomIndex];
+
+        // Update tip text
+        this.tipElement.textContent = `💡 ${selectedTip}`;
+
+        // Restart animation by removing and re-adding the element
+        const parent = this.tipElement.parentNode;
+        const newTip = this.tipElement.cloneNode(true);
+        parent.replaceChild(newTip, this.tipElement);
+        this.tipElement = newTip;
+    }
+
+    stopTipRotation() {
+        if (this.tipRotationInterval) {
+            clearInterval(this.tipRotationInterval);
+            this.tipRotationInterval = null;
+        }
+
+        // Hide tip container
+        if (this.tipContainer) {
+            this.tipContainer.style.display = 'none';
         }
     }
 
@@ -1901,15 +2068,37 @@ class IntervalSystemExercise {
     }
 
     updateRatingLabels(isSliderGlissando) {
-        // Update rating button labels based on exercise type
-        const ratingLabels = this.container.querySelectorAll('.rating-label');
-        ratingLabels.forEach(label => {
-            if (isSliderGlissando) {
-                label.textContent = label.dataset.labelSlider;
-            } else {
-                label.textContent = label.dataset.labelDefault;
-            }
-        });
+        // Get current exercise config with level support
+        const currentExercise = this.getCurrentExerciseConfig();
+
+        // Update rating button labels based on exercise type and level config
+        const ratingButtons = this.container.querySelectorAll('.unison-rating-btn');
+
+        // If exercise has custom rating options (from level config), use those
+        if (currentExercise && currentExercise.ratingOptions) {
+            const ratingOptions = currentExercise.ratingOptions;
+            ratingButtons.forEach(btn => {
+                const rating = btn.dataset.rating; // easy, medium, hard, failed
+                const label = btn.querySelector('.rating-label');
+                if (label) {
+                    // Find matching option
+                    const option = ratingOptions.find(opt => opt.difficulty === rating);
+                    if (option) {
+                        label.textContent = option.label;
+                    }
+                }
+            });
+        } else {
+            // Fall back to original behavior (data attributes)
+            const ratingLabels = this.container.querySelectorAll('.rating-label');
+            ratingLabels.forEach(label => {
+                if (isSliderGlissando) {
+                    label.textContent = label.dataset.labelSlider;
+                } else {
+                    label.textContent = label.dataset.labelDefault;
+                }
+            });
+        }
     }
 
     // Update play/pause icon based on interval playing state

@@ -30,9 +30,11 @@ class TrainingData {
                 //             difficulty: 'easy'|'medium'|'hard'|'failed',
                 //             direction: 'up'|'down'|'none',
                 //             range: 'low'|'middle'|'high',
-                //             exerciseIndex: 0-2 (which system exercise)
+                //             exerciseIndex: 0-2 (which system exercise),
+                //             level: 1-3 (which level of the exercise)
                 //         }
                 //     ],
+                //     currentLevel: 1, // Current unlocked level for this exercise
                 //     lastPracticed: Date,
                 //     nextReview: Date,
                 //     easeFactor: 2.5, // For spaced repetition
@@ -114,10 +116,11 @@ class TrainingData {
     /**
      * Record an exercise attempt
      */
-    recordAttempt(intervalType, difficulty, direction, range, exerciseIndex) {
+    recordAttempt(intervalType, difficulty, direction, range, exerciseIndex, level = 1) {
         if (!this.data.exercises[intervalType]) {
             this.data.exercises[intervalType] = {
                 attempts: [],
+                currentLevel: 1,
                 lastPracticed: null,
                 nextReview: null,
                 easeFactor: 2.5,
@@ -126,6 +129,12 @@ class TrainingData {
         }
 
         const exercise = this.data.exercises[intervalType];
+
+        // Initialize currentLevel if it doesn't exist (for migration)
+        if (!exercise.currentLevel) {
+            exercise.currentLevel = 1;
+        }
+
         const now = new Date().toISOString();
 
         // Add attempt
@@ -134,14 +143,18 @@ class TrainingData {
             difficulty: difficulty,
             direction: direction,
             range: range,
-            exerciseIndex: exerciseIndex
+            exerciseIndex: exerciseIndex,
+            level: level
         });
 
         // Update spaced repetition data
         exercise.lastPracticed = now;
-        this.updateSpacedRepetition(intervalType, difficulty);
+        this.updateSpacedRepetition(intervalType, difficulty, level);
 
-        // Check for unlocks
+        // Check for level unlocks
+        const leveledUp = this.checkLevelUnlock(intervalType, exerciseIndex, level);
+
+        // Check for interval unlocks
         this.checkUnlocks();
 
         // Check if Slider Glissando threshold met for FTUE progression (Glissando Overview unlock)
@@ -155,13 +168,15 @@ class TrainingData {
         }
 
         this.saveData();
+
+        return { leveledUp };
     }
 
     /**
      * Update spaced repetition scheduling
      * Based on SM-2 algorithm
      */
-    updateSpacedRepetition(intervalType, difficulty) {
+    updateSpacedRepetition(intervalType, difficulty, level) {
         const exercise = this.data.exercises[intervalType];
         if (!exercise) return;
 
@@ -288,6 +303,45 @@ class TrainingData {
         }
 
         return newUnlocks;
+    }
+
+    /**
+     * Check if a new level should be unlocked
+     * Returns the new level if unlocked, or null if not
+     */
+    checkLevelUnlock(intervalType, exerciseIndex, currentLevel) {
+        const exercise = this.data.exercises[intervalType];
+        if (!exercise || !exercise.attempts) {
+            return null;
+        }
+
+        // Filter attempts for this specific exerciseIndex and level
+        const levelAttempts = exercise.attempts.filter(
+            a => a.exerciseIndex === exerciseIndex && a.level === currentLevel
+        );
+
+        // Need at least 10 attempts at this level
+        if (levelAttempts.length < 10) {
+            return null;
+        }
+
+        // Get last 10 attempts for this level
+        const lastAttempts = levelAttempts.slice(-10);
+        const easyCount = lastAttempts.filter(a => a.difficulty === 'easy').length;
+
+        // If 8/10 are easy, unlock next level
+        if (easyCount >= 8) {
+            const nextLevel = currentLevel + 1;
+
+            // Only unlock if we're at the current level (don't skip levels)
+            if (currentLevel === exercise.currentLevel) {
+                exercise.currentLevel = nextLevel;
+                console.log(`Level ${nextLevel} unlocked for ${intervalType} exercise ${exerciseIndex}`);
+                return nextLevel;
+            }
+        }
+
+        return null;
     }
 
     /**

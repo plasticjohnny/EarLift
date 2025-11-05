@@ -38,21 +38,40 @@ jobs:
             sounds/**
             images/**
 
-      - name: Deploy via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USER }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: /earlift/
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            **/*.md
-            **/deploy*.sh
-            **/create-icons.html
-            **/example-new-architecture.html
-            **/.deploy.json
-            **/archive/**
-            **/.checksums/**
+      - name: Install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
+      - name: Deploy via LFTP
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          # Deploy root files
+          for file in *.html *.css *.js *.json *.png *.svg *.jpg *.jpeg *.ico *.wav; do
+            if [ -f "$file" ]; then
+              echo "Uploading $file..."
+              lftp -c "
+              set ftp:ssl-allow no
+              set ftp:passive-mode on
+              open -u '$FTP_USER,$FTP_PASSWORD' $FTP_HOST
+              cd /earlift
+              put '$file'
+              bye
+              "
+            fi
+          done
+
+          # Deploy directories
+          for dir in core adapters ui lib sounds images; do
+            if [ -d "$dir" ]; then
+              echo "Uploading directory $dir..."
+              lftp -c "
+              set ftp:ssl-allow no
+              set ftp:passive-mode on
+              open -u '$FTP_USER,$FTP_PASSWORD' $FTP_HOST
+              mirror -R --verbose --delete --parallel=3 '$dir' '/earlift/$dir'
+              bye
+              "
+            fi
+          done

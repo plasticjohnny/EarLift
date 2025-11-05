@@ -41,62 +41,29 @@ jobs:
       - name: Install lftp
         run: sudo apt-get update && sudo apt-get install -y lftp
 
-      - name: Calculate checksums and deploy
+      - name: Test FTP connection and upload single file
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USER: ${{ secrets.FTP_USER }}
           FTP_PASS: ${{ secrets.FTP_PASSWORD }}
-          FTP_DEST: /earlift
         run: |
-          set -e
+          echo "Testing FTP connection to $FTP_HOST as $FTP_USER..."
+          echo "Password length: ${#FTP_PASS}"
 
-          echo "Starting deployment to $FTP_DEST..."
+          # Create a test file
+          echo "Test deployment from GitHub Actions at $(date)" > test-deploy.txt
 
-          # Use a single lftp session with batch commands
+          # Test upload
+          echo "Uploading test file..."
           lftp -c "
             set ftp:ssl-allow no
             set ftp:passive-mode on
-            set net:max-retries 2
-            set net:timeout 30
+            set ftp:debug 3
             open -u '$FTP_USER,$FTP_PASS' $FTP_HOST
-
-            # Create destination directory
-            mkdir -p '$FTP_DEST'
-            cd '$FTP_DEST'
-
-            # Upload all root files
-            lcd '$GITHUB_WORKSPACE'
-            mput -O '$FTP_DEST' *.html || echo 'No HTML files'
-            mput -O '$FTP_DEST' *.css || echo 'No CSS files'
-            mput -O '$FTP_DEST' *.js || echo 'No JS files'
-            mput -O '$FTP_DEST' *.json || echo 'No JSON files'
-            mput -O '$FTP_DEST' *.png || echo 'No PNG files'
-            mput -O '$FTP_DEST' *.svg || echo 'No SVG files'
-            mput -O '$FTP_DEST' *.jpg || echo 'No JPG files'
-            mput -O '$FTP_DEST' *.jpeg || echo 'No JPEG files'
-            mput -O '$FTP_DEST' *.ico || echo 'No ICO files'
-            mput -O '$FTP_DEST' *.wav || echo 'No WAV files'
-
+            cd /earlift
+            put test-deploy.txt
+            ls -la test-deploy.txt
             bye
           "
 
-          # Upload directories with mirror (one connection per directory)
-          for dir in core adapters ui lib sounds images; do
-            if [ -d "$dir" ]; then
-              echo "Mirroring directory: $dir"
-              lftp -c "
-                set ftp:ssl-allow no
-                set ftp:passive-mode on
-                set net:max-retries 2
-                set net:timeout 30
-                open -u '$FTP_USER,$FTP_PASS' $FTP_HOST
-                mirror -R --verbose --parallel=2 --use-cache '$dir' '$FTP_DEST/$dir'
-                bye
-              "
-              # Add delay between directory uploads to avoid rate limiting
-              sleep 2
-            fi
-          done
-
-          echo ""
-          echo "Deployment complete!"
+          echo "Test upload complete!"
